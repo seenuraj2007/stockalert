@@ -1,6 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@supabase/supabase-js'
 import { getUserFromRequest } from '@/lib/auth'
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+function createServiceClient() {
+  if (!supabaseServiceKey) {
+    throw new Error('SUPABASE_SERVICE_ROLE_KEY is not defined')
+  }
+  return createClient(supabaseUrl, supabaseServiceKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
+    }
+  })
+}
 
 export async function GET(req: NextRequest) {
   try {
@@ -9,6 +24,8 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    const supabase = createServiceClient()
+
     const { searchParams } = new URL(req.url)
     const status = searchParams.get('status')
 
@@ -16,8 +33,8 @@ export async function GET(req: NextRequest) {
       .from('stock_transfers')
       .select(`
         *,
-        locations!from_location_id (name),
-        locations!to_location_id (name),
+        from_location:locations!from_location_id (name),
+        to_location:locations!to_location_id (name),
         stock_transfer_items (count)
       `)
       .eq('user_id', user.id)
@@ -34,7 +51,11 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Failed to fetch transfers' }, { status: 500 })
     }
 
-    return NextResponse.json({ transfers: transfers || [] })
+    return NextResponse.json({ transfers: transfers || [] }, {
+      headers: {
+        'Cache-Control': 'private, max-age=10, stale-while-revalidate=30'
+      }
+    })
   } catch (error) {
     console.error('Get stock transfers error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
@@ -47,6 +68,8 @@ export async function POST(req: NextRequest) {
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
+
+    const supabase = createServiceClient()
 
     const body = await req.json()
     const { from_location_id, to_location_id, items, notes } = body
@@ -90,8 +113,8 @@ export async function POST(req: NextRequest) {
       .from('stock_transfers')
       .select(`
         *,
-        locations!from_location_id (name),
-        locations!to_location_id (name)
+        from_location:locations!from_location_id (name),
+        to_location:locations!to_location_id (name)
       `)
       .eq('id', transfer.id)
       .single()

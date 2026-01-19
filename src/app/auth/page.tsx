@@ -26,10 +26,30 @@ export default function AuthPage() {
     setError('')
     setLoading(true)
 
+    if (!email || !password) {
+      setError('Please fill in all required fields')
+      setLoading(false)
+      return
+    }
+
+    if (!email.includes('@') || !email.includes('.')) {
+      setError('Please enter a valid email address')
+      setLoading(false)
+      return
+    }
+
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters')
+      setLoading(false)
+      return
+    }
+
     try {
       const endpoint = isLogin ? '/api/auth/login' : '/api/auth/signup'
       const body = isLogin ? { email, password } : { email, password, full_name: fullName }
       const csrfToken = getCSRFToken()
+
+      console.log('Sending:', { endpoint, body })
 
       const res = await fetch(endpoint, {
         method: 'POST',
@@ -50,8 +70,14 @@ export default function AuthPage() {
       router.push('/dashboard')
       router.refresh()
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Authentication failed'
-      setError(message)
+      const errorObj = err as { details?: Array<{ field: string; message: string }>; message?: string }
+      if (errorObj.details) {
+        const messages = errorObj.details.map(d => d.message).join(', ')
+        setError(messages)
+      } else {
+        const message = errorObj.message || 'Authentication failed'
+        setError(message)
+      }
     } finally {
       setLoading(false)
     }

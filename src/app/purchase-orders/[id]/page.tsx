@@ -6,8 +6,8 @@ import { ArrowLeft, FileText, Package, Truck, Edit, ArrowUpRight, Trash2, CheckC
 import Link from 'next/link'
 
 interface OrderItem {
-  id: number
-  product_id: number
+  id: string
+  product_id: string
   product_name: string
   product_sku: string | null
   quantity: number
@@ -17,7 +17,7 @@ interface OrderItem {
 }
 
 interface PurchaseOrder {
-  id: number
+  id: string
   order_number: string
   status: 'pending' | 'sent' | 'received' | 'cancelled'
   total_cost: number
@@ -33,7 +33,7 @@ export default function PurchaseOrderDetailsPage({ params }: { params: Promise<{
   const [order, setOrder] = useState<PurchaseOrder | null>(null)
   const [items, setItems] = useState<OrderItem[]>([])
   const [loading, setLoading] = useState(true)
-  const [updating, setUpdating] = useState<number | null>(null)
+  const [updating, setUpdating] = useState<string | null>(null)
 
   useEffect(() => {
     fetchOrderDetails()
@@ -44,8 +44,8 @@ export default function PurchaseOrderDetailsPage({ params }: { params: Promise<{
       const res = await fetch(`/api/purchase-orders/${resolvedParams?.id}`)
       if (!res.ok) throw new Error('Failed to fetch order')
       const data = await res.json()
-      setOrder(data.purchase_order)
-      setItems(data.purchase_order.items || [])
+      setOrder(data.order)
+      setItems(data.order.items || [])
     } catch (error) {
       console.error('Error fetching order details:', error)
     } finally {
@@ -66,7 +66,7 @@ export default function PurchaseOrderDetailsPage({ params }: { params: Promise<{
     }
   }
 
-  const updateReceivedQuantity = async (itemId: number, quantity: number) => {
+  const updateReceivedQuantity = async (itemId: string, quantity: number) => {
     setUpdating(itemId)
     try {
       const res = await fetch(`/api/purchase-orders/${resolvedParams?.id}/items/${itemId}`, {

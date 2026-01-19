@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
 import { supabase } from '@/lib/supabase'
 import { signupSchema } from '@/lib/validators'
-import { handleApiError } from '@/lib/errorHandler'
 
 export async function POST(req: NextRequest) {
   try {
@@ -34,17 +34,28 @@ export async function POST(req: NextRequest) {
     })
 
     if (authError) {
-      await supabase.from('organizations').delete().eq('id', orgId)
-      if (authError.message.includes('already registered')) {
-        throw new Error('Email already registered')
+      try {
+        await supabase.from('organizations').delete().eq('id', orgId)
+      } catch (e) {
+        console.error('Failed to cleanup organization:', e)
       }
       console.error('Auth signup error:', authError)
-      throw new Error('Failed to create user')
+      if (authError.status === 400 && authError.code === 'user_already_exists') {
+        return NextResponse.json({ error: 'Email already registered' }, { status: 409 })
+      }
+      return NextResponse.json(
+        { error: authError.message || 'Failed to create user', code: authError.code },
+        { status: authError.status || 500 }
+      )
     }
 
     if (!authData.user) {
-      await supabase.from('organizations').delete().eq('id', orgId)
-      throw new Error('Failed to create user')
+      try {
+        await supabase.from('organizations').delete().eq('id', orgId)
+      } catch (e) {
+        console.error('Failed to cleanup organization:', e)
+      }
+      return NextResponse.json({ error: 'Failed to create user' }, { status: 500 })
     }
 
     const { data: planData } = await supabase
@@ -119,6 +130,19 @@ export async function POST(req: NextRequest) {
     return response
   } catch (error) {
     console.error('Signup error:', error)
-    return handleApiError(error)
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        {
+          error: 'Validation failed',
+          details: error.issues.map(e => ({
+            field: e.path.join('.'),
+            message: e.message
+          }))
+        },
+        { status: 400 }
+      )
+    }
+    const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred'
+    return NextResponse.json({ error: errorMessage }, { status: 500 })
   }
 }

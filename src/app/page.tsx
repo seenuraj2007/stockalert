@@ -85,22 +85,26 @@ export default function HomePage() {
                 <div className="w-3 h-3 rounded-full bg-yellow-400"></div>
                 <div className="w-3 h-3 rounded-full bg-green-400"></div>
               </div>
-              <div className="p-6 bg-gray-50">
+                <div className="p-6 bg-gray-50">
                 <div className="grid grid-cols-4 gap-4 mb-6">
                   {[
-                    { label: 'Total Products', value: '1,247', color: 'from-blue-500 to-blue-600', icon: Package },
-                    { label: 'Low Stock', value: '23', color: 'from-yellow-500 to-orange-500', icon: TrendingDown },
-                    { label: 'Out of Stock', value: '5', color: 'from-red-500 to-red-600', icon: AlertTriangle },
-                    { label: 'This Month', value: '+$48,320', color: 'from-green-500 to-green-600', icon: BarChart3 },
-                  ].map((stat, i) => (
-                    <div key={i} className="bg-white rounded-xl p-4 shadow-sm">
-                      <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${stat.color} flex items-center justify-center mb-3`}>
-                        <stat.icon className="w-5 h-5 text-white" />
+                    { label: 'Total Products', value: '1,247', color: 'from-blue-500 to-blue-600', Icon: Package },
+                    { label: 'Low Stock', value: '23', color: 'from-yellow-500 to-orange-500', Icon: TrendingDown },
+                    { label: 'Out of Stock', value: '5', color: 'from-red-500 to-red-600', Icon: AlertTriangle },
+                    { label: 'This Month', value: '+$48,320', color: 'from-green-500 to-green-600', Icon: BarChart3 },
+                  ].map((stat, i) => {
+                    const IconComponent = stat.Icon
+                    const gradientClass = 'w-10 h-10 rounded-lg bg-gradient-to-br ' + stat.color + ' flex items-center justify-center mb-3'
+                    return (
+                      <div key={i} className="bg-white rounded-xl p-4 shadow-sm">
+                        <div className={gradientClass}>
+                          <IconComponent className="w-5 h-5 text-white" />
+                        </div>
+                        <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
+                        <p className="text-sm text-gray-500">{stat.label}</p>
                       </div>
-                      <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
-                      <p className="text-sm text-gray-500">{stat.label}</p>
-                    </div>
-                  ))}
+                    )
+                  })}
                 </div>
                 <div className="bg-white rounded-xl p-4 shadow-sm">
                   <div className="flex items-center justify-between mb-4">
@@ -212,15 +216,19 @@ export default function HomePage() {
                 description: 'Access your inventory from anywhere. Works seamlessly on mobile and desktop.',
                 color: 'from-yellow-500 to-yellow-600'
               },
-            ].map((feature, i) => (
-              <div key={i} className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 hover:shadow-lg hover:border-gray-200 transition-all group">
-                <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${feature.color} flex items-center justify-center mb-6 group-hover:scale-110 transition-transform`}>
-                  <feature.icon className="w-7 h-7 text-white" />
+            ].map((feature, i) => {
+              const IconComponent = feature.icon
+              const gradientClass = 'w-14 h-14 rounded-xl bg-gradient-to-br ' + feature.color + ' flex items-center justify-center mb-6 group-hover:scale-110 transition-transform'
+              return (
+                <div key={i} className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 hover:shadow-lg hover:border-gray-200 transition-all group">
+                  <div className={gradientClass}>
+                    <IconComponent className="w-7 h-7 text-white" />
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-3">{feature.title}</h3>
+                  <p className="text-gray-600">{feature.description}</p>
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-3">{feature.title}</h3>
-                <p className="text-gray-600">{feature.description}</p>
-              </div>
-            ))}
+              )
+            })}
           </div>
         </div>
       </section>
@@ -261,68 +269,79 @@ export default function HomePage() {
             <p className="text-xl text-gray-600">Start free, upgrade when you're ready.</p>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-            {/* Free Plan */}
-            <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">Free</h3>
-              <p className="text-gray-600 mb-6">Perfect for getting started</p>
-              <div className="mb-6">
-                <span className="text-5xl font-bold text-gray-900">$0</span>
-                <span className="text-gray-500">/month</span>
-              </div>
-              <ul className="space-y-4 mb-8">
-                {[
-                  'Up to 2 team members',
-                  'Up to 50 products',
-                  '1 location',
-                  'Basic inventory tracking',
-                  'Email alerts',
-                  'Mobile access',
-                ].map((feature, i) => (
-                  <li key={i} className="flex items-center gap-3">
-                    <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
-                    <span className="text-gray-600">{feature}</span>
-                  </li>
-                ))}
-              </ul>
-              <Link href="/auth" className="block w-full py-3 px-6 text-center text-gray-700 font-semibold rounded-xl border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-all">
-                Get Started Free
-              </Link>
-            </div>
-
-            {/* Pro Plan */}
-            <div className="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-2xl p-8 shadow-xl relative">
-              <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1 bg-gradient-to-r from-yellow-400 to-orange-400 text-white text-sm font-semibold rounded-full">
-                Most Popular
-              </div>
-              <h3 className="text-2xl font-bold text-white mb-2">Pro</h3>
-              <p className="text-indigo-100 mb-6">For growing businesses</p>
-              <div className="mb-6">
-                <span className="text-5xl font-bold text-white">$29</span>
-                <span className="text-indigo-200">/month</span>
-              </div>
-              <ul className="space-y-4 mb-8">
-                {[
-                  'Unlimited team members',
-                  'Unlimited products',
-                  'Unlimited locations',
-                  'Advanced analytics',
-                  'Priority support',
-                  'API access',
-                  'Custom reports',
-                  'Export to CSV/PDF',
-                ].map((feature, i) => (
-                  <li key={i} className="flex items-center gap-3">
-                    <CheckCircle className="w-5 h-5 text-green-300 flex-shrink-0" />
-                    <span className="text-white">{feature}</span>
-                  </li>
-                ))}
-              </ul>
-              <Link href="/auth" className="block w-full py-3 px-6 text-center text-indigo-600 font-semibold rounded-xl bg-white hover:bg-gray-100 transition-all shadow-lg">
-                Start Free Trial
-              </Link>
-              <p className="text-center text-indigo-200 text-sm mt-4">30-day free trial, no credit card</p>
-            </div>
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[
+              {
+                name: 'Free',
+                price: '$0',
+                description: 'Perfect for personal use',
+                features: ['1 team member', '10 products', '1 location', 'Basic tracking', 'Email support'],
+                color: 'from-blue-500 to-blue-600',
+                cta: 'Get Started Free',
+                ctaClass: 'text-gray-700 border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50',
+              },
+              {
+                name: 'Starter',
+                price: '$9',
+                description: 'Great for small businesses',
+                features: ['3 team members', '100 products', '5 locations', 'Priority email support'],
+                color: 'from-indigo-500 to-indigo-600',
+                cta: 'Start Free Trial',
+                ctaClass: 'text-gray-700 border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50',
+              },
+              {
+                name: 'Professional',
+                price: '$29',
+                description: 'For growing businesses',
+                features: ['10 team members', '1000 products', '20 locations', 'Stock transfers', 'Priority support'],
+                color: 'from-purple-500 to-purple-600',
+                cta: 'Start Free Trial',
+                ctaClass: 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white hover:from-indigo-600 hover:to-purple-700 shadow-lg',
+                popular: true,
+              },
+              {
+                name: 'Enterprise',
+                price: '$99',
+                description: 'Custom solutions',
+                features: ['Unlimited members', 'Unlimited products', 'Unlimited locations', 'Custom integrations', 'Dedicated manager'],
+                color: 'from-orange-500 to-orange-600',
+                cta: 'Contact Sales',
+                ctaClass: 'text-gray-700 border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50',
+              },
+            ].map((plan, i) => {
+              const cardClass = 'bg-white rounded-2xl p-8 shadow-sm border border-gray-100 hover:shadow-lg transition-all relative' + (plan.popular ? ' ring-2 ring-indigo-500' : '')
+              const gradientClass = 'w-14 h-14 rounded-xl bg-gradient-to-br ' + plan.color + ' flex items-center justify-center mb-6'
+              const ctaClass = plan.ctaClass
+              return (
+                <div key={i} className={cardClass}>
+                  {plan.popular && (
+                    <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1 bg-gradient-to-r from-yellow-400 to-orange-400 text-white text-sm font-semibold rounded-full">
+                      Most Popular
+                    </div>
+                  )}
+                  <div className={gradientClass}>
+                    <span className="text-white font-bold text-xl">{plan.name.charAt(0)}</span>
+                  </div>
+                  <h3 className="text-2xl font-bold text-gray-900 mb-2">{plan.name}</h3>
+                  <p className="text-gray-600 mb-4">{plan.description}</p>
+                  <div className="mb-6">
+                    <span className="text-4xl font-bold text-gray-900">{plan.price}</span>
+                    <span className="text-gray-500">/month</span>
+                  </div>
+                  <ul className="space-y-3 mb-8">
+                    {plan.features.map((feature, j) => (
+                      <li key={j} className="flex items-center gap-3">
+                        <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
+                        <span className="text-gray-600 text-sm">{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  <Link href="/auth" className={'block w-full py-3 px-6 text-center font-semibold rounded-xl transition-all ' + ctaClass}>
+                    {plan.cta}
+                  </Link>
+                </div>
+              )
+            })}
           </div>
         </div>
       </section>

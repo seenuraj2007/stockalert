@@ -1,6 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@supabase/supabase-js'
 import { getUserFromRequest } from '@/lib/auth'
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+function createServiceClient() {
+  if (!supabaseServiceKey) {
+    throw new Error('SUPABASE_SERVICE_ROLE_KEY is not defined')
+  }
+  return createClient(supabaseUrl, supabaseServiceKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
+    }
+  })
+}
 
 export async function GET(
   req: NextRequest,
@@ -12,6 +27,8 @@ export async function GET(
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
+
+    const supabase = createServiceClient()
 
     const { data: product, error: productError } = await supabase
       .from('products')
@@ -39,12 +56,16 @@ export async function GET(
       return NextResponse.json({ error: 'Failed to fetch history' }, { status: 500 })
     }
 
-    const formattedHistory = (history || []).map(h => ({
+    const formattedHistory = (history || []).map((h: any) => ({
       ...h,
       location_name: h.locations?.name || null
     }))
 
-    return NextResponse.json({ history: formattedHistory })
+    return NextResponse.json({ history: formattedHistory }, {
+      headers: {
+        'Cache-Control': 'private, max-age=10, stale-while-revalidate=30'
+      }
+    })
   } catch (error) {
     console.error('Get stock history error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

@@ -23,15 +23,26 @@ export async function GET(req: NextRequest) {
       .select('id', { count: 'exact', head: true })
       .eq('organization_id', user.organization_id)
 
-    const { count: productCount } = await supabase
-      .from('products')
-      .select('id', { count: 'exact', head: true })
-      .eq('user_id', user.id)
+    const { data: orgUsers } = await supabase
+      .from('users')
+      .select('id')
+      .eq('organization_id', user.organization_id)
 
-    const { count: locationCount } = await supabase
-      .from('locations')
-      .select('id', { count: 'exact', head: true })
-      .eq('user_id', user.id)
+    const userIds = orgUsers?.map(u => u.id) || []
+
+    const [productResult, locationResult] = await Promise.all([
+      supabase
+        .from('products')
+        .select('id', { count: 'exact', head: true })
+        .in('user_id', userIds),
+      supabase
+        .from('locations')
+        .select('id', { count: 'exact', head: true })
+        .in('user_id', userIds)
+    ])
+
+    const productCount = productResult.count || 0
+    const locationCount = locationResult.count || 0
 
     return NextResponse.json({
       subscription,

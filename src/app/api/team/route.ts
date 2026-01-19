@@ -1,10 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@supabase/supabase-js'
 import { getUserFromRequest } from '@/lib/auth'
 import { PermissionsService } from '@/lib/permissions'
 import bcrypt from 'bcryptjs'
 import { getOrganizationSubscription, hasReachedLimit } from '@/lib/subscription'
-import { AuditService, AuditActions } from '@/lib/audit'
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+function createServiceClient() {
+  if (!supabaseServiceKey) {
+    throw new Error('SUPABASE_SERVICE_ROLE_KEY is not defined')
+  }
+  return createClient(supabaseUrl, supabaseServiceKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
+    }
+  })
+}
 
 // GET /api/team - List team members
 export async function GET(req: NextRequest) {
@@ -13,6 +27,8 @@ export async function GET(req: NextRequest) {
     if (!user || !user.organization_id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
+
+    const supabase = createServiceClient()
 
     const { data: team, error } = await supabase
       .from('users')
@@ -44,6 +60,8 @@ export async function POST(req: NextRequest) {
     if (!PermissionsService.isOwner(user)) {
       return NextResponse.json({ error: 'Only owners can create users' }, { status: 403 })
     }
+
+    const supabase = createServiceClient()
 
     const body = await req.json()
     const { email, password, full_name, role } = body
@@ -129,16 +147,6 @@ export async function POST(req: NextRequest) {
       console.error('Error creating user:', insertError)
       return NextResponse.json({ error: 'Failed to create user' }, { status: 500 })
     }
-
-    AuditService.logAction(
-      user.id,
-      user.organization_id,
-      AuditActions.USER_CREATED,
-      'user',
-      Number(newUser.id),
-      null,
-      { email, full_name, role }
-    )
 
     return NextResponse.json({ user: newUser }, { status: 201 })
   } catch (error) {

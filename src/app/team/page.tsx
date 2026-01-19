@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { Users, UserPlus, Mail, Shield, MoreVertical, X, RefreshCw, Lock } from 'lucide-react'
+import { SubscriptionGate } from '@/components/SubscriptionGate'
 
 interface TeamMember {
   id: number
@@ -133,7 +134,8 @@ export default function TeamPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <SubscriptionGate>
+      <div className="min-h-screen bg-gray-50">
       <nav className="bg-white border-b border-gray-200 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
@@ -331,5 +333,6 @@ export default function TeamPage() {
         </div>
       </main>
     </div>
+    </SubscriptionGate>
   )
 }

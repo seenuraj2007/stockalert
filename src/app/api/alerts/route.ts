@@ -1,6 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@supabase/supabase-js'
 import { getUserFromRequest } from '@/lib/auth'
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+function createServiceClient() {
+  if (!supabaseServiceKey) {
+    throw new Error('SUPABASE_SERVICE_ROLE_KEY is not defined')
+  }
+  return createClient(supabaseUrl, supabaseServiceKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
+    }
+  })
+}
 
 export async function GET(req: NextRequest) {
   try {
@@ -8,6 +23,8 @@ export async function GET(req: NextRequest) {
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
+
+    const supabase = createServiceClient()
 
     const { searchParams } = new URL(req.url)
     const unreadOnly = searchParams.get('unread') === 'true'
@@ -33,12 +50,16 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Failed to fetch alerts' }, { status: 500 })
     }
 
-    const formattedAlerts = (alerts || []).map(alert => ({
+    const formattedAlerts = (alerts || []).map((alert: any) => ({
       ...alert,
       product_name: alert.products?.name || null
     }))
 
-    return NextResponse.json({ alerts: formattedAlerts })
+    return NextResponse.json({ alerts: formattedAlerts }, {
+      headers: {
+        'Cache-Control': 'private, max-age=5, stale-while-revalidate=15'
+      }
+    })
   } catch (error) {
     console.error('Get alerts error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
@@ -51,6 +72,8 @@ export async function PATCH(req: NextRequest) {
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
+
+    const supabase = createServiceClient()
 
     const { alert_ids, mark_as_read } = await req.json()
 

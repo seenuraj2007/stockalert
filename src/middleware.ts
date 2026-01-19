@@ -21,10 +21,15 @@ export function middleware(req: NextRequest) {
     if (stateChangingMethods.includes(req.method)) {
       const csrfToken = req.cookies.get('csrf-token')?.value ||
                         req.headers.get('x-csrf-token')
+
+      console.log('CSRF check:', { endpoint, hasToken: !!csrfToken, token: csrfToken?.substring(0, 20) + '...' })
       
       if (!csrfToken || !validateCSRFToken(csrfToken)) {
+        console.log('CSRF validation failed')
         return new NextResponse(
-          JSON.stringify({ error: 'Invalid CSRF token' }),
+          JSON.stringify({
+            error: 'Invalid CSRF token'
+          }),
           { status: 403, headers: { 'Content-Type': 'application/json' } }
         )
       }
@@ -43,7 +48,7 @@ export function middleware(req: NextRequest) {
           }),
           {
             status: 429,
-            headers: requests: {
+            headers: {
               'Content-Type': 'application/json',
               ...getRateLimitHeaders(result)
             }

@@ -1,40 +1,122 @@
 import Link from 'next/link'
-import { Package, CheckCircle, HelpCircle, ArrowRight, Zap, Shield, BarChart3, Users, MapPin } from 'lucide-react'
+import { Package, CheckCircle, HelpCircle, ArrowRight, Zap, Shield, BarChart3, Users, MapPin, Crown, Star } from 'lucide-react'
 
 export const metadata = {
   title: 'Pricing - StockAlert',
   description: 'Simple, transparent pricing for StockAlert inventory management.',
 }
 
+const plans = [
+  {
+    name: 'free',
+    display_name: 'Free',
+    description: 'Perfect for personal use',
+    price: 0,
+    color: 'from-blue-500 to-blue-600',
+    icon: Users,
+    features: [
+      'Basic inventory tracking',
+      '1 team member',
+      '10 products',
+      '1 location',
+      'Email support',
+    ],
+    cta: 'Get Started Free',
+    popular: false,
+  },
+  {
+    name: 'starter',
+    display_name: 'Starter',
+    description: 'Great for small businesses',
+    price: 9,
+    color: 'from-indigo-500 to-indigo-600',
+    icon: BarChart3,
+    features: [
+      'All features in Free',
+      'Up to 3 team members',
+      'Up to 100 products',
+      'Up to 5 locations',
+      'Priority email support',
+    ],
+    cta: 'Start Free Trial',
+    popular: false,
+  },
+  {
+    name: 'pro',
+    display_name: 'Professional',
+    description: 'For growing businesses',
+    price: 29,
+    color: 'from-purple-500 to-purple-600',
+    icon: Crown,
+    features: [
+      'All features in Starter',
+      'Up to 10 team members',
+      'Up to 1000 products',
+      'Up to 20 locations',
+      'Stock transfers',
+      'Purchase orders',
+      'Bulk operations',
+      'Priority support',
+    ],
+    cta: 'Start Free Trial',
+    popular: true,
+  },
+  {
+    name: 'enterprise',
+    display_name: 'Enterprise',
+    description: 'Custom solutions for large organizations',
+    price: 99,
+    color: 'from-orange-500 to-orange-600',
+    icon: Zap,
+    features: [
+      'All features in Professional',
+      'Unlimited team members',
+      'Unlimited products',
+      'Unlimited locations',
+      'Custom integrations',
+      'Dedicated account manager',
+      'SLA guarantee',
+      'Custom branding',
+    ],
+    cta: 'Contact Sales',
+    popular: false,
+  },
+]
+
 const features = [
-  { feature: 'Products', free: '50', pro: 'Unlimited' },
-  { feature: 'Team Members', free: '2', pro: 'Unlimited' },
-  { feature: 'Locations', free: '1', pro: 'Unlimited' },
-  { feature: 'Inventory Tracking', free: true, pro: true },
-  { feature: 'Low Stock Alerts', free: true, pro: true },
-  { feature: 'Email Notifications', free: true, pro: true },
-  { feature: 'Mobile Access', free: true, pro: true },
-  { feature: 'Basic Reports', free: true, pro: true },
-  { feature: 'Advanced Analytics', free: false, pro: true },
-  { feature: 'Custom Reports', free: false, pro: true },
-  { feature: 'Export to CSV/PDF', free: false, pro: true },
-  { feature: 'API Access', free: false, pro: true },
-  { feature: 'Priority Support', free: false, pro: true },
-  { feature: 'SSO Integration', free: false, pro: true },
-  { feature: 'Custom Integrations', free: false, pro: true },
+  { feature: 'Team Members', free: '1', starter: '3', pro: '10', enterprise: 'Unlimited' },
+  { feature: 'Products', free: '10', starter: '100', pro: '1000', enterprise: 'Unlimited' },
+  { feature: 'Locations', free: '1', starter: '5', pro: '20', enterprise: 'Unlimited' },
+  { feature: 'Inventory Tracking', free: true, starter: true, pro: true, enterprise: true },
+  { feature: 'Low Stock Alerts', free: true, starter: true, pro: true, enterprise: true },
+  { feature: 'Email Notifications', free: true, starter: true, pro: true, enterprise: true },
+  { feature: 'Mobile Access', free: true, starter: true, pro: true, enterprise: true },
+  { feature: 'Basic Reports', free: true, starter: true, pro: true, enterprise: true },
+  { feature: 'Advanced Analytics', free: false, starter: false, pro: true, enterprise: true },
+  { feature: 'Stock Transfers', free: false, starter: false, pro: true, enterprise: true },
+  { feature: 'Purchase Orders', free: false, starter: false, pro: true, enterprise: true },
+  { feature: 'Bulk Operations', free: false, starter: false, pro: true, enterprise: true },
+  { feature: 'Custom Reports', free: false, starter: false, pro: true, enterprise: true },
+  { feature: 'Export to CSV/PDF', free: false, starter: true, pro: true, enterprise: true },
+  { feature: 'API Access', free: false, starter: false, pro: true, enterprise: true },
+  { feature: 'Priority Support', free: false, starter: true, pro: true, enterprise: true },
+  { feature: 'Custom Integrations', free: false, starter: false, pro: false, enterprise: true },
+  { feature: 'Dedicated Account Manager', free: false, starter: false, pro: false, enterprise: true },
+  { feature: 'SLA Guarantee', free: false, starter: false, pro: false, enterprise: true },
+  { feature: 'Custom Branding', free: false, starter: false, pro: false, enterprise: true },
 ]
 
 const faqs = [
   {
     question: 'Is there a free trial?',
-    answer: 'Yes! All new accounts get a 30-day free trial of our Pro plan. No credit card required. At the end of the trial, you can choose to continue with Pro or switch to Free.',
+    answer: 'Yes! All new accounts get a 30-day free trial of our Professional plan. No credit card required. At the end of the trial, you can choose to continue with Professional or switch to a lower plan.',
   },
   {
     question: 'Can I change plans at any time?',
     answer: 'Absolutely. You can upgrade or downgrade your plan at any time. When upgrading, you\'ll get immediate access to new features. When downgrading, changes take effect at your next billing cycle.',
   },
   {
-    question: 'What happens when I exceed my Free plan limits?',
+    question: 'What happens when I exceed my plan limits?',
     answer: 'We\'ll notify you when you\'re approaching your limits. You won\'t be locked out immediately, giving you time to upgrade or manage your data. For security, we do enforce hard limits on team members.',
   },
   {
@@ -47,7 +129,7 @@ const faqs = [
   },
   {
     question: 'Do you offer refunds?',
-    answer: 'We offer a 30-day money-back guarantee for new Pro subscriptions. If you\'re not satisfied, contact support within 30 days of your purchase for a full refund.',
+    answer: 'We offer a 30-day money-back guarantee for new Professional subscriptions. If you\'re not satisfied, contact support within 30 days of your purchase for a full refund.',
   },
 ]
 
@@ -97,90 +179,61 @@ export default function PricingPage() {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto mb-20">
-            <div className="bg-white rounded-3xl p-8 md:p-10 shadow-sm border border-gray-100 hover:shadow-lg transition-shadow">
-              <div className="flex items-center gap-4 mb-6">
-                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center">
-                  <Users className="w-7 h-7 text-white" />
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-20">
+            {plans.map((plan) => (
+              <div
+                key={plan.name}
+                className={`bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-gray-100 hover:shadow-lg transition-all relative ${
+                  plan.popular ? 'ring-2 ring-indigo-500' : ''
+                }`}
+              >
+                {plan.popular && (
+                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1 bg-gradient-to-r from-yellow-400 to-orange-400 text-white text-sm font-semibold rounded-full">
+                    Most Popular
+                  </div>
+                )}
+                <div className="flex items-center gap-4 mb-6">
+                  <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${plan.color} flex items-center justify-center`}>
+                    <plan.icon className="w-7 h-7 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-2xl font-bold text-gray-900">{plan.display_name}</h3>
+                    <p className="text-gray-600 text-sm">{plan.description}</p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="text-2xl font-bold text-gray-900">Free</h3>
-                  <p className="text-gray-600">Perfect for getting started</p>
+                
+                <div className="mb-8">
+                  <span className="text-5xl font-bold text-gray-900">${plan.price}</span>
+                  <span className="text-gray-500 text-lg">/month</span>
                 </div>
-              </div>
-              
-              <div className="mb-8">
-                <span className="text-5xl font-bold text-gray-900">$0</span>
-                <span className="text-gray-500 text-lg">/month</span>
-              </div>
 
-              <ul className="space-y-4 mb-8">
-                {[
-                  'Up to 2 team members',
-                  'Up to 50 products',
-                  '1 location',
-                  'Basic inventory tracking',
-                  'Low stock alerts',
-                  'Email notifications',
-                  'Mobile access',
-                ].map((feature, i) => (
-                  <li key={i} className="flex items-center gap-3">
-                    <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
-                    <span className="text-gray-600">{feature}</span>
-                  </li>
-                ))}
-              </ul>
+                <ul className="space-y-3 mb-8">
+                  {plan.features.map((feature, i) => (
+                    <li key={i} className="flex items-center gap-3">
+                      <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
+                      <span className="text-gray-600 text-sm">{feature}</span>
+                    </li>
+                  ))}
+                </ul>
 
-              <Link href="/auth" className="block w-full py-4 px-6 text-center text-gray-700 font-semibold rounded-xl border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-all">
-                Get Started Free
-              </Link>
-              <p className="text-center text-gray-500 text-sm mt-4">No credit card required</p>
-            </div>
-
-            <div className="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-3xl p-8 md:p-10 shadow-xl relative">
-              <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1 bg-gradient-to-r from-yellow-400 to-orange-400 text-white text-sm font-semibold rounded-full">
-                Most Popular
+                <Link
+                  href="/auth"
+                  className={`block w-full py-4 px-6 text-center font-semibold rounded-xl transition-all ${
+                    plan.popular
+                      ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white hover:from-indigo-600 hover:to-purple-700 shadow-lg'
+                      : 'text-gray-700 border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                  }`}
+                >
+                  {plan.cta}
+                </Link>
+                {plan.price === 0 && (
+                  <p className="text-center text-gray-500 text-sm mt-4">No credit card required</p>
+                )}
+                {plan.price > 0 && (
+                  <p className="text-center text-gray-500 text-sm mt-4">30-day free trial, no credit card</p>
+                )}
               </div>
-              
-              <div className="flex items-center gap-4 mb-6">
-                <div className="w-14 h-14 rounded-2xl bg-white/10 flex items-center justify-center">
-                  <Shield className="w-7 h-7 text-white" />
-                </div>
-                <div>
-                  <h3 className="text-2xl font-bold text-white">Pro</h3>
-                  <p className="text-indigo-200">For growing businesses</p>
-                </div>
-              </div>
-              
-              <div className="mb-8">
-                <span className="text-5xl font-bold text-white">$29</span>
-                <span className="text-indigo-200 text-lg">/month</span>
-              </div>
-
-              <ul className="space-y-4 mb-8">
-                {[
-                  'Unlimited team members',
-                  'Unlimited products',
-                  'Unlimited locations',
-                  'Advanced analytics',
-                  'Custom reports',
-                  'Export to CSV/PDF',
-                  'API access',
-                  'Priority support',
-                  'SSO integration',
-                ].map((feature, i) => (
-                  <li key={i} className="flex items-center gap-3">
-                    <CheckCircle className="w-5 h-5 text-green-300 flex-shrink-0" />
-                    <span className="text-white">{feature}</span>
-                  </li>
-                ))}
-              </ul>
-
-              <Link href="/auth" className="block w-full py-4 px-6 text-center text-indigo-600 font-semibold rounded-xl bg-white hover:bg-gray-100 transition-all shadow-lg">
-                Start Free Trial
-              </Link>
-              <p className="text-center text-indigo-200 text-sm mt-4">30-day free trial, no credit card</p>
-            </div>
+            ))}
           </div>
 
           <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden mb-20">
@@ -194,7 +247,9 @@ export default function PricingPage() {
                   <tr className="bg-gray-50">
                     <th className="text-left py-4 px-6 font-semibold text-gray-900">Feature</th>
                     <th className="text-center py-4 px-6 font-semibold text-gray-900">Free</th>
-                    <th className="text-center py-4 px-6 font-semibold text-indigo-600">Pro</th>
+                    <th className="text-center py-4 px-6 font-semibold text-gray-900">Starter</th>
+                    <th className="text-center py-4 px-6 font-semibold text-indigo-600">Professional</th>
+                    <th className="text-center py-4 px-6 font-semibold text-gray-900">Enterprise</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -213,6 +268,17 @@ export default function PricingPage() {
                         )}
                       </td>
                       <td className="text-center py-4 px-6">
+                        {typeof row.starter === 'boolean' ? (
+                          row.starter ? (
+                            <CheckCircle className="w-5 h-5 text-green-500 mx-auto" />
+                          ) : (
+                            <span className="text-gray-300">—</span>
+                          )
+                        ) : (
+                          <span className="text-gray-700 font-medium">{row.starter}</span>
+                        )}
+                      </td>
+                      <td className="text-center py-4 px-6 bg-indigo-50/30">
                         {typeof row.pro === 'boolean' ? (
                           row.pro ? (
                             <CheckCircle className="w-5 h-5 text-indigo-500 mx-auto" />
@@ -221,6 +287,17 @@ export default function PricingPage() {
                           )
                         ) : (
                           <span className="text-indigo-600 font-medium">{row.pro}</span>
+                        )}
+                      </td>
+                      <td className="text-center py-4 px-6">
+                        {typeof row.enterprise === 'boolean' ? (
+                          row.enterprise ? (
+                            <CheckCircle className="w-5 h-5 text-green-500 mx-auto" />
+                          ) : (
+                            <span className="text-gray-300">—</span>
+                          )
+                        ) : (
+                          <span className="text-gray-700 font-medium">{row.enterprise}</span>
                         )}
                       </td>
                     </tr>

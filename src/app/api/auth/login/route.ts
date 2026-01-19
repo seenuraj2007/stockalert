@@ -1,19 +1,31 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
 import { supabase } from '@/lib/supabase'
 import { loginSchema } from '@/lib/validators'
-import { handleApiError } from '@/lib/errorHandler'
 
 export async function POST(req: NextRequest) {
   try {
-    const validatedData = loginSchema.parse(await req.json())
+    const body = await req.json()
+    const validatedData = loginSchema.parse(body)
 
     const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
       email: validatedData.email,
       password: validatedData.password
     })
 
-    if (authError || !authData.user) {
-      throw new Error('Invalid credentials')
+    if (authError) {
+      console.error('Supabase auth error:', authError)
+      return NextResponse.json(
+        { error: authError.message || 'Invalid email or password' },
+        { status: 401 }
+      )
+    }
+
+    if (!authData.user) {
+      return NextResponse.json(
+        { error: 'User not found after authentication' },
+        { status: 401 }
+      )
     }
 
     const { data: user, error: userError } = await supabase
@@ -22,8 +34,19 @@ export async function POST(req: NextRequest) {
       .eq('id', authData.user.id)
       .single()
 
-    if (userError || !user) {
-      throw new Error('User not found')
+    if (userError) {
+      console.error('User lookup error:', userError)
+      return NextResponse.json(
+        { error: 'Failed to retrieve user profile' },
+        { status: 500 }
+      )
+    }
+
+    if (!user) {
+      return NextResponse.json(
+        { error: 'User profile not found. Please contact support.' },
+        { status: 404 }
+      )
     }
 
     const response = NextResponse.json({ user }, { status: 200 })
@@ -47,6 +70,21 @@ export async function POST(req: NextRequest) {
     return response
   } catch (error) {
     console.error('Login error:', error)
-    return handleApiError(error)
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        {
+          error: 'Validation failed',
+          details: error.issues.map(e => ({
+            field: e.path.join('.'),
+            message: e.message
+          }))
+        },
+        { status: 400 }
+      )
+    }
+    return NextResponse.json(
+      { error: 'An unexpected error occurred. Please try again.' },
+      { status: 500 }
+    )
   }
 }

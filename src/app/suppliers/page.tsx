@@ -5,9 +5,10 @@ import { useRouter } from 'next/navigation'
 import { Plus, Truck, Edit, Trash2, ArrowUpRight } from 'lucide-react'
 import Link from 'next/link'
 import { get, del } from '@/lib/fetch'
+import { SubscriptionGate } from '@/components/SubscriptionGate'
 
 interface Supplier {
-  id: number
+  id: string
   name: string
   contact_person: string | null
   email: string | null
@@ -42,7 +43,7 @@ export default function SuppliersPage() {
     }
   }
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this supplier?')) return
 
     try {
@@ -64,7 +65,8 @@ export default function SuppliersPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <SubscriptionGate>
+      <div className="min-h-screen bg-gray-50">
       <nav className="bg-white border-b border-gray-200 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
@@ -193,5 +195,6 @@ export default function SuppliersPage() {
         </div>
       </main>
     </div>
+    </SubscriptionGate>
   )
 }

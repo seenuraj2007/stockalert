@@ -1,7 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@supabase/supabase-js'
 import { getUserFromRequest } from '@/lib/auth'
 import { PermissionsService } from '@/lib/permissions'
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+function createServiceClient() {
+  if (!supabaseServiceKey) {
+    throw new Error('SUPABASE_SERVICE_ROLE_KEY is not defined')
+  }
+  return createClient(supabaseUrl, supabaseServiceKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
+    }
+  })
+}
 
 // PATCH /api/team/[id] - Update team member role
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -13,6 +28,8 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
     const resolvedParams = await params
     const memberId = resolvedParams.id
+    const supabase = createServiceClient()
+
     const body = await req.json()
     const { role } = body
 
@@ -83,6 +100,7 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
 
     const resolvedParams = await params
     const memberId = resolvedParams.id
+    const supabase = createServiceClient()
 
     // Only owner can remove team members
     if (!PermissionsService.isOwner(user)) {

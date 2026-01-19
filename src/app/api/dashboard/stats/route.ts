@@ -1,7 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@supabase/supabase-js'
 import { getUserFromRequest } from '@/lib/auth'
 import { getOrganizationSubscription } from '@/lib/subscription'
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+function createServiceClient() {
+  if (!supabaseServiceKey) {
+    throw new Error('SUPABASE_SERVICE_ROLE_KEY is not defined')
+  }
+  return createClient(supabaseUrl, supabaseServiceKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
+    }
+  })
+}
 
 export async function GET(req: NextRequest) {
   try {
@@ -10,30 +25,53 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { count: totalProducts } = await supabase
-      .from('products')
-      .select('id', { count: 'exact', head: true })
-      .eq('user_id', user.id)
+    const supabase = createServiceClient()
 
-    const { data: allProducts } = await supabase
-      .from('products')
-      .select('id, current_quantity, reorder_point, name')
-      .eq('user_id', user.id)
+    const [productsCount, productsData, alertsCount] = await Promise.all([
+      supabase
+        .from('products')
+        .select('id', { count: 'exact', head: true })
+        .eq('user_id', user.id),
+      supabase
+        .from('products')
+        .select('id, current_quantity, reorder_point, name')
+        .eq('user_id', user.id)
+        .order('current_quantity', { ascending: true })
+        .limit(20),
+      supabase
+        .from('alerts')
+        .select('id', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+        .eq('is_read', false)
+    ])
 
-    const productsList = allProducts || []
+    let teamMembersCount = 0
+    let locationsCount = 0
 
-    const lowStockProductsCount = productsList.filter(p => p.current_quantity <= p.reorder_point && p.current_quantity > 0).length
-    const outOfStockProductsCount = productsList.filter(p => p.current_quantity === 0).length
-    const lowStockItems = productsList
-      .filter(p => p.current_quantity <= p.reorder_point && p.current_quantity > 0)
-      .sort((a, b) => a.current_quantity - b.current_quantity)
+    if (user.organization_id) {
+      const [teamResult, locationsResult] = await Promise.all([
+        supabase
+          .from('organization_members')
+          .select('id', { count: 'exact', head: true })
+          .eq('organization_id', user.organization_id),
+        supabase
+          .from('locations')
+          .select('id', { count: 'exact', head: true })
+          .eq('organization_id', user.organization_id)
+      ])
+      teamMembersCount = teamResult.count || 0
+      locationsCount = locationsResult.count || 0
+    }
+
+    const totalProducts = productsCount.count
+    const allProducts = productsData.data || []
+    const unreadAlerts = alertsCount.count
+
+    const lowStockProductsCount = allProducts.filter((p: any) => p.current_quantity <= p.reorder_point && p.current_quantity > 0).length
+    const outOfStockProductsCount = allProducts.filter((p: any) => p.current_quantity === 0).length
+    const lowStockItems = allProducts
+      .filter((p: any) => p.current_quantity <= p.reorder_point && p.current_quantity > 0)
       .slice(0, 5)
-
-    const { count: unreadAlerts } = await supabase
-      .from('alerts')
-      .select('id', { count: 'exact', head: true })
-      .eq('user_id', user.id)
-      .eq('is_read', false)
 
     let subscription = null
     if (user.organization_id) {
@@ -59,7 +97,12 @@ export async function GET(req: NextRequest) {
       outOfStockProducts: outOfStockProductsCount,
       unreadAlerts: unreadAlerts || 0,
       lowStockItems: lowStockItems || [],
-      subscription
+      subscription,
+      usage: {
+        teamMembers: teamMembersCount,
+        products: totalProducts || 0,
+        locations: locationsCount
+      }
     })
   } catch (error) {
     console.error('Get dashboard stats error:', error)

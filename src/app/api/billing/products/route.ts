@@ -1,6 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@supabase/supabase-js'
 import { getUserFromRequest } from '@/lib/auth'
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+function createServiceClient() {
+  if (!supabaseServiceKey) {
+    throw new Error('SUPABASE_SERVICE_ROLE_KEY is not defined')
+  }
+  return createClient(supabaseUrl, supabaseServiceKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
+    }
+  })
+}
 
 export async function GET(req: NextRequest) {
   try {
@@ -8,6 +23,8 @@ export async function GET(req: NextRequest) {
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
+
+    const supabase = createServiceClient()
 
     const { searchParams } = new URL(req.url)
     const search = searchParams.get('search') || ''
@@ -46,7 +63,7 @@ export async function GET(req: NextRequest) {
 
     if (error) {
       console.error('Get billing products error:', error)
-      return NextResponse.json({ error: 'Failed to fetch products' }, { status: 500 })
+      return NextResponse.json({ error: 'Failed to fetch products', details: error.message }, { status: 500 })
     }
 
     return NextResponse.json({ products: products || [] })

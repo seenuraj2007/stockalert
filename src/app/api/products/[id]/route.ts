@@ -1,6 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@supabase/supabase-js'
+import { supabase as globalSupabase } from '@/lib/supabase'
 import { getUserFromRequest } from '@/lib/auth'
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+function createServiceClient() {
+  if (!supabaseServiceKey) {
+    throw new Error('SUPABASE_SERVICE_ROLE_KEY is not defined')
+  }
+  return createClient(supabaseUrl, supabaseServiceKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
+    }
+  })
+}
 
 export async function GET(
   req: NextRequest,
@@ -13,6 +29,8 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    const supabase = createServiceClient()
+
     const { data: product, error } = await supabase
       .from('products')
       .select('*')
@@ -24,7 +42,11 @@ export async function GET(
       return NextResponse.json({ error: 'Product not found' }, { status: 404 })
     }
 
-    return NextResponse.json({ product })
+    return NextResponse.json({ product }, {
+      headers: {
+        'Cache-Control': 'private, max-age=10, stale-while-revalidate=30'
+      }
+    })
   } catch (error) {
     console.error('Get product error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
@@ -41,6 +63,8 @@ export async function PUT(
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
+
+    const supabase = createServiceClient()
 
     const body = await req.json()
     const { 
@@ -108,6 +132,8 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    const supabase = createServiceClient()
+
     const { error } = await supabase
       .from('products')
       .delete()
@@ -116,7 +142,7 @@ export async function DELETE(
 
     if (error) {
       console.error('Delete product error:', error)
-      return NextResponse.json({ error: 'Failed to delete product' }, { status: 500 })
+      return NextResponse.json({ error: 'Failed to delete product', details: error.message }, { status: 500 })
     }
 
     return NextResponse.json({ message: 'Product deleted successfully' })

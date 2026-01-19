@@ -1,38 +1,38 @@
 'use client'
 
-import { useState, useEffect, use } from 'react'
-import { useRouter } from 'next/navigation'
-import { ArrowLeft, Save, MapPin, Mail, Phone, Home } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { ArrowLeft, Save, MapPin } from 'lucide-react'
 import Link from 'next/link'
+import { get } from '@/lib/fetch'
 
-const InputField = ({ label, icon: Icon, type = 'text', name, value, onChange, placeholder, required = false }: any) => (
-  <div>
-    <label className="block text-sm font-semibold text-gray-700 mb-2">
-      {label} {required && <span className="text-red-500">*</span>}
-    </label>
-    <div className="relative">
-      <Icon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-      <input
-        type={type}
-        name={name}
-        value={value}
-        onChange={onChange}
-        placeholder={placeholder}
-        required={required}
-        className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all text-gray-900"
-      />
-    </div>
-  </div>
-)
+interface Location {
+  id: string
+  name: string
+  address: string | null
+  city: string | null
+  state: string | null
+  zip: string | null
+  country: string | null
+  contact_person: string | null
+  email: string | null
+  phone: string | null
+  is_primary: number
+  total_products: number
+}
 
-export default function LocationFormPage({ params }: { params?: Promise<{ id?: string }> }) {
-  const resolvedParams = params ? use(params) : undefined
+interface LocationFormPageProps {
+  editId?: string
+}
+
+export default function LocationFormPage({ editId }: LocationFormPageProps) {
   const router = useRouter()
-  const isEdit = !!resolvedParams?.id
+  const searchParams = useSearchParams()
+  const isEdit = editId || !!searchParams.get('edit')
+  const locationId = editId || undefined
   const [loading, setLoading] = useState(false)
   const [fetching, setFetching] = useState(isEdit)
   const [error, setError] = useState('')
-
   const [formData, setFormData] = useState({
     name: '',
     address: '',
@@ -47,28 +47,31 @@ export default function LocationFormPage({ params }: { params?: Promise<{ id?: s
   })
 
   useEffect(() => {
-    if (isEdit) {
+    if (isEdit && locationId) {
       fetchLocation()
     }
-  }, [resolvedParams?.id])
+  }, [locationId])
 
   const fetchLocation = async () => {
+    setFetching(true)
+    setError('')
+    
     try {
-      const res = await fetch(`/api/locations/${resolvedParams?.id}`)
+      const res = await fetch(`/api/locations/${locationId}`)
       if (!res.ok) throw new Error('Failed to fetch location')
       const data = await res.json()
-      const location = data.location
+      
       setFormData({
-        name: location.name,
-        address: location.address || '',
-        city: location.city || '',
-        state: location.state || '',
-        zip: location.zip || '',
-        country: location.country || '',
-        contact_person: location.contact_person || '',
-        email: location.email || '',
-        phone: location.phone || '',
-        is_primary: location.is_primary === 1
+        name: data.location.name || '',
+        address: data.location.address || '',
+        city: data.location.city || '',
+        state: data.location.state || '',
+        zip: data.location.zip || '',
+        country: data.location.country || '',
+        contact_person: data.location.contact_person || '',
+        email: data.location.email || '',
+        phone: data.location.phone || '',
+        is_primary: data.location.is_primary === 1
       })
     } catch (err) {
       setError('Failed to load location')
@@ -88,7 +91,7 @@ export default function LocationFormPage({ params }: { params?: Promise<{ id?: s
         is_primary: formData.is_primary ? 1 : 0
       }
 
-      const url = isEdit ? `/api/locations/${resolvedParams?.id}` : '/api/locations'
+      const url = isEdit ? `/api/locations/${locationId}` : '/api/locations'
       const method = isEdit ? 'PUT' : 'POST'
 
       const res = await fetch(url, {
@@ -99,15 +102,39 @@ export default function LocationFormPage({ params }: { params?: Promise<{ id?: s
 
       if (!res.ok) {
         const data = await res.json()
-        throw new Error(data.error || 'Failed to save location')
+        setError(data.error || 'Failed to save location')
+        setLoading(false)
+        return
+      }
+
+      const data = await res.json()
+
+      if (isEdit) {
+        setFormData(data.location)
       }
 
       router.push('/locations')
     } catch (err: any) {
-      setError(err.message)
-    } finally {
+      console.error('Error saving location:', err)
+      setError(err.message || 'Failed to save location')
       setLoading(false)
     }
+  }
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this location?')) return
+
+    try {
+      const res = await fetch(`/api/locations/${id}`, { method: 'DELETE' })
+      if (!res.ok) throw new Error('Failed to delete location')
+      
+      router.push('/locations')
+    } catch (err: any) {
+      console.error('Error deleting location:', err)
+    }
+  }
+
+  if (fetching) {
   }
 
   if (fetching) {
@@ -123,30 +150,32 @@ export default function LocationFormPage({ params }: { params?: Promise<{ id?: s
       <nav className="bg-white border-b border-gray-200 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <Link href="/locations" className="flex items-center gap-3">
+            <Link href="/dashboard" className="flex items-center gap-3">
               <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center">
                 <MapPin className="w-5 h-5 text-white" />
               </div>
               <span className="text-xl font-bold text-gray-900">StockAlert</span>
             </Link>
+
+            <div className="flex items-center gap-4">
+              <Link
+                href="/dashboard"
+                className="text-gray-600 hover:text-gray-900 transition-colors text-sm font-medium"
+              >
+                Dashboard
+              </Link>
+            </div>
           </div>
         </div>
       </nav>
 
-      <main className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
-          <Link
-            href="/locations"
-            className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors mb-4"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back to Locations
-          </Link>
           <h1 className="text-3xl font-bold text-gray-900">
-            {isEdit ? 'Edit Location' : 'Add New Location'}
+            {isEdit ? 'Edit Location' : 'New Location'}
           </h1>
-          <p className="text-gray-500 mt-1">
-            {isEdit ? 'Update location information' : 'Add a new storage location'}
+          <p className="text-gray-500">
+            {isEdit ? 'Update location details' : 'Add a new storage location'}
           </p>
         </div>
 
@@ -156,131 +185,181 @@ export default function LocationFormPage({ params }: { params?: Promise<{ id?: s
           </div>
         )}
 
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <InputField
-                label="Location Name"
-                icon={MapPin}
-                name="name"
-                value={formData.name}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, name: e.target.value })}
-                placeholder="Main Warehouse"
-                required
-              />
-
-              <InputField
-                label="Address"
-                icon={MapPin}
-                name="address"
-                value={formData.address}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, address: e.target.value })}
-                placeholder="123 Main St"
-              />
-
-              <InputField
-                label="City"
-                icon={MapPin}
-                name="city"
-                value={formData.city}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, city: e.target.value })}
-                placeholder="New York"
-              />
-
-              <InputField
-                label="State"
-                icon={MapPin}
-                name="state"
-                value={formData.state}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, state: e.target.value })}
-                placeholder="NY"
-              />
-
-              <InputField
-                label="ZIP Code"
-                icon={MapPin}
-                name="zip"
-                value={formData.zip}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, zip: e.target.value })}
-                placeholder="10001"
-              />
-
-              <InputField
-                label="Country"
-                icon={MapPin}
-                name="country"
-                value={formData.country}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, country: e.target.value })}
-                placeholder="USA"
-              />
-            </div>
-
-            <div className="pt-6 border-t border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Contact Information</h3>
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+          <form onSubmit={handleSubmit}>
+            <div className="p-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <InputField
-                  label="Contact Person"
-                  icon={MapPin}
-                  name="contact_person"
-                  value={formData.contact_person}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, contact_person: e.target.value })}
-                  placeholder="John Doe"
-                />
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Location Name *
+                    </label>
+                    <input
+                      type="text"
+                      name="name"
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all"
+                      placeholder="e.g., Main Warehouse"
+                      required
+                    />
+                  </div>
 
-                <InputField
-                  label="Email"
-                  icon={Mail}
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, email: e.target.value })}
-                  placeholder="location@example.com"
-                />
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Address
+                    </label>
+                    <input
+                      type="text"
+                      name="address"
+                      value={formData.address}
+                      onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                      className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all"
+                      placeholder="Street address"
+                    />
+                  </div>
 
-                <InputField
-                  label="Phone"
-                  icon={Phone}
-                  type="tel"
-                  name="phone"
-                  value={formData.phone}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, phone: e.target.value })}
-                  placeholder="+1 234 567 8900"
-                />
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      City
+                    </label>
+                    <input
+                      type="text"
+                      name="city"
+                      value={formData.city}
+                      onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                      className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all"
+                      placeholder="City name"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      State
+                    </label>
+                    <input
+                      type="text"
+                      name="state"
+                      value={formData.state}
+                      onChange={(e) => setFormData({ ...formData, state: e.target.value })}
+                      className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all"
+                      placeholder="State/Province"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      ZIP Code
+                    </label>
+                    <input
+                      type="text"
+                      name="zip"
+                      value={formData.zip}
+                      onChange={(e) => setFormData({ ...formData, zip: e.target.value })}
+                      className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all"
+                      placeholder="ZIP/Postal code"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Country
+                    </label>
+                    <input
+                      type="text"
+                      name="country"
+                      value={formData.country}
+                      onChange={(e) => setFormData({ ...formData, country: e.target.value })}
+                      className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all"
+                      placeholder="Country"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Contact Person
+                    </label>
+                    <input
+                      type="text"
+                      name="contact_person"
+                      value={formData.contact_person}
+                      onChange={(e) => setFormData({ ...formData, contact_person: e.target.value })}
+                      className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all"
+                      placeholder="Full name"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Email
+                    </label>
+                    <input
+                      type="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all"
+                      placeholder="email@example.com"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Phone
+                    </label>
+                    <input
+                      type="tel"
+                      name="phone"
+                      value={formData.phone}
+                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                      className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all"
+                      placeholder="+1 234 567 8900"
+                    />
+                  </div>
+
+                  <div className="flex items-center gap-3 mt-4">
+                    <input
+                      type="checkbox"
+                      id="is_primary"
+                      name="is_primary"
+                      checked={formData.is_primary}
+                      onChange={(e) => setFormData({ ...formData, is_primary: e.target.checked })}
+                      className="w-5 h-5 rounded border-gray-300 text-indigo-600 focus:ring-2 focus:ring-indigo-500"
+                    />
+                    <label htmlFor="is_primary" className="text-sm text-gray-700">
+                      Set as primary location
+                    </label>
+                  </div>
+                </div>
               </div>
             </div>
 
-            <div className="pt-6 border-t border-gray-200">
-              <label className="flex items-center gap-3 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={formData.is_primary}
-                  onChange={(e) => setFormData({ ...formData, is_primary: e.target.checked })}
-                  className="w-5 h-5 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
-                />
-                <div className="flex items-center gap-2">
-                  <Home className="w-5 h-5 text-indigo-600" />
-                  <span className="font-medium text-gray-900">Set as Primary Location</span>
-                </div>
-              </label>
-              <p className="text-sm text-gray-500 mt-2 ml-8">
-                Primary location is used as default for new products
-              </p>
-            </div>
-
-            <div className="pt-6 flex justify-end gap-4">
+            <div className="flex items-center justify-end gap-3 px-6 py-4 bg-gray-50 border-t border-gray-100">
               <Link
                 href="/locations"
-                className="px-6 py-3 border border-gray-300 rounded-xl font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                className="text-gray-600 hover:text-gray-900 transition-colors flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium"
               >
+                <ArrowLeft className="w-4 h-4" />
                 Cancel
               </Link>
               <button
                 type="submit"
                 disabled={loading}
-                className="px-6 py-3 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-xl font-medium hover:from-indigo-600 hover:to-purple-700 transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-6 py-2.5 rounded-xl font-medium hover:from-indigo-600 hover:to-purple-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
               >
-                <Save className="w-4 h-4" />
-                {loading ? 'Saving...' : (isEdit ? 'Update Location' : 'Add Location')}
+                {loading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-4 h-4" />
+                    {isEdit ? 'Update Location' : 'Add Location'}
+                  </>
+                )}
               </button>
             </div>
           </form>

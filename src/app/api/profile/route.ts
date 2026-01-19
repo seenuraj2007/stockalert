@@ -1,7 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@supabase/supabase-js'
 import { getUserFromRequest } from '@/lib/auth'
-import bcrypt from 'bcryptjs'
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+function createServiceClient() {
+  if (!supabaseServiceKey) {
+    throw new Error('SUPABASE_SERVICE_ROLE_KEY is not defined')
+  }
+  return createClient(supabaseUrl, supabaseServiceKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
+    }
+  })
+}
 
 export async function GET(req: NextRequest) {
   try {
@@ -10,10 +24,12 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    const supabase = createServiceClient()
+
     const { data: org, error: orgError } = await supabase
       .from('organizations')
       .select('id, name')
-      .eq('id', user.organization_id!)
+      .eq('id', user.organization_id || '')
       .single()
 
     return NextResponse.json({
@@ -41,47 +57,16 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    const supabase = createServiceClient()
+
     const body = await req.json()
-    const { full_name, current_password, new_password } = body
+    const { full_name } = body
 
     if (full_name !== undefined) {
       await supabase
         .from('users')
         .update({ full_name: full_name || null })
         .eq('id', user.id)
-    }
-
-    if (current_password && new_password) {
-      const { data: userData, error: userError } = await supabase
-        .from('users')
-        .select('password')
-        .eq('id', user.id)
-        .single()
-
-      if (userError || !userData) {
-        return NextResponse.json({ error: 'User not found' }, { status: 404 })
-      }
-
-      const validPassword = await bcrypt.compare(current_password, userData.password)
-      
-      if (!validPassword) {
-        return NextResponse.json({ error: 'Current password is incorrect' }, { status: 400 })
-      }
-
-      if (new_password.length < 8) {
-        return NextResponse.json({ error: 'New password must be at least 8 characters' }, { status: 400 })
-      }
-
-      const hashedPassword = await bcrypt.hash(new_password, 10)
-      
-      const { error: updateError } = await supabase.auth.admin.updateUserById(user.id, {
-        password: new_password
-      })
-
-      if (updateError) {
-        console.error('Password update error:', updateError)
-        return NextResponse.json({ error: 'Failed to update password' }, { status: 500 })
-      }
     }
 
     const { data: updatedUser } = await supabase

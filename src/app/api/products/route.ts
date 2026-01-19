@@ -1,11 +1,45 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@supabase/supabase-js'
+import { supabase as globalSupabase } from '@/lib/supabase'
 import { getUserFromRequest } from '@/lib/auth'
 import { getOrganizationSubscription, hasReachedLimit } from '@/lib/subscription'
 
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+function createServiceClient() {
+  if (!supabaseServiceKey) {
+    throw new Error('SUPABASE_SERVICE_ROLE_KEY is not defined')
+  }
+  return createClient(supabaseUrl, supabaseServiceKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
+    }
+  })
+}
+
+function createAuthenticatedClient(accessToken: string) {
+  return createClient(supabaseUrl, supabaseAnonKey, {
+    global: {
+      headers: {
+        Authorization: `Bearer ${accessToken}`
+      }
+    }
+  })
+}
+
 export async function GET(req: NextRequest) {
   try {
+    const accessToken = req.cookies.get('sb-access-token')?.value
+    if (!accessToken) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const supabase = createServiceClient()
     const user = await getUserFromRequest(req)
+    
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
@@ -30,17 +64,21 @@ export async function GET(req: NextRequest) {
 
     if (error) {
       console.error('Get products error:', error)
-      return NextResponse.json({ error: 'Failed to fetch products' }, { status: 500 })
+      return NextResponse.json({ error: 'Failed to fetch products', details: error.message }, { status: 500 })
     }
 
-    const productsWithAlerts = (products || []).map(product => ({
+    const productsWithAlerts = (products || []).map((product: any) => ({
       ...product,
       needs_restock: product.current_quantity <= product.reorder_point,
       is_out_of_stock: product.current_quantity === 0,
       profit_margin: product.selling_price > 0 ? ((product.selling_price - product.unit_cost) / product.selling_price * 100).toFixed(1) : '0'
     }))
 
-    return NextResponse.json({ products: productsWithAlerts })
+    return NextResponse.json({ products: productsWithAlerts }, {
+      headers: {
+        'Cache-Control': 'private, max-age=5, stale-while-revalidate=30'
+      }
+    })
   } catch (error) {
     console.error('Get products error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
@@ -49,7 +87,14 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
+    const accessToken = req.cookies.get('sb-access-token')?.value
+    if (!accessToken) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const supabase = createServiceClient()
     const user = await getUserFromRequest(req)
+    
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
@@ -78,7 +123,7 @@ export async function POST(req: NextRequest) {
 
     if (user.organization_id) {
       const subscription = await getOrganizationSubscription(user.organization_id)
-      if (subscription && subscription.status !== 'trial') {
+      if (subscription) {
         if (subscription.status === 'expired' || subscription.status === 'cancelled') {
           return NextResponse.json({ error: 'Subscription is not active' }, { status: 403 })
         }
@@ -127,7 +172,7 @@ export async function POST(req: NextRequest) {
 
     if (productError || !product) {
       console.error('Create product error:', productError)
-      return NextResponse.json({ error: 'Failed to create product' }, { status: 500 })
+      return NextResponse.json({ error: 'Failed to create product', details: productError?.message }, { status: 500 })
     }
 
     const { data: location } = await supabase

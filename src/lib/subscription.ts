@@ -204,6 +204,34 @@ export function hasReachedLimit(
   return currentCount >= limit
 }
 
+export function hasExceededAnyLimit(
+  subscription: Subscription | null,
+  usage: { teamMembers: number; products: number; locations: number }
+): { exceeded: boolean; exceededLimits: string[] } {
+  if (!subscription || !subscription.plan) {
+    return { exceeded: true, exceededLimits: ['all'] }
+  }
+
+  const exceededLimits: string[] = []
+
+  if (subscription.plan.max_team_members !== -1 && usage.teamMembers >= subscription.plan.max_team_members) {
+    exceededLimits.push('team_members')
+  }
+
+  if (subscription.plan.max_products !== -1 && usage.products >= subscription.plan.max_products) {
+    exceededLimits.push('products')
+  }
+
+  if (subscription.plan.max_locations !== -1 && usage.locations >= subscription.plan.max_locations) {
+    exceededLimits.push('locations')
+  }
+
+  return {
+    exceeded: exceededLimits.length > 0,
+    exceededLimits
+  }
+}
+
 export function getUsagePercentage(
   subscription: Subscription | null,
   currentCount: number,

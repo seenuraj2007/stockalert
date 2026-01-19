@@ -1,15 +1,11 @@
 import { z } from 'zod'
 
 export const passwordSchema = z.string()
-  .min(12, 'Password must be at least 12 characters')
+  .min(8, 'Password must be at least 8 characters')
+  .max(100, 'Password too long')
   .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
   .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
   .regex(/[0-9]/, 'Password must contain at least one number')
-  .regex(/[^A-Za-z0-9]/, 'Password must contain at least one special character')
-  .refine(
-    (val) => !/(.)\1{2,}/.test(val),
-    'Password must not contain 3 or more consecutive identical characters'
-  )
 
 export const loginSchema = z.object({
   email: z.string().email('Invalid email format'),
@@ -59,4 +55,51 @@ export const supplierSchema = z.object({
   phone: z.string().regex(/^\+?[\d\s-()]+$/, 'Invalid phone number').max(50, 'Phone number must be less than 50 characters').nullable().optional(),
   address: z.string().max(500, 'Address must be less than 500 characters').nullable().optional(),
   notes: z.string().max(2000, 'Notes must be less than 2000 characters').nullable().optional()
+})
+
+export const stockUpdateSchema = z.object({
+  quantity_change: z.number().int().min(1, 'Quantity must be at least 1').max(100000, 'Quantity too large'),
+  change_type: z.enum(['add', 'remove', 'restock'], { message: 'Invalid change type' }),
+  notes: z.string().max(500, 'Notes too long').nullable().optional(),
+  location_id: z.number().int().positive('Invalid location ID').nullable().optional()
+})
+
+export const stockTransferSchema = z.object({
+  from_location_id: z.number().int().positive('Source location is required'),
+  to_location_id: z.number().int().positive('Destination location is required'),
+  items: z.array(z.object({
+    product_id: z.number().int().positive('Product is required'),
+    quantity: z.number().int().positive('Quantity must be positive')
+  })).min(1, 'At least one item is required'),
+  notes: z.string().max(500, 'Notes too long').nullable().optional()
+})
+
+export const purchaseOrderSchema = z.object({
+  supplier_id: z.number().int().positive('Supplier is required'),
+  items: z.array(z.object({
+    product_id: z.number().int().positive('Product is required'),
+    quantity: z.number().int().positive('Quantity must be at least 1'),
+    unit_cost: z.number().nonnegative('Unit cost must be non-negative')
+  })).min(1, 'At least one item is required'),
+  notes: z.string().max(500, 'Notes too long').nullable().optional()
+})
+
+export const roleSchema = z.enum(['owner', 'admin', 'editor', 'viewer'], {
+  message: 'Invalid role'
+})
+
+export const teamMemberSchema = z.object({
+  email: z.string().email('Invalid email'),
+  full_name: z.string().min(1, 'Full name is required').max(100, 'Full name too long').trim(),
+  role: roleSchema
+})
+
+export const idSchema = z.object({
+  id: z.string().regex(/^\d+$/, 'Invalid ID format')
+})
+
+export const paginationSchema = z.object({
+  page: z.string().regex(/^\d+$/, 'Invalid page number').optional(),
+  limit: z.string().regex(/^\d+$/, 'Invalid limit').optional(),
+  search: z.string().max(100, 'Search term too long').optional()
 })

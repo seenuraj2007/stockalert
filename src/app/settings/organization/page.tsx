@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Building, Save, Loader2, AlertCircle, CheckCircle, Users, Calendar, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
+import { SubscriptionGate } from '@/components/SubscriptionGate'
 
 interface Organization {
   id: number
@@ -94,7 +95,8 @@ export default function OrganizationSettingsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <SubscriptionGate>
+      <div className="min-h-screen bg-gray-50">
       <nav className="bg-white border-b border-gray-200 sticky top-0 z-50">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-4 h-16">
@@ -216,5 +218,6 @@ export default function OrganizationSettingsPage() {
         </div>
       </main>
     </div>
+    </SubscriptionGate>
   )
 }

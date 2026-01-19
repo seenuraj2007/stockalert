@@ -14,8 +14,8 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       .from('stock_transfers')
       .select(`
         *,
-        locations!from_location_id (name),
-        locations!to_location_id (name)
+        from_location:locations!from_location_id (name),
+        to_location:locations!to_location_id (name)
       `)
       .eq('id', id)
       .eq('user_id', user.id)
@@ -36,8 +36,8 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     return NextResponse.json({ 
       transfer: { 
         ...transfer, 
-        from_location_name: (transfer.locations as { from?: { name: string } })?.from?.name,
-        to_location_name: (transfer.locations as { to?: { name: string } })?.to?.name,
+        from_location_name: transfer.from_location?.name,
+        to_location_name: transfer.to_location?.name,
         items: items || [] 
       } 
     })
@@ -87,8 +87,8 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       .from('stock_transfers')
       .select(`
         *,
-        locations!from_location_id (name),
-        locations!to_location_id (name)
+        from_location:locations!from_location_id (name),
+        to_location:locations!to_location_id (name)
       `)
       .eq('id', id)
       .single()

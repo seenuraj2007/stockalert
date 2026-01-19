@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, use } from 'react'
+import { useState, useEffect, use, useMemo, memo } from 'react'
 import { useRouter } from 'next/navigation'
 import { ArrowLeft, Plus, Minus, RotateCcw, Package, TrendingUp, AlertTriangle, History, Edit, Trash2, ArrowUpRight } from 'lucide-react'
 import Link from 'next/link'
@@ -49,17 +49,23 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
     notes: ''
   })
 
-  useEffect(() => {
-    fetchProduct()
-    fetchHistory()
-  }, [resolvedParams.id])
-
-  const fetchProduct = async () => {
+  const fetchData = async () => {
+    setLoading(true)
     try {
-      const res = await fetch(`/api/products/${resolvedParams.id}`)
-      if (!res.ok) throw new Error('Failed to fetch product')
-      const data = await res.json()
-      setProduct(data.product)
+      const [productRes, historyRes] = await Promise.all([
+        fetch(`/api/products/${resolvedParams.id}`),
+        fetch(`/api/products/${resolvedParams.id}/history`)
+      ])
+
+      if (!productRes.ok) throw new Error('Failed to fetch product')
+
+      const productData = await productRes.json()
+      setProduct(productData.product)
+
+      if (historyRes.ok) {
+        const historyData = await historyRes.json()
+        setStockHistory(historyData.history)
+      }
     } catch (err) {
       setError('Failed to load product')
     } finally {
@@ -67,21 +73,23 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
     }
   }
 
-  const fetchHistory = async () => {
-    try {
-      const res = await fetch(`/api/products/${resolvedParams.id}/history`)
-      if (res.ok) {
-        const data = await res.json()
-        setStockHistory(data.history)
-      }
-    } catch (err) {
-      console.error('Error fetching history:', err)
-    }
-  }
+  useEffect(() => {
+    fetchData()
+  }, [resolvedParams.id])
+
+  const isLowStock = product ? product.current_quantity <= product.reorder_point : false
+  const isOutOfStock = product ? product.current_quantity === 0 : false
+
+  const recentHistory = useMemo(() => stockHistory.slice(0, 10), [stockHistory])
 
   const handleStockUpdate = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!updateForm.quantity_change) return
+    
+    const quantity = parseInt(updateForm.quantity_change)
+    if (isNaN(quantity) || quantity < 1) {
+      setError('Please enter a valid quantity (minimum 1)')
+      return
+    }
 
     setUpdating(true)
     setError('')
@@ -91,7 +99,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          quantity_change: parseInt(updateForm.quantity_change),
+          quantity_change: quantity,
           change_type: updateForm.change_type,
           notes: updateForm.notes
         })
@@ -103,8 +111,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
       }
 
       setUpdateForm({ quantity_change: '', change_type: 'remove', notes: '' })
-      fetchProduct()
-      fetchHistory()
+      await fetchData()
     } catch (err: any) {
       setError(err.message)
     } finally {
@@ -147,8 +154,22 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+      <div className="min-h-screen bg-gray-50 p-6">
+        <div className="max-w-4xl mx-auto">
+          <div className="h-8 w-48 bg-gray-200 rounded-lg mb-6 animate-pulse" />
+          <div className="bg-white rounded-2xl border border-gray-100 p-6 mb-6">
+            <div className="h-10 w-3/4 bg-gray-200 rounded mb-4 animate-pulse" />
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {[...Array(8)].map((_, i) => (
+                <div key={i}>
+                  <div className="h-4 w-20 bg-gray-200 rounded mb-2 animate-pulse" />
+                  <div className="h-6 w-32 bg-gray-200 rounded animate-pulse" />
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="h-64 bg-gray-200 rounded-2xl animate-pulse" />
+        </div>
       </div>
     )
   }
@@ -160,9 +181,6 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
       </div>
     )
   }
-
-  const isLowStock = product.current_quantity <= product.reorder_point
-  const isOutOfStock = product.current_quantity === 0
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -329,11 +347,11 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                 <History className="w-5 h-5" />
                 Stock History
               </h2>
-              {stockHistory.length === 0 ? (
+              {recentHistory.length === 0 ? (
                 <p className="text-gray-500 text-center py-8">No stock history yet</p>
               ) : (
                 <div className="space-y-4">
-                  {stockHistory.slice(0, 10).map((history) => (
+                  {recentHistory.map((history) => (
                     <div
                       key={history.id}
                       className="flex items-center justify-between p-4 bg-gray-50 rounded-xl"
