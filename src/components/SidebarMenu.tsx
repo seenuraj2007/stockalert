@@ -23,7 +23,6 @@ const navItems: NavItem[] = [
   { href: '/billing', label: 'Billing / POS', icon: Calculator },
   { href: '/alerts', label: 'Alerts', icon: Bell },
   { href: '/team', label: 'Team', icon: Users },
-  // { href: '/settings/integrations', label: 'Integrations', icon: Link2 },
   { href: '/subscription', label: 'Subscription', icon: CreditCard },
   { href: '/profile', label: 'Profile', icon: User },
   { href: '/settings/organization', label: 'Settings', icon: Settings },

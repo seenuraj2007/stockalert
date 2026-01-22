@@ -2,7 +2,7 @@
 
 import { useEffect, useState, memo } from 'react'
 import { useRouter } from 'next/navigation'
-import { Package, TrendingDown, AlertTriangle, Bell, LogOut, Plus, Search, ArrowUpRight, ArrowDownRight, MapPin, Truck, FileText, ArrowUpDown, Menu, X, Users, CreditCard, Zap, Settings, User, Calculator, ChevronRight, TrendingUp, Link2 } from 'lucide-react'
+import { Package, TrendingDown, AlertTriangle, Bell, LogOut, Plus, Search, ArrowUpRight, ArrowDownRight, MapPin, Truck, FileText, ArrowUpDown, Menu, X, Users, CreditCard, Zap, Settings, User, Calculator, ChevronRight, TrendingUp } from 'lucide-react'
 import Link from 'next/link'
 import { SubscriptionGate } from '@/components/SubscriptionGate'
 
@@ -334,16 +334,6 @@ export default function DashboardPage() {
                       <Users className="w-5 h-5 text-gray-600" />
                     </div>
                     Team
-                  </Link>
-                  <Link
-                    href="/settings/integrations"
-                    prefetch={false}
-                    className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-xl font-medium transition-all cursor-pointer hover:shadow-md"
-                  >
-                    <div className="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center">
-                      <Link2 className="w-5 h-5 text-gray-600" />
-                    </div>
-                    Integrations
                   </Link>
                   <Link
                     href="/subscription"
