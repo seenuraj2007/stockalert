@@ -7,13 +7,33 @@ import { getOrganizationSubscription, getAllPlans, getTrialDaysRemaining, isTria
 export async function GET(req: NextRequest) {
   try {
     const user = await getUserFromRequest(req)
-    if (!user || !user.organization_id) {
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    if (!PermissionsService.isOwner(user)) {
-      return NextResponse.json({ error: 'Only owners can view subscription' }, { status: 403 })
+    // If user has no organization, return trial/empty state
+    if (!user.organization_id) {
+      const plans = await getAllPlans()
+      return NextResponse.json({
+        subscription: null,
+        plans,
+        usage: {
+          teamMembers: 1,
+          products: 0,
+          locations: 0
+        },
+        trial: {
+          isActive: true,
+          daysRemaining: 14
+        },
+        needsOrganization: true
+      })
     }
+
+    // Allow any team member to view subscription
+    // if (!PermissionsService.isOwner(user)) {
+    //   return NextResponse.json({ error: 'Only owners can view subscription' }, { status: 403 })
+    // }
 
     const subscription = await getOrganizationSubscription(user.organization_id)
     const plans = await getAllPlans()

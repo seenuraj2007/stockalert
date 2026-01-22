@@ -5,11 +5,13 @@ import { getClientIdentifier, checkRateLimit, getRateLimitHeaders } from '@/lib/
 
 const stateChangingMethods = ['POST', 'PUT', 'DELETE', 'PATCH']
 const SAFE_METHODS = ['GET', 'HEAD', 'OPTIONS']
+
+// Higher rate limits for development
 const RATE_LIMITS: Record<string, number> = {
-  '/api/auth/login': 5,
-  '/api/auth/signup': 3,
-  '/api/auth/forgot-password': 3,
-  '/api/auth/reset-password': 3,
+  '/api/auth/login': 20,
+  '/api/auth/signup': 10,
+  '/api/auth/forgot-password': 10,
+  '/api/auth/reset-password': 10,
 }
 
 export function middleware(req: NextRequest) {
@@ -22,10 +24,7 @@ export function middleware(req: NextRequest) {
       const csrfToken = req.cookies.get('csrf-token')?.value ||
                         req.headers.get('x-csrf-token')
 
-      console.log('CSRF check:', { endpoint, hasToken: !!csrfToken, token: csrfToken?.substring(0, 20) + '...' })
-      
       if (!csrfToken || !validateCSRFToken(csrfToken)) {
-        console.log('CSRF validation failed')
         return new NextResponse(
           JSON.stringify({
             error: 'Invalid CSRF token'

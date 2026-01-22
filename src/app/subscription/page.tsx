@@ -55,15 +55,22 @@ export default function SubscriptionPage() {
         router.push('/auth')
         return
       }
-      if (res.status === 403) {
-        setError('Only owners can view subscription')
+      if (!res.ok) {
+        setError('Failed to load subscription')
         setLoading(false)
         return
       }
       const data = await res.json()
-      setSubscription(data.subscription)
-      setPlans(data.plans)
-      setUsage(data.usage)
+      if (data.needsOrganization) {
+        // User has no organization yet
+        setSubscription(null)
+        setPlans(data.plans || [])
+        setUsage(data.usage)
+      } else {
+        setSubscription(data.subscription)
+        setPlans(data.plans || [])
+        setUsage(data.usage)
+      }
     } catch (err) {
       setError('Failed to load subscription')
     } finally {
@@ -110,17 +117,46 @@ export default function SubscriptionPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="flex flex-col items-center gap-4">
-          <div className="relative">
-            <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-indigo-600"></div>
-            <div className="absolute inset-0 flex items-center justify-center">
-              <Crown className="w-8 h-8 text-indigo-300" />
+      <SidebarLayout>
+        <div className="min-h-screen flex items-center justify-center bg-gray-50">
+          <div className="flex flex-col items-center gap-4">
+            <div className="relative">
+              <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-indigo-600"></div>
+              <div className="absolute inset-0 flex items-center justify-center">
+                <Crown className="w-8 h-8 text-indigo-300" />
+              </div>
             </div>
+            <p className="text-gray-600 font-medium">Loading subscription...</p>
           </div>
-          <p className="text-gray-600 font-medium">Loading subscription...</p>
         </div>
-      </div>
+      </SidebarLayout>
+    )
+  }
+
+  // Show setup prompt if user has no organization
+  if (!subscription) {
+    return (
+      <SidebarLayout>
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="max-w-2xl mx-auto text-center py-16">
+            <div className="w-20 h-20 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl mx-auto mb-6 flex items-center justify-center shadow-xl shadow-indigo-200">
+              <Crown className="w-10 h-10 text-white" />
+            </div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-4">Setup Your Organization</h1>
+            <p className="text-gray-600 mb-8 text-lg">
+              Create your organization to start using StockAlert and access all features.
+            </p>
+            <Link 
+              href="/products/new"
+              className="inline-flex items-center gap-2 bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-600 text-white px-8 py-4 rounded-xl font-semibold hover:from-indigo-600 hover:via-purple-600 hover:to-indigo-700 transition-all shadow-lg hover:shadow-xl cursor-pointer"
+            >
+              <Package className="w-5 h-5" />
+              Add Your First Product
+            </Link>
+            <p className="text-gray-500 mt-4 text-sm">This will automatically create your organization</p>
+          </div>
+        </main>
+      </SidebarLayout>
     )
   }
 

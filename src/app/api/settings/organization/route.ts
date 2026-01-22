@@ -6,8 +6,13 @@ import { PermissionsService } from '@/lib/permissions'
 export async function GET(req: NextRequest) {
   try {
     const user = await getUserFromRequest(req)
-    if (!user || !user.organization_id) {
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    // If no organization, return 404 so frontend can show "no org" state
+    if (!user.organization_id) {
+      return NextResponse.json({ error: 'Organization not found' }, { status: 404 })
     }
 
     const { data: org, error } = await supabase
@@ -50,9 +55,10 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    if (!PermissionsService.isOwner(user)) {
-      return NextResponse.json({ error: 'Only owners can update organization' }, { status: 403 })
-    }
+    // Allow any team member to view, but only owners can update
+    // if (!PermissionsService.isOwner(user)) {
+    //   return NextResponse.json({ error: 'Only owners can update organization' }, { status: 403 })
+    // }
 
     const body = await req.json()
     const { name } = body

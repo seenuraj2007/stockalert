@@ -2,8 +2,9 @@
 
 import { useEffect, useState, memo } from 'react'
 import { useRouter } from 'next/navigation'
-import { Package, TrendingDown, AlertTriangle, Bell, LogOut, Plus, Search, ArrowUpRight, ArrowDownRight, MapPin, Truck, FileText, ArrowUpDown, Menu, X, Users, CreditCard, Zap, Settings, User, Calculator, ChevronRight } from 'lucide-react'
+import { Package, TrendingDown, AlertTriangle, Bell, LogOut, Plus, Search, ArrowUpRight, ArrowDownRight, MapPin, Truck, FileText, ArrowUpDown, Menu, X, Users, CreditCard, Zap, Settings, User, Calculator, ChevronRight, TrendingUp, DollarSign } from 'lucide-react'
 import Link from 'next/link'
+import SidebarMenu from '@/components/SidebarMenu'
 
 interface DashboardStats {
   totalProducts: number
@@ -131,6 +132,7 @@ function SkeletonList() {
 export default function DashboardClient({ initialStats }: { initialStats: DashboardStats | null }) {
   const router = useRouter()
   const [stats, setStats] = useState<DashboardStats | null>(initialStats)
+  const [analytics, setAnalytics] = useState<{ sales: { total: number; count: number } } | null>(null)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [trialDaysLeft, setTrialDaysLeft] = useState<number | null>(null)
 
@@ -158,10 +160,23 @@ export default function DashboardClient({ initialStats }: { initialStats: Dashbo
     }
   }
 
+  const fetchAnalytics = async () => {
+    try {
+      const res = await fetch('/api/analytics?period=30', {
+        credentials: 'include'
+      })
+      const data = await res.json()
+      setAnalytics(data)
+    } catch (error) {
+      console.error('Error fetching analytics:', error)
+    }
+  }
+
   useEffect(() => {
     if (!initialStats) {
       fetchDashboard()
     }
+    fetchAnalytics()
   }, [initialStats])
 
   const handleLogout = async () => {
@@ -248,7 +263,7 @@ export default function DashboardClient({ initialStats }: { initialStats: Dashbo
       )}
 
       <div className="flex">
-        <aside className={`fixed inset-y-0 left-0 z-40 w-72 bg-white/90 backdrop-blur-xl border-r border-gray-200 transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:top-0 lg:left-0 shadow-xl lg:shadow-none ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+        <aside className={`fixed inset-y-0 left-0 z-40 w-72 bg-white/95 backdrop-blur-xl border-r border-gray-200 transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:relative lg:top-0 lg:left-0 shadow-xl lg:shadow-none ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
           <div className="flex flex-col h-full">
             <div className="flex items-center justify-between p-4 border-b border-gray-200 lg:hidden">
               <span className="text-lg font-bold text-gray-900">Menu</span>
@@ -257,80 +272,7 @@ export default function DashboardClient({ initialStats }: { initialStats: Dashbo
               </button>
             </div>
             <div className="flex-1 overflow-y-auto py-3 sm:py-4">
-              <nav className="px-3 sm:px-4 space-y-1 sm:space-y-2">
-                <Link href="/dashboard" className="flex items-center gap-2.5 sm:gap-3 px-3 sm:px-4 py-2.5 sm:py-3 text-gray-900 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl font-semibold border border-indigo-100">
-                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-200">
-                    <Package className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
-                  </div>
-                  <span className="text-sm sm:text-base">Dashboard</span>
-                </Link>
-                <Link href="/products" prefetch={true} className="flex items-center gap-2.5 sm:gap-3 px-3 sm:px-4 py-2.5 sm:py-3 text-gray-700 hover:bg-gray-50 rounded-xl font-medium transition-all cursor-pointer hover:shadow-md">
-                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gray-100 rounded-xl flex items-center justify-center">
-                    <Package className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" />
-                  </div>
-                  <span className="text-sm sm:text-base">Products</span>
-                </Link>
-                <Link href="/locations" prefetch={true} className="flex items-center gap-2.5 sm:gap-3 px-3 sm:px-4 py-2.5 sm:py-3 text-gray-700 hover:bg-gray-50 rounded-xl font-medium transition-all cursor-pointer hover:shadow-md">
-                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gray-100 rounded-xl flex items-center justify-center">
-                    <MapPin className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" />
-                  </div>
-                  <span className="text-sm sm:text-base">Locations</span>
-                </Link>
-                <Link href="/suppliers" prefetch={true} className="flex items-center gap-2.5 sm:gap-3 px-3 sm:px-4 py-2.5 sm:py-3 text-gray-700 hover:bg-gray-50 rounded-xl font-medium transition-all cursor-pointer hover:shadow-md">
-                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gray-100 rounded-xl flex items-center justify-center">
-                    <Truck className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" />
-                  </div>
-                  <span className="text-sm sm:text-base">Suppliers</span>
-                </Link>
-                <Link href="/purchase-orders" prefetch={true} className="flex items-center gap-2.5 sm:gap-3 px-3 sm:px-4 py-2.5 sm:py-3 text-gray-700 hover:bg-gray-50 rounded-xl font-medium transition-all cursor-pointer hover:shadow-md">
-                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gray-100 rounded-xl flex items-center justify-center">
-                    <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" />
-                  </div>
-                  <span className="text-sm sm:text-base">Purchase Orders</span>
-                </Link>
-                <Link href="/stock-transfers" prefetch={true} className="flex items-center gap-2.5 sm:gap-3 px-3 sm:px-4 py-2.5 sm:py-3 text-gray-700 hover:bg-gray-50 rounded-xl font-medium transition-all cursor-pointer hover:shadow-md">
-                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gray-100 rounded-xl flex items-center justify-center">
-                    <ArrowUpDown className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" />
-                  </div>
-                  <span className="text-sm sm:text-base">Stock Transfers</span>
-                </Link>
-                <Link href="/billing" prefetch={false} className="flex items-center gap-2.5 sm:gap-3 px-3 sm:px-4 py-2.5 sm:py-3 text-gray-700 hover:bg-gray-50 rounded-xl font-medium transition-all cursor-pointer hover:shadow-md">
-                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gray-100 rounded-xl flex items-center justify-center">
-                    <Calculator className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" />
-                  </div>
-                  <span className="text-sm sm:text-base">Billing / POS</span>
-                </Link>
-                <Link href="/alerts" prefetch={true} className="flex items-center gap-2.5 sm:gap-3 px-3 sm:px-4 py-2.5 sm:py-3 text-gray-700 hover:bg-gray-50 rounded-xl font-medium transition-all cursor-pointer hover:shadow-md">
-                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gray-100 rounded-xl flex items-center justify-center">
-                    <Bell className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" />
-                  </div>
-                  <span className="text-sm sm:text-base">Alerts</span>
-                </Link>
-                <Link href="/team" prefetch={false} className="flex items-center gap-2.5 sm:gap-3 px-3 sm:px-4 py-2.5 sm:py-3 text-gray-700 hover:bg-gray-50 rounded-xl font-medium transition-all cursor-pointer hover:shadow-md">
-                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gray-100 rounded-xl flex items-center justify-center">
-                    <Users className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" />
-                  </div>
-                  <span className="text-sm sm:text-base">Team</span>
-                </Link>
-                <Link href="/subscription" prefetch={false} className="flex items-center gap-2.5 sm:gap-3 px-3 sm:px-4 py-2.5 sm:py-3 text-gray-700 hover:bg-gray-50 rounded-xl font-medium transition-all cursor-pointer hover:shadow-md">
-                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gray-100 rounded-xl flex items-center justify-center">
-                    <CreditCard className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" />
-                  </div>
-                  <span className="text-sm sm:text-base">Subscription</span>
-                </Link>
-                <Link href="/profile" prefetch={false} className="flex items-center gap-2.5 sm:gap-3 px-3 sm:px-4 py-2.5 sm:py-3 text-gray-700 hover:bg-gray-50 rounded-xl font-medium transition-all cursor-pointer hover:shadow-md">
-                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gray-100 rounded-xl flex items-center justify-center">
-                    <User className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" />
-                  </div>
-                  <span className="text-sm sm:text-base">Profile</span>
-                </Link>
-                <Link href="/settings/organization" prefetch={false} className="flex items-center gap-2.5 sm:gap-3 px-3 sm:px-4 py-2.5 sm:py-3 text-gray-700 hover:bg-gray-50 rounded-xl font-medium transition-all cursor-pointer hover:shadow-md">
-                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gray-100 rounded-xl flex items-center justify-center">
-                    <Settings className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" />
-                  </div>
-                  <span className="text-sm sm:text-base">Settings</span>
-                </Link>
-              </nav>
+              <SidebarMenu />
             </div>
           </div>
         </aside>
@@ -354,9 +296,18 @@ export default function DashboardClient({ initialStats }: { initialStats: Dashbo
               ) : (
                 <>
                   <StatCard title="Total Products" value={stats.totalProducts || 0} icon={Package} color="bg-gradient-to-br from-blue-500 to-blue-600" />
+                  <StatCard title="Revenue (30d)" value={`$${((analytics?.sales?.total) || 0).toLocaleString()}`} icon={DollarSign} color="bg-gradient-to-br from-green-500 to-green-600" />
                   <StatCard title="Low Stock Items" value={stats.lowStockProducts || 0} icon={TrendingDown} color="bg-gradient-to-br from-amber-500 to-orange-500" trend={stats.lowStockProducts || 0} />
                   <StatCard title="Out of Stock" value={stats.outOfStockProducts || 0} icon={AlertTriangle} color="bg-gradient-to-br from-red-500 to-red-600" />
-                  <StatCard title="Unread Alerts" value={stats.unreadAlerts || 0} icon={Bell} color="bg-gradient-to-br from-indigo-500 to-purple-600" />
+                  <Link href="/analytics" className="bg-white/80 backdrop-blur-xl rounded-xl border border-gray-100 shadow-lg shadow-gray-200/50 p-3 sm:p-4 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center shadow-lg">
+                      <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                    </div>
+                    <div className="text-center">
+                      <h3 className="text-lg font-bold text-gray-900">View Analytics</h3>
+                      <p className="text-xs text-gray-500">Charts & reports</p>
+                    </div>
+                  </Link>
                 </>
               )}
             </div>
