@@ -3,7 +3,7 @@ import { usePathname } from 'next/navigation'
 import {
   Package, MapPin, Truck, FileText, ArrowUpDown, Calculator,
   Bell, Users, CreditCard, Settings, User,
-  BarChart3, TrendingUp, Link2
+  BarChart3, TrendingUp
 } from 'lucide-react'
 
 interface NavItem {
@@ -23,7 +23,7 @@ const navItems: NavItem[] = [
   { href: '/billing', label: 'Billing / POS', icon: Calculator },
   { href: '/alerts', label: 'Alerts', icon: Bell },
   { href: '/team', label: 'Team', icon: Users },
-  { href: '/settings/integrations', label: 'Integrations', icon: Link2 },
+  // { href: '/settings/integrations', label: 'Integrations', icon: Link2 },
   { href: '/subscription', label: 'Subscription', icon: CreditCard },
   { href: '/profile', label: 'Profile', icon: User },
   { href: '/settings/organization', label: 'Settings', icon: Settings },
