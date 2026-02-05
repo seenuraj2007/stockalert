@@ -1,4 +1,11 @@
 import { logger } from './logger'
+import { XMLParser } from 'fast-xml-parser'
+
+const parser = new XMLParser({
+  ignoreAttributes: false,
+  attributeNamePrefix: '@_',
+  removeNSPrefix: true,
+})
 
 export interface TallyProduct {
   name: string
@@ -36,18 +43,24 @@ export class TallyImporter {
     }
 
     try {
-      const parser = new DOMParser()
-      const xmlDoc = parser.parseFromString(xmlContent, 'text/xml')
-
-      // Check for parsing errors
-      const parserError = xmlDoc.querySelector('parsererror')
-      if (parserError) {
-        result.errors.push('Invalid XML format')
-        return result
+      const parsedData = parser.parse(xmlContent)
+      
+      // Handle different Tally XML structures
+      let stockItems: any[] = []
+      
+      if (parsedData.ENVELOPE?.BODY?.IMPORTDATA?.REQUESTDATA) {
+        const request = parsedData.ENVELOPE.BODY.IMPORTDATA.REQUESTDATA
+        if (Array.isArray(request)) {
+          request.forEach(item => {
+            if (item.STOCKITEM) stockItems.push(...(Array.isArray(item.STOCKITEM) ? item.STOCKITEM : [item.STOCKITEM]))
+          })
+        } else if (request.STOCKITEM) {
+          stockItems = Array.isArray(request.STOCKITEM) ? request.STOCKITEM : [request.STOCKITEM]
+        }
+      } else if (parsedData.STOCKITEM) {
+        stockItems = Array.isArray(parsedData.STOCKITEM) ? parsedData.STOCKITEM : [parsedData.STOCKITEM]
       }
 
-      // Find all stock items in Tally format
-      const stockItems = xmlDoc.querySelectorAll('STOCKITEM')
       result.totalCount = stockItems.length
 
       stockItems.forEach((item, index) => {
@@ -140,42 +153,43 @@ export class TallyImporter {
     return result
   }
 
-  private extractProductFromStockItem(item: Element): TallyProduct | null {
-    const name = item.querySelector('NAME')?.textContent?.trim()
+  private extractProductFromStockItem(item: any): TallyProduct | null {
+    const name = item.NAME || item['@_NAME']
     if (!name) return null
 
     // Extract SKU (alias in Tally)
-    const sku = item.querySelector('ALIAS')?.textContent?.trim() || 
-                this.generateSKU(name)
+    const sku = item.ALIAS || item['@_ALIAS'] || this.generateSKU(name)
 
     // Extract GST details
-    const gstRate = parseFloat(item.querySelector('GSTRATEDUTYHEAD')?.textContent || '0')
-    const hsnCode = item.querySelector('HSNCODE')?.textContent?.trim()
+    const gstRate = parseFloat(item.GSTRATEDUTYHEAD?.valueOf?.() || item['@_GSTRATEDUTYHEAD'] || '0') || 0
+    const hsnCode = item.HSNCODE || item['@_HSNCODE'] || ''
 
     // Extract opening balance/stock
-    const openingBalance = item.querySelector('OPENINGBALANCE')
+    const openingBalance = item.OPENINGBALANCE
     let openingStock = 0
     let unit = 'PCS'
     
-    if (openingBalance) {
-      const amount = openingBalance.querySelector('AMOUNT')?.textContent
-      const quantity = openingBalance.querySelector('QUANTITY')?.textContent
+    if (openingBalance && typeof openingBalance === 'object') {
+      const amount = openingBalance.AMOUNT || openingBalance['@_AMOUNT']
+      const quantity = openingBalance.QUANTITY || openingBalance['@_QUANTITY']
       if (quantity) {
         openingStock = parseFloat(quantity) || 0
       }
-      const unitElement = openingBalance.querySelector('UNIT')
+      const unitElement = openingBalance.UNIT || openingBalance['@_UNIT']
       if (unitElement) {
-        unit = unitElement.textContent?.trim() || 'PCS'
+        unit = unitElement || 'PCS'
       }
+    } else if (typeof openingBalance === 'number') {
+      openingStock = openingBalance
     }
 
     // Extract costs
-    const baseUnits = item.querySelector('BASEUNITS')
+    const baseUnits = item.BASEUNITS
     let unitCost = 0
     let sellingPrice = 0
 
-    if (baseUnits) {
-      const rate = baseUnits.querySelector('RATE')?.textContent
+    if (baseUnits && typeof baseUnits === 'object') {
+      const rate = baseUnits.RATE || baseUnits['@_RATE']
       if (rate) {
         unitCost = parseFloat(rate) || 0
         // Assume selling price is 20% markup if not specified
@@ -183,11 +197,15 @@ export class TallyImporter {
       }
     }
 
+    // Extract category/group
+    const category = item.PARENT || item['@_PARENT'] || item.GROUP || item['@_GROUP'] || ''
+    const description = item.DESCRIPTION || item['@_DESCRIPTION'] || ''
+
     return {
       name,
       sku,
-      description: item.querySelector('DESCRIPTION')?.textContent?.trim(),
-      category: item.querySelector('PARENT')?.textContent?.trim(),
+      description,
+      category,
       unitCost,
       sellingPrice,
       gstRate,
