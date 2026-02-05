@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { getUserFromRequest } from '@/lib/auth'
+import { getUserFromRequest, requireAuth } from '@/lib/auth'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -25,121 +25,71 @@ export async function GET(req: NextRequest) {
     }
 
     const supabase = createServiceClient()
-
-    const { searchParams } = new URL(req.url)
-    const status = searchParams.get('status')
-    const supplier_id = searchParams.get('supplier_id')
-
-    let query = supabase
+    const { data, error } = await supabase
       .from('purchase_orders')
-      .select(`
-        *,
-        suppliers (name),
-        purchase_order_items (count)
-      `)
-      .eq('user_id', user.id)
+      .select('*')
+      .eq('tenant_id', user.tenantId)
       .order('created_at', { ascending: false })
 
-    if (status) {
-      query = query.eq('status', status)
-    }
-
-    if (supplier_id) {
-      query = query.eq('supplier_id', supplier_id)
-    }
-
-    const { data: orders, error } = await query
-
     if (error) {
-      console.error('Get purchase orders error:', error)
-      return NextResponse.json({ error: 'Failed to fetch orders' }, { status: 500 })
+      console.error('Purchase orders fetch error:', error)
+      return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
-    return NextResponse.json({ orders: orders || [] }, {
-      headers: {
-        'Cache-Control': 'private, max-age=10, stale-while-revalidate=30'
-      }
-    })
+    return NextResponse.json({ purchaseOrders: data || [] })
   } catch (error) {
-    console.error('Get purchase orders error:', error)
+    console.error('Purchase orders API error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
 
 export async function POST(req: NextRequest) {
   try {
-    const user = await getUserFromRequest(req)
+    const user = await requireAuth(req)
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    const body = await req.json()
+    const { supplierName, supplierEmail, supplierPhone, items, notes } = body
+
+    if (!supplierName || !items || items.length === 0) {
+      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
+    }
+
+    // Generate order number
+    const orderNumber = `PO-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`
+
     const supabase = createServiceClient()
 
-    const body = await req.json()
-    const { supplier_id, items, notes } = body
+    // Calculate total amount
+    const totalAmount = items.reduce((sum: number, item: any) => sum + (item.quantity * item.unitCost), 0)
 
-    if (!supplier_id || !items || !Array.isArray(items) || items.length === 0) {
-      return NextResponse.json({ error: 'Supplier and items are required' }, { status: 400 })
-    }
-
-    const { data: supplier, error: supplierError } = await supabase
-      .from('suppliers')
-      .select('*')
-      .eq('id', supplier_id)
-      .eq('user_id', user.id)
-      .single()
-
-    if (supplierError || !supplier) {
-      return NextResponse.json({ error: 'Supplier not found' }, { status: 404 })
-    }
-
-    const totalCost = items.reduce((sum: number, item: { unit_cost: number; quantity: number }) => sum + (item.unit_cost * item.quantity), 0)
-    const orderNumber = `PO-${Date.now()}-${Math.floor(Math.random() * 1000)}`
-
-    const { data: order, error: orderError } = await supabase
+    const { data, error } = await supabase
       .from('purchase_orders')
       .insert({
-        user_id: user.id,
-        supplier_id,
+        tenant_id: user.tenantId,
         order_number: orderNumber,
-        status: 'pending',
-        total_cost: totalCost,
-        notes: notes || null
+        supplier_name: supplierName,
+        supplier_email: supplierEmail,
+        supplier_phone: supplierPhone,
+        total_amount: totalAmount,
+        notes: notes,
+        ordered_by: user.userId,
+        ordered_at: new Date().toISOString(),
+        status: 'pending'
       })
       .select()
       .single()
 
-    if (orderError) {
-      console.error('Create order error:', orderError)
-      return NextResponse.json({ error: 'Failed to create order' }, { status: 500 })
+    if (error) {
+      console.error('Purchase order creation error:', error)
+      return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
-    const orderItems = items
-      .filter((item: { product_id?: string }) => item.product_id)
-      .map((item: { product_id: string; quantity: number; unit_cost: number }) => ({
-        purchase_order_id: order.id,
-        product_id: item.product_id,
-        quantity: item.quantity,
-        unit_cost: item.unit_cost,
-        total_cost: item.unit_cost * item.quantity
-      }))
-
-    if (orderItems.length > 0) {
-      await supabase.from('purchase_order_items').insert(orderItems)
-    }
-
-    const { data: createdOrder } = await supabase
-      .from('purchase_orders')
-      .select(`
-        *,
-        suppliers (name)
-      `)
-      .eq('id', order.id)
-      .single()
-
-    return NextResponse.json({ order: createdOrder }, { status: 201 })
+    return NextResponse.json({ purchaseOrder: data }, { status: 201 })
   } catch (error) {
-    console.error('Create purchase order error:', error)
+    console.error('Purchase order POST error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

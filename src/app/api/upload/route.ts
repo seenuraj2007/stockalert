@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { writeFile, mkdir } from 'fs/promises'
 import { join } from 'path'
 import { v4 as uuidv4 } from 'uuid'
-import { getUserFromRequest } from '@/lib/auth'
+import { getUserFromRequest, requireAuth } from '@/lib/auth'
 
 const ALLOWED_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'webp']
 const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB

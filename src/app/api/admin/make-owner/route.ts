@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
 import { getUserFromRequest } from '@/lib/auth'
 import { PermissionsService } from '@/lib/permissions'
+import { prisma } from '@/lib/prisma'
 
 export async function POST(req: NextRequest) {
   try {
@@ -20,21 +20,34 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Email is required' }, { status: 400 })
     }
 
-    const { data, error } = await supabase
-      .from('users')
-      .update({ role: 'owner' })
-      .eq('email', email)
-      .select()
-      .single()
+    // Find the user by email
+    const targetUser = await prisma.user.findUnique({
+      where: { email }
+    })
 
-    if (error) {
-      console.error('Error updating user role:', error)
-      return NextResponse.json({ error: 'Failed to update role' }, { status: 500 })
+    if (!targetUser) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
+
+    // Update the member's role to OWNER
+    const member = await prisma.member.update({
+      where: {
+        tenantId_userId: {
+          tenantId: user.tenantId!,
+          userId: targetUser.id
+        }
+      },
+      data: { role: 'OWNER' }
+    })
 
     return NextResponse.json({ 
       message: 'Role updated successfully',
-      user: data 
+      member: {
+        id: member.id,
+        role: member.role,
+        userId: member.userId,
+        tenantId: member.tenantId
+      }
     })
   } catch (error) {
     console.error('Error in make-owner route:', error)

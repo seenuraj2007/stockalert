@@ -1,44 +1,32 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
 import { getUserFromRequest } from '@/lib/auth'
+import { prisma } from '@/lib/prisma'
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params
     const user = await getUserFromRequest(req)
-    if (!user) {
+    if (!user || !user.tenantId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { data: transfer, error } = await supabase
-      .from('stock_transfers')
-      .select(`
-        *,
-        from_location:locations!from_location_id (name),
-        to_location:locations!to_location_id (name)
-      `)
-      .eq('id', id)
-      .eq('user_id', user.id)
-      .single()
+    const transfer = await prisma.stockTransfer.findFirst({
+      where: { id, tenantId: user.tenantId },
+      include: {
+        fromLocation: true,
+        toLocation: true
+      }
+    })
 
-    if (error || !transfer) {
+    if (!transfer) {
       return NextResponse.json({ error: 'Stock transfer not found' }, { status: 404 })
     }
-
-    const { data: items, error: itemsError } = await supabase
-      .from('stock_transfer_items')
-      .select(`
-        *,
-        products (name, sku)
-      `)
-      .eq('stock_transfer_id', id)
 
     return NextResponse.json({ 
       transfer: { 
         ...transfer, 
-        from_location_name: transfer.from_location?.name,
-        to_location_name: transfer.to_location?.name,
-        items: items || [] 
+        from_location_name: transfer.fromLocation?.name,
+        to_location_name: transfer.toLocation?.name
       } 
     })
   } catch (error) {
@@ -51,47 +39,38 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   try {
     const { id } = await params
     const user = await getUserFromRequest(req)
-    if (!user) {
+    if (!user || !user.tenantId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const body = await req.json()
     const { status } = body
 
-    if (!status || !['pending', 'in_transit', 'completed', 'cancelled'].includes(status)) {
+    const validStatuses = ['PENDING', 'IN_TRANSIT', 'COMPLETED', 'CANCELLED']
+    if (!status || !validStatuses.includes(status.toUpperCase())) {
       return NextResponse.json({ error: 'Invalid status' }, { status: 400 })
     }
 
-    const { data: transfer, error: transferError } = await supabase
-      .from('stock_transfers')
-      .select('*')
-      .eq('id', id)
-      .eq('user_id', user.id)
-      .single()
+    const transfer = await prisma.stockTransfer.findFirst({
+      where: { id, tenantId: user.tenantId }
+    })
 
-    if (transferError || !transfer) {
+    if (!transfer) {
       return NextResponse.json({ error: 'Stock transfer not found' }, { status: 404 })
     }
 
-    if (status === 'completed' && transfer.status !== 'in_transit') {
+    if (status.toUpperCase() === 'COMPLETED' && transfer.status !== 'IN_TRANSIT') {
       return NextResponse.json({ error: 'Transfer must be in transit before completing' }, { status: 400 })
     }
 
-    await supabase
-      .from('stock_transfers')
-      .update({ status })
-      .eq('id', id)
-      .eq('user_id', user.id)
-
-    const { data: updatedTransfer } = await supabase
-      .from('stock_transfers')
-      .select(`
-        *,
-        from_location:locations!from_location_id (name),
-        to_location:locations!to_location_id (name)
-      `)
-      .eq('id', id)
-      .single()
+    const updatedTransfer = await prisma.stockTransfer.update({
+      where: { id },
+      data: { status: status.toUpperCase() as any },
+      include: {
+        fromLocation: true,
+        toLocation: true
+      }
+    })
 
     return NextResponse.json({ transfer: updatedTransfer })
   } catch (error) {
@@ -104,30 +83,25 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
   try {
     const { id } = await params
     const user = await getUserFromRequest(req)
-    if (!user) {
+    if (!user || !user.tenantId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { data: transfer, error: transferError } = await supabase
-      .from('stock_transfers')
-      .select('*')
-      .eq('id', id)
-      .eq('user_id', user.id)
-      .single()
+    const transfer = await prisma.stockTransfer.findFirst({
+      where: { id, tenantId: user.tenantId }
+    })
 
-    if (transferError || !transfer) {
+    if (!transfer) {
       return NextResponse.json({ error: 'Stock transfer not found' }, { status: 404 })
     }
 
-    if (transfer.status === 'completed') {
+    if (transfer.status === 'COMPLETED') {
       return NextResponse.json({ error: 'Cannot delete completed transfer' }, { status: 400 })
     }
 
-    await supabase
-      .from('stock_transfers')
-      .delete()
-      .eq('id', id)
-      .eq('user_id', user.id)
+    await prisma.stockTransfer.delete({
+      where: { id }
+    })
 
     return NextResponse.json({ success: true })
   } catch (error) {

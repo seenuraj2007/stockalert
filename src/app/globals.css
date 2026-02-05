@@ -87,3 +87,41 @@ img {
     -moz-osx-font-smoothing: grayscale;
   }
 }
+
+/* Input and button text visibility fixes */
+input::placeholder,
+textarea::placeholder {
+  color: #6b7280 !important;
+  opacity: 1 !important;
+}
+
+input,
+textarea,
+select {
+  color: #111827 !important;
+  background-color: #ffffff !important;
+  border-color: #d1d5db !important;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  outline: none !important;
+  border-color: #6366f1 !important;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1) !important;
+}
+
+/* Button text visibility */
+button {
+  color: #111827 !important;
+}
+
+button.bg-gradient-to-r {
+  color: #ffffff !important;
+}
+
+/* Select dropdown text */
+select option {
+  color: #111827 !important;
+  background-color: #ffffff !important;
+}

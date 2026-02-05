@@ -1,135 +1,104 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
-import { supabase } from '@/lib/supabase'
+import { signUp } from '@/lib/auth'
 import { signupSchema } from '@/lib/validators'
+import { prisma } from '@/lib/prisma'
+import { checkSignupRateLimit } from '@/lib/rate-limit'
 
 export async function POST(req: NextRequest) {
   try {
     const validatedData = signupSchema.parse(await req.json())
 
-    const orgName = validatedData.full_name ? `${validatedData.full_name}'s Organization` : 'My Organization'
-
-    const { data: orgData, error: orgError } = await supabase
-      .from('organizations')
-      .insert({ name: orgName })
-      .select()
-      .single()
-
-    if (orgError) {
-      console.error('Organization creation error:', orgError)
-      throw new Error('Failed to create organization')
+    // Check rate limit
+    const rateLimit = checkSignupRateLimit(validatedData.email)
+    
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        { 
+          error: 'Too many signup attempts. Please try again later.',
+          retryAfter: rateLimit.retryAfter
+        },
+        { 
+          status: 429,
+          headers: { 'Retry-After': rateLimit.retryAfter.toString() }
+        }
+      )
     }
 
-    const orgId = orgData.id
+    // Use our custom signUp function with Neon auth
+    const result = await signUp(validatedData.email, validatedData.password, validatedData.full_name)
 
-    const { data: authData, error: authError } = await supabase.auth.signUp({
-      email: validatedData.email,
-      password: validatedData.password,
-      options: {
-        data: {
-          full_name: validatedData.full_name,
-          organization_id: orgId
+    if (!result) {
+      return NextResponse.json(
+        { error: 'User with this email already exists' },
+        { status: 400 }
+      )
+    }
+
+    const { user, token } = result
+
+    // Create tenant for user
+    const tenantSlug = `${validatedData.email.split('@')[0]}-${Date.now().toString(36)}`
+    const tenant = await prisma.tenant.create({
+      data: {
+        name: `${validatedData.full_name || validatedData.email.split('@')[0]}'s Business`,
+        slug: tenantSlug,
+        ownerId: user.id,
+        settings: {
+          currency: 'USD',
+          timezone: 'UTC',
         }
       }
     })
 
-    if (authError) {
-      try {
-        await supabase.from('organizations').delete().eq('id', orgId)
-      } catch (e) {
-        console.error('Failed to cleanup organization:', e)
+    await prisma.member.create({
+      data: {
+        tenantId: tenant.id,
+        userId: user.id,
+        role: 'OWNER',
+        status: 'ACTIVE',
       }
-      console.error('Auth signup error:', authError)
-      if (authError.status === 400 && authError.code === 'user_already_exists') {
-        return NextResponse.json({ error: 'Email already registered' }, { status: 409 })
-      }
-      return NextResponse.json(
-        { error: authError.message || 'Failed to create user', code: authError.code },
-        { status: authError.status || 500 }
-      )
-    }
+    })
 
-    if (!authData.user) {
-      try {
-        await supabase.from('organizations').delete().eq('id', orgId)
-      } catch (e) {
-        console.error('Failed to cleanup organization:', e)
-      }
-      return NextResponse.json({ error: 'Failed to create user' }, { status: 500 })
-    }
-
-    const { data: planData } = await supabase
-      .from('subscription_plans')
-      .select('id')
-      .eq('name', 'free')
-      .single()
-
-    if (planData) {
-      const trialEndDate = new Date()
-      trialEndDate.setDate(trialEndDate.getDate() + 30)
-
-      await supabase.from('subscriptions').insert({
-        organization_id: orgId,
-        plan_id: planData.id,
-        status: 'trial',
-        trial_end_date: trialEndDate.toISOString()
-      })
-    }
-
-    await supabase
-      .from('users')
-      .upsert({
-        id: authData.user.id,
-        email: validatedData.email,
-        full_name: validatedData.full_name,
-        organization_id: orgId,
-        role: 'owner',
-        status: 'active'
-      })
-
-    await supabase
-      .from('organizations')
-      .update({ owner_id: authData.user.id })
-      .eq('id', orgId)
-
-    await supabase
-      .from('locations')
-      .insert({
-        user_id: authData.user.id,
+    await prisma.location.create({
+      data: {
+        tenantId: tenant.id,
         name: 'Default Location',
+        type: 'WAREHOUSE',
         address: 'Main warehouse',
-        is_primary: true
-      })
+        isPrimary: true,
+        isActive: true,
+      }
+    })
 
-    const { data: user } = await supabase
-      .from('users')
-      .select('id, email, full_name, organization_id, role, status, created_at, updated_at')
-      .eq('id', authData.user.id)
-      .single()
-
-    const response = NextResponse.json({ user }, { status: 201 })
-
-    if (authData.session) {
-      response.cookies.set('sb-access-token', authData.session.access_token, {
-        httpOnly: true,
-        secure: true,
-        sameSite: 'strict',
-        path: '/',
-        maxAge: 60 * 60 * 24 * 7
-      })
-
-      response.cookies.set('sb-refresh-token', authData.session.refresh_token, {
-        httpOnly: true,
-        secure: true,
-        sameSite: 'strict',
-        path: '/',
-        maxAge: 60 * 60 * 24 * 7
-      })
+    const responseUser = {
+      id: user.id,
+      email: user.email,
+      full_name: user.name,
+      organization_id: tenant.id,
+      role: 'owner',
+      status: 'active',
+      created_at: user.created_at,
+      tenant_id: tenant.id
     }
+
+    const response = NextResponse.json({ user: responseUser }, { status: 201 })
+
+    // Set session token cookie
+    response.cookies.set('auth_token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 24 * 7, // 7 days
+      path: '/',
+    })
+
+    // Add rate limit headers
+    response.headers.set('X-RateLimit-Limit', '3')
+    response.headers.set('X-RateLimit-Remaining', rateLimit.remaining.toString())
 
     return response
   } catch (error) {
-    console.error('Signup error:', error)
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         {

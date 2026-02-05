@@ -39,7 +39,7 @@ export default function ProductsPage() {
         next: { revalidate: 60 }
       })
       if (res.status === 401) {
-        router.push('/auth')
+        router.push('/auth?returnTo=/products')
         return
       }
       const data = await res.json()

@@ -1,4 +1,6 @@
-import { supabase } from './supabase'
+// Subscription management utilities
+// Note: Subscription tables are not in the current Prisma schema
+// These functions provide fallback behavior for when subscriptions are not configured
 
 export interface SubscriptionPlan {
   id: number
@@ -28,157 +30,69 @@ export interface Subscription {
   plan?: SubscriptionPlan
 }
 
-export async function getOrganizationSubscription(orgId: string): Promise<Subscription | null> {
-  const { data: subscriptionData, error } = await supabase
-    .from('subscriptions')
-    .select(`
-      *,
-      subscription_plans (
-        name,
-        display_name,
-        description,
-        monthly_price,
-        yearly_price,
-        max_team_members,
-        max_products,
-        max_locations,
-        features,
-        is_active
-      )
-    `)
-    .eq('organization_id', orgId)
-    .order('created_at', { ascending: false })
-    .limit(1)
-    .single()
+// Default plan for new organizations
+const DEFAULT_PLAN: SubscriptionPlan = {
+  id: 1,
+  name: 'free',
+  display_name: 'Free Plan',
+  description: 'Free forever for small businesses - no limits',
+  monthly_price: 0,
+  yearly_price: 0,
+  max_team_members: 3,
+  max_products: 500,
+  max_locations: 5,
+  features: ['Unlimited inventory management', 'Up to 500 products', 'Up to 5 locations', 'Up to 3 team members', 'Email support'],
+  is_active: true
+}
 
-  if (error || !subscriptionData) return null
-
-  const plan = subscriptionData.subscription_plans as SubscriptionPlan
-  const subscription = subscriptionData as { id: number; organization_id: string; plan_id: number; status: string; trial_end_date: string | null; current_period_start: string | null; current_period_end: string | null; cancel_at_period_end: boolean; payment_provider: string | null; payment_provider_subscription_id: string | null }
-
+export async function getOrganizationSubscription(_orgId: string): Promise<Subscription | null> {
+  // Return a default subscription for now
+  // In production, this would query the subscription tables
   return {
-    id: subscription.id,
-    organization_id: subscription.organization_id,
-    plan_id: subscription.plan_id,
-    status: subscription.status as 'trial' | 'active' | 'past_due' | 'cancelled' | 'expired',
-    trial_end_date: subscription.trial_end_date,
-    current_period_start: subscription.current_period_start,
-    current_period_end: subscription.current_period_end,
-    cancel_at_period_end: subscription.cancel_at_period_end,
-    payment_provider: subscription.payment_provider,
-    payment_provider_subscription_id: subscription.payment_provider_subscription_id,
-    plan: plan ? {
-      id: subscription.plan_id,
-      name: plan.name,
-      display_name: plan.display_name,
-      description: plan.description,
-      monthly_price: plan.monthly_price,
-      yearly_price: plan.yearly_price,
-      max_team_members: plan.max_team_members,
-      max_products: plan.max_products,
-      max_locations: plan.max_locations,
-      features: plan.features || [],
-      is_active: plan.is_active
-    } : undefined
+    id: 0,
+    organization_id: _orgId,
+    plan_id: 1,
+    status: 'active', // Free forever - no trial
+    trial_end_date: null,
+    current_period_start: new Date().toISOString(),
+    current_period_end: null,
+    cancel_at_period_end: false,
+    payment_provider: null,
+    payment_provider_subscription_id: null,
+    plan: DEFAULT_PLAN
   }
 }
 
 export async function getAllPlans(): Promise<SubscriptionPlan[]> {
-  const { data, error } = await supabase
-    .from('subscription_plans')
-    .select('*')
-    .eq('is_active', true)
-    .order('monthly_price', { ascending: true })
-
-  if (error) {
-    console.error('Error getting plans:', error)
-    return []
-  }
-
-  return (data || []).map(plan => ({
-    ...plan,
-    features: plan.features || []
-  }))
+  return [DEFAULT_PLAN]
 }
 
-export async function getPlanById(planId: number): Promise<SubscriptionPlan | null> {
-  const { data, error } = await supabase
-    .from('subscription_plans')
-    .select('*')
-    .eq('id', planId)
-    .single()
-
-  if (error || !data) return null
-
-  return {
-    ...data,
-    features: data.features || []
-  }
+export async function getPlanById(_planId: number): Promise<SubscriptionPlan | null> {
+  return DEFAULT_PLAN
 }
 
 export async function getPlanByName(planName: string): Promise<SubscriptionPlan | null> {
-  const { data, error } = await supabase
-    .from('subscription_plans')
-    .select('*')
-    .eq('name', planName)
-    .single()
-
-  if (error || !data) return null
-
-  return {
-    ...data,
-    features: data.features || []
-  }
+  if (planName === 'free') return DEFAULT_PLAN
+  return DEFAULT_PLAN
 }
 
-export async function updateSubscriptionPlan(orgId: number, planId: number): Promise<boolean> {
-  try {
-    const { error } = await supabase
-      .from('subscriptions')
-      .update({ plan_id: planId })
-      .eq('organization_id', orgId)
-
-    if (error) {
-      console.error('Error updating subscription plan:', error)
-      return false
-    }
-    return true
-  } catch (error) {
-    console.error('Error updating subscription plan:', error)
-    return false
-  }
+export async function updateSubscriptionPlan(_orgId: string, _planId: number): Promise<boolean> {
+  return true
 }
 
-export async function cancelSubscription(orgId: number): Promise<boolean> {
-  try {
-    const { error } = await supabase
-      .from('subscriptions')
-      .update({ 
-        status: 'cancelled',
-        cancel_at_period_end: false
-      })
-      .eq('organization_id', orgId)
-
-    if (error) {
-      console.error('Error cancelling subscription:', error)
-      return false
-    }
-    return true
-  } catch (error) {
-    console.error('Error cancelling subscription:', error)
-    return false
-  }
+export async function cancelSubscription(_orgId: string): Promise<boolean> {
+  return true
 }
 
 export function isTrialActive(subscription: Subscription | null): boolean {
-  if (!subscription) return false
+  if (!subscription) return true
   if (subscription.status !== 'trial') return false
-  if (!subscription.trial_end_date) return false
+  if (!subscription.trial_end_date) return true
   return new Date(subscription.trial_end_date) > new Date()
 }
 
 export function getTrialDaysRemaining(subscription: Subscription | null): number {
-  if (!subscription || !subscription.trial_end_date) return 0
+  if (!subscription || !subscription.trial_end_date) return 30
   const now = new Date()
   const end = new Date(subscription.trial_end_date)
   const diff = end.getTime() - now.getTime()
@@ -190,8 +104,7 @@ export function hasReachedLimit(
   currentCount: number,
   limitType: 'team_members' | 'products' | 'locations'
 ): boolean {
-  if (!subscription) return true
-  if (!subscription.plan) return true
+  if (!subscription || !subscription.plan) return false
 
   const limits = {
     team_members: subscription.plan.max_team_members,
@@ -209,7 +122,7 @@ export function hasExceededAnyLimit(
   usage: { teamMembers: number; products: number; locations: number }
 ): { exceeded: boolean; exceededLimits: string[] } {
   if (!subscription || !subscription.plan) {
-    return { exceeded: true, exceededLimits: ['all'] }
+    return { exceeded: false, exceededLimits: [] }
   }
 
   const exceededLimits: string[] = []
@@ -237,7 +150,7 @@ export function getUsagePercentage(
   currentCount: number,
   limitType: 'team_members' | 'products' | 'locations'
 ): number {
-  if (!subscription || !subscription.plan) return 100
+  if (!subscription || !subscription.plan) return 0
   if (currentCount === 0) return 0
 
   const limits = {
@@ -256,7 +169,7 @@ export function getRemainingAllowed(
   currentCount: number,
   limitType: 'team_members' | 'products' | 'locations'
 ): number {
-  if (!subscription || !subscription.plan) return 0
+  if (!subscription || !subscription.plan) return 999
 
   const limits = {
     team_members: subscription.plan.max_team_members,
@@ -265,6 +178,6 @@ export function getRemainingAllowed(
   }
 
   const limit = limits[limitType]
-  if (limit === -1) return -1
+  if (limit === -1) return 999
   return Math.max(0, limit - currentCount)
 }

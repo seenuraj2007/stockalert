@@ -86,7 +86,7 @@ export default function CareersPage() {
               </div>
               <h1 className="text-4xl font-bold text-gray-900 mb-4">Join Our Team</h1>
               <p className="text-gray-600 max-w-2xl mx-auto">
-                We're looking for talented individuals who are passionate about building great products and helping businesses succeed.
+                We&apos;re looking for talented individuals who are passionate about building great products and helping businesses succeed.
               </p>
             </div>
 
@@ -174,9 +174,9 @@ export default function CareersPage() {
               </div>
 
               <div className="mt-8 text-center bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl p-8 text-white">
-                <h3 className="text-xl font-bold mb-2">Don't see a role that fits?</h3>
+                <h3 className="text-xl font-bold mb-2">Don&apos;t see a role that fits?</h3>
                 <p className="text-white/80 mb-4">
-                  We're always looking for talented people. Send us your resume and tell us how you can contribute.
+                  We&apos;re always looking for talented people. Send us your resume and tell us how you can contribute.
                 </p>
                 <Link
                   href="/contact"

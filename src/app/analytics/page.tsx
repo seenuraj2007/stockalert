@@ -105,6 +105,27 @@ export default function AnalyticsPage() {
     } finally { setLoading(false) }
   }, [period])
 
+  const handleExport = useCallback(async () => {
+    try {
+      const res = await fetch('/api/export?format=csv&scope=all', {
+        credentials: 'include'
+      })
+      if (!res.ok) throw new Error('Export failed')
+      
+      const blob = await res.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `stockalert-analytics-${new Date().toISOString().split('T')[0]}.csv`
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      window.URL.revokeObjectURL(url)
+    } catch (err) {
+      console.error('Export error:', err)
+    }
+  }, [])
+
   useEffect(() => { fetchAnalytics() }, [fetchAnalytics])
 
   const stockStatus = [
@@ -212,7 +233,9 @@ export default function AnalyticsPage() {
                 >
                   <RefreshCw className="w-5 h-5" />
                 </button>
-                <button className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-xl font-medium hover:from-indigo-600 hover:to-purple-700 transition-all cursor-pointer shadow-lg shadow-indigo-200">
+                <button 
+                  onClick={handleExport}
+                  className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-xl font-medium hover:from-indigo-600 hover:to-purple-700 transition-all cursor-pointer shadow-lg shadow-indigo-200">
                   <Download className="w-5 h-5" />
                   Export
                 </button>

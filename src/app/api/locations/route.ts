@@ -1,85 +1,94 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
 import { getUserFromRequest } from '@/lib/auth'
 import { getOrganizationSubscription } from '@/lib/subscription'
+import { LocationRepository } from '@/lib/repositories'
+import { prisma } from '@/lib/prisma'
 
-interface Location {
+interface LocationResponse {
   id: string
+  tenant_id: string
   user_id: string
   name: string
-  address?: string
-  city?: string
-  state?: string
-  zip?: string
-  country?: string
-  is_primary?: boolean
+  address?: string | null
+  city?: string | null
+  state?: string | null
+  zip?: string | null
+  country?: string | null
+  is_primary?: boolean | null
+  type?: string | null
+  is_active?: boolean | null
+  deleted_at?: Date | null
   created_at?: string
+  total_products?: number
   product_stock?: Array<{ count: number }>
-}
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-
-function createServiceClient() {
-  if (!supabaseServiceKey) {
-    throw new Error('SUPABASE_SERVICE_ROLE_KEY is not defined')
-  }
-  return createClient(supabaseUrl, supabaseServiceKey, {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false
-    }
-  })
 }
 
 export async function GET(req: NextRequest) {
   try {
     const user = await getUserFromRequest(req)
-    if (!user) {
+
+    if (!user || !user.tenantId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const supabase = createServiceClient()
+    const repo = new LocationRepository(user.tenantId, user.id)
+    const locations = await repo.findAll()
 
-    const { data: locations, error } = await supabase
-      .from('locations')
-      .select(`
-        *,
-        product_stock (count)
-      `)
-      .eq('user_id', user.id)
-      .order('is_primary', { ascending: false })
-      .order('name', { ascending: true })
+    const locationsWithStock: LocationResponse[] = await Promise.all(
+      locations.map(async (loc: any) => {
+        const productCount = await prisma.stockLevel.count({
+          where: {
+            tenantId: user.tenantId!,
+            locationId: loc.id
+          }
+        })
 
-    if (error) {
-      console.error('Get locations error:', error)
-      return NextResponse.json({ error: 'Failed to fetch locations' }, { status: 500 })
-    }
+        return {
+          id: loc.id,
+          tenant_id: loc.tenantId,
+          user_id: user.id,
+          name: loc.name,
+          address: loc.address,
+          city: loc.city,
+          state: loc.state,
+          zip: loc.zip,
+          country: loc.country,
+          type: loc.type,
+          is_primary: loc.isPrimary,
+          is_active: loc.isActive,
+          deleted_at: loc.deletedAt,
+          created_at: loc.createdAt?.toISOString(),
+          total_products: productCount,
+          product_stock: [{ count: productCount }]
+        }
+      })
+    )
 
-    const formattedLocations = (locations || []).map((loc: Location) => ({
-      ...loc,
-      total_products: loc.product_stock?.length || 0
-    }))
+    const sortedLocations = locationsWithStock.sort((a, b) => {
+      if (a.is_primary !== b.is_primary) {
+        return b.is_primary ? 1 : -1
+      }
+      return a.name.localeCompare(b.name)
+    })
 
-    return NextResponse.json({ locations: formattedLocations }, {
+    return NextResponse.json({ locations: sortedLocations }, {
       headers: {
         'Cache-Control': 'private, max-age=10, stale-while-revalidate=60'
       }
     })
   } catch (error) {
     console.error('Get locations error:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ error: 'Internal server error', details: error instanceof Error ? error.message : 'Unknown error' }, { status: 500 })
   }
 }
 
 export async function POST(req: NextRequest) {
   try {
     const user = await getUserFromRequest(req)
-    if (!user) {
+
+    if (!user || !user.tenantId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
-
-    const supabase = createServiceClient()
 
     const body = await req.json()
     const { name, address, city, state, zip, country, is_primary } = body
@@ -88,38 +97,32 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Location name is required' }, { status: 400 })
     }
 
-    let location: Location | null = null
+    let location: LocationResponse | null = null
 
-    // Check subscription limits for all users (with or without organization_id)
-    const subscription = await getOrganizationSubscription(user.organization_id || '')
-    const maxLocations = subscription?.plan?.max_locations || 1 // Default to 1 for free plan
+    const subscription = await getOrganizationSubscription(user.tenantId)
+    const maxLocations = subscription?.plan?.max_locations || 1
 
-    // Check if subscription is active
     if (subscription && (subscription.status === 'expired' || subscription.status === 'cancelled')) {
       return NextResponse.json({ error: 'Subscription is not active' }, { status: 403 })
     }
 
-    // Count current locations
-    const { count, error: countError } = await supabase
-      .from('locations')
-      .select('id', { count: 'exact', head: true })
-      .eq('user_id', user.id)
+    const count = await prisma.location.count({
+      where: {
+        tenantId: user.tenantId,
+        isActive: true,
+        deletedAt: null
+      }
+    })
 
-    if (countError) {
-      console.error('Error counting locations:', countError)
-    }
-
-    console.log('Location limit check:', { 
-      count, 
-      maxLimit: maxLocations,
+    console.log('Location limit check:', {
+      count, maxLimit: maxLocations,
       subscriptionStatus: subscription?.status,
       planName: subscription?.plan?.display_name || 'Free',
       planType: subscription?.plan?.name || 'free',
-      hasOrg: !!user.organization_id
+      hasTenant: !!user.tenantId
     })
 
-    // Enforce limit (unless unlimited: -1)
-    if (maxLocations !== -1 && count !== null && count >= maxLocations) {
+    if (maxLocations !== -1 && count >= maxLocations) {
       console.log('Blocking location creation - limit reached')
       return NextResponse.json({
         error: 'Location limit reached',
@@ -129,35 +132,48 @@ export async function POST(req: NextRequest) {
       }, { status: 403 })
     }
 
-    // Create the location
-    const { data, error: insertError } = await supabase
-      .from('locations')
-      .insert({
-        user_id: user.id,
-        name,
-        address: address || null,
-        city: city || null,
-        state: state || null,
-        zip: zip || null,
-        country: country || null,
-        is_primary: is_primary || false
-      })
-      .select()
-      .single()
+    const repo = new LocationRepository(user.tenantId, user.id)
 
-    if (insertError) {
-      console.error('Create location error:', insertError)
-      if (insertError.message.includes('duplicate key')) {
+    try {
+      const newLocation = await repo.create({
+        name,
+        address,
+        city,
+        state,
+        zip,
+        country,
+        type: 'WAREHOUSE',
+        isPrimary: is_primary || false
+      })
+
+      location = {
+        id: newLocation.id,
+        tenant_id: newLocation.tenantId,
+        user_id: user.id,
+        name: newLocation.name,
+        address: newLocation.address,
+        city: newLocation.city,
+        state: newLocation.state,
+        zip: newLocation.zip,
+        country: newLocation.country,
+        type: newLocation.type,
+        is_primary: newLocation.isPrimary,
+        is_active: newLocation.isActive,
+        deleted_at: newLocation.deletedAt,
+        created_at: newLocation.createdAt?.toISOString(),
+        total_products: 0,
+        product_stock: []
+      }
+    } catch (error) {
+      if (error instanceof Error && error.message.includes('Duplicate location name')) {
         return NextResponse.json({ error: 'Location name already exists' }, { status: 409 })
       }
-      return NextResponse.json({ error: 'Failed to create location' }, { status: 500 })
+      throw error
     }
-
-    location = data
 
     return NextResponse.json({ location }, { status: 201 })
   } catch (error) {
     console.error('POST locations error:', error)
-    return NextResponse.json({ error: 'Failed to save location' }, { status: 500 })
+    return NextResponse.json({ error: 'Failed to save location', details: error instanceof Error ? error.message : 'Unknown error' }, { status: 500 })
   }
 }

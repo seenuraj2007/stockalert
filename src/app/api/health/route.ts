@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { supabaseAdmin } from '@/lib/serverSupabase'
+import { NextResponse } from 'next/server'
+import { prisma } from '@/lib/prisma'
 
 export async function GET() {
   try {
@@ -9,17 +9,10 @@ export async function GET() {
       checks: {} as Record<string, any>
     }
 
-    if (!supabaseAdmin) {
-      health.checks.database = { status: 'skipped', message: 'Admin client not configured' }
-      const response = NextResponse.json(health, { status: 200 })
-      response.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate')
-      response.headers.set('X-Health-Check', 'true')
-      return response
-    }
-
+    // Check database connection
     try {
-      const { error } = await supabaseAdmin.from('users').select('id').limit(1)
-      health.checks.database = error ? { status: 'error', message: error.message } : { status: 'healthy' }
+      await prisma.$queryRaw`SELECT 1`
+      health.checks.database = { status: 'healthy' }
     } catch (dbError: any) {
       health.checks.database = { status: 'error', message: dbError.message }
       health.status = 'degraded'

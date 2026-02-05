@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
-import { getUserFromRequest } from '@/lib/auth'
+import { getUserFromRequest, requireAuth } from '@/lib/auth'
+import { prisma } from '@/lib/prisma'
 
 interface BackupData {
   version: string
@@ -53,12 +53,33 @@ async function exportJSONBackup(userId: string, filename: string, tables: string
 
   for (const table of validTables) {
     try {
-      const { data, error } = await supabase
-        .from(table)
-        .select('*')
-        .eq('user_id', userId)
+      let data: unknown[] = []
 
-      if (!error && data && data.length > 0) {
+      switch (table) {
+        case 'products':
+          data = await prisma.product.findMany({ where: { tenantId: userId } })
+          break
+        case 'locations':
+          data = await prisma.location.findMany({ where: { tenantId: userId } })
+          break
+        case 'suppliers':
+          data = await prisma.product.findMany({
+            where: { tenantId: userId },
+            select: { id: true, supplierName: true, supplierEmail: true, supplierPhone: true }
+          })
+          break
+        case 'customers':
+          data = await prisma.member.findMany({ where: { tenantId: userId } })
+          break
+        case 'stock_history':
+          data = await prisma.inventoryEvent.findMany({ where: { tenantId: userId } })
+          break
+        case 'alerts':
+          data = await prisma.alert.findMany({ where: { tenantId: userId } })
+          break
+      }
+
+      if (data && data.length > 0) {
         backup.data[table] = data
       }
     } catch (err) {
@@ -88,25 +109,46 @@ async function exportSQLBackup(userId: string, filename: string, tables: string[
 
   for (const table of validTables) {
     try {
-      const { data, error } = await supabase
-        .from(table)
-        .select('*')
-        .eq('user_id', userId)
+      let data: unknown[] = []
 
-      if (error || !data || data.length === 0) continue
+      switch (table) {
+        case 'products':
+          data = await prisma.product.findMany({ where: { tenantId: userId } })
+          break
+        case 'locations':
+          data = await prisma.location.findMany({ where: { tenantId: userId } })
+          break
+        case 'suppliers':
+          data = await prisma.product.findMany({
+            where: { tenantId: userId },
+            select: { id: true, supplierName: true, supplierEmail: true, supplierPhone: true }
+          })
+          break
+        case 'customers':
+          data = await prisma.member.findMany({ where: { tenantId: userId } })
+          break
+        case 'stock_history':
+          data = await prisma.inventoryEvent.findMany({ where: { tenantId: userId } })
+          break
+        case 'alerts':
+          data = await prisma.alert.findMany({ where: { tenantId: userId } })
+          break
+      }
+
+      if (!data || data.length === 0) continue
 
       sqlStatements.push(`-- Data for table: ${table}`)
       sqlStatements.push('')
 
-      for (const row of data) {
+      for (const row of data as Record<string, unknown>[]) {
         const columns = Object.keys(row)
         const values = columns.map((col: string) => {
-          const value = row[col as keyof typeof row]
+          const value = row[col]
           if (value === null) return 'NULL'
           if (typeof value === 'number') return value.toString()
           if (typeof value === 'boolean') return value ? 'true' : 'false'
           if (typeof value === 'object') return `'${JSON.stringify(value).replace(/'/g, "''")}'`
-          return `'${value.toString().replace(/'/g, "''")}'`
+          return `'${value?.toString().replace(/'/g, "''")}'`
         }).join(', ')
 
         sqlStatements.push(`INSERT INTO ${table} (${columns.join(', ')}) VALUES (${values});`)
@@ -127,5 +169,5 @@ async function exportSQLBackup(userId: string, filename: string, tables: string[
 }
 
 export async function POST() {
-  return NextResponse.json({ error: 'Restore functionality not available in Supabase mode' }, { status: 501 })
+  return NextResponse.json({ error: 'Restore functionality not available in Prisma mode' }, { status: 501 })
 }

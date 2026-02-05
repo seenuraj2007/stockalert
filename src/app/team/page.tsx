@@ -298,9 +298,18 @@ export default function TeamPage() {
           <div>
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-2xl font-bold text-gray-900">Team Members</h2>
-              <span className="px-4 py-2 bg-indigo-100 text-indigo-700 rounded-full text-sm font-semibold">
-                {team.length} members
-              </span>
+              <div className="flex items-center gap-3">
+                <span className="px-4 py-2 bg-indigo-100 text-indigo-700 rounded-full text-sm font-semibold">
+                  {team.length} members
+                </span>
+                <button
+                  onClick={() => setShowCreateForm(true)}
+                  className="inline-flex items-center gap-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-4 py-2 rounded-xl font-semibold hover:from-indigo-600 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl cursor-pointer"
+                >
+                  <UserPlus className="w-5 h-5" />
+                  Add Member
+                </button>
+              </div>
             </div>
 
             {team.length === 0 ? (
@@ -344,16 +353,18 @@ export default function TeamPage() {
                       <div className="flex items-center gap-3">
                         {getRoleBadge(member.role)}
                         {getStatusBadge(member.status)}
-                        <button 
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            handleRemoveMember(member.id)
-                          }}
-                          className="p-2.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all cursor-pointer"
-                          title="Remove member"
-                        >
-                          <X className="w-5 h-5" />
-                        </button>
+                        {member.role !== 'owner' && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handleRemoveMember(member.id)
+                            }}
+                            className="p-2.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all cursor-pointer"
+                            title="Remove member"
+                          >
+                            <X className="w-5 h-5" />
+                          </button>
+                        )}
                         <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-indigo-600 transition-colors" />
                       </div>
                     </div>

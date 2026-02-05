@@ -1,40 +1,34 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
-import { getUserFromRequest } from '@/lib/auth'
+import { getUserFromRequest, requireAuth } from '@/lib/auth'
+import { prisma } from '@/lib/prisma'
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const user = await getUserFromRequest(req)
-    if (!user) {
+    if (!user || !user.tenantId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const { id } = await params
 
-    const { data: supplier, error: supplierError } = await supabase
-      .from('suppliers')
-      .select('*')
-      .eq('id', id)
-      .eq('user_id', user.id)
-      .single()
+    // In the new schema, suppliers are stored as fields on products
+    // Find products by supplier email or name
+    const products = await prisma.product.findMany({
+      where: {
+        tenantId: user.tenantId,
+        OR: [
+          { supplierEmail: id },
+          { supplierName: id }
+        ]
+      },
+      orderBy: { name: 'asc' }
+    })
 
-    if (supplierError || !supplier) {
-      return NextResponse.json({ error: 'Supplier not found' }, { status: 404 })
+    if (products.length === 0) {
+      return NextResponse.json({ error: 'Supplier not found or no products found' }, { status: 404 })
     }
 
-    const { data: products, error: productsError } = await supabase
-      .from('products')
-      .select('*')
-      .eq('supplier_id', id)
-      .eq('user_id', user.id)
-      .order('name')
-
-    if (productsError) {
-      console.error('Get supplier products error:', productsError)
-      return NextResponse.json({ error: 'Failed to fetch products' }, { status: 500 })
-    }
-
-    return NextResponse.json({ products: products || [] })
+    return NextResponse.json({ products })
   } catch (error) {
     console.error('Get supplier products error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

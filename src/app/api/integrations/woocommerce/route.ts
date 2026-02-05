@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { syncService } from '@/lib/integration-sync'
-import { getUserFromRequest } from '@/lib/auth'
+import { getUserFromRequest, requireAuth } from '@/lib/auth'
 
 export async function GET(req: NextRequest) {
   try {

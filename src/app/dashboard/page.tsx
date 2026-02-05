@@ -1,8 +1,8 @@
 'use client'
 
-import { useEffect, useState, memo } from 'react'
+import { useEffect, useState, memo, lazy, Suspense } from 'react'
 import { useRouter } from 'next/navigation'
-import { Package, TrendingDown, AlertTriangle, Bell, LogOut, Plus, Search, ArrowUpRight, ArrowDownRight, MapPin, Truck, FileText, ArrowUpDown, Menu, X, Users, CreditCard, Zap, Settings, User, Calculator, ChevronRight, TrendingUp } from 'lucide-react'
+import { Package, TrendingDown, AlertTriangle, Bell, LogOut, Plus, Search, ArrowUpRight, ArrowDownRight, MapPin, Truck, FileText, ArrowUpDown, Menu, X, Users, Zap, Settings, User, Calculator, ChevronRight, TrendingUp } from 'lucide-react'
 import Link from 'next/link'
 import { SubscriptionGate } from '@/components/SubscriptionGate'
 
@@ -211,16 +211,16 @@ export default function DashboardPage() {
         )}
 
         {stats?.subscription?.status === 'active' && stats.subscription.plan?.name === 'free' && (
-          <div className="bg-gradient-to-r from-amber-50 to-orange-50 border-b border-amber-200 px-4 py-3">
+          <div className="bg-gradient-to-r from-green-50 to-emerald-50 border-b border-green-200 px-4 py-3">
             <div className="max-w-7xl mx-auto flex items-center justify-between">
-              <div className="flex items-center gap-3 text-amber-800 text-sm">
-                <div className="w-8 h-8 bg-amber-100 rounded-lg flex items-center justify-center">
-                  <AlertTriangle className="w-4 h-4" />
+              <div className="flex items-center gap-3 text-green-800 text-sm">
+                <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+                  <Zap className="w-4 h-4" />
                 </div>
-                <span className="font-medium">You&apos;re on the free plan with limited features</span>
+                <span className="font-medium">Free Forever Plan - All features unlocked!</span>
               </div>
-              <Link href="/subscription" className="text-sm font-medium text-amber-700 hover:underline flex items-center gap-1 cursor-pointer">
-                Upgrade to Pro <ChevronRight className="w-4 h-4" />
+              <Link href="/subscription" className="text-sm font-medium text-green-700 hover:underline flex items-center gap-1 cursor-pointer">
+                Learn more <ChevronRight className="w-4 h-4" />
               </Link>
             </div>
           </div>
@@ -308,7 +308,7 @@ export default function DashboardPage() {
                   </Link>
                   <Link
                     href="/billing"
-                    prefetch={false}
+                    prefetch={true}
                     className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-xl font-medium transition-all cursor-pointer hover:shadow-md"
                   >
                     <div className="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center">
@@ -328,7 +328,7 @@ export default function DashboardPage() {
                   </Link>
                   <Link
                     href="/team"
-                    prefetch={false}
+                    prefetch={true}
                     className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-xl font-medium transition-all cursor-pointer hover:shadow-md"
                   >
                     <div className="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center">
@@ -336,7 +336,8 @@ export default function DashboardPage() {
                     </div>
                     Team
                   </Link>
-                  <Link
+                  {/* Subscription link hidden for free tier launch */}
+                  {/* <Link
                     href="/subscription"
                     prefetch={false}
                     className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-xl font-medium transition-all cursor-pointer hover:shadow-md"
@@ -345,10 +346,10 @@ export default function DashboardPage() {
                       <CreditCard className="w-5 h-5 text-gray-600" />
                     </div>
                     Subscription
-                  </Link>
+                  </Link> */}
                   <Link
                     href="/profile"
-                    prefetch={false}
+                    prefetch={true}
                     className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-xl font-medium transition-all cursor-pointer hover:shadow-md"
                   >
                     <div className="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center">
@@ -358,7 +359,7 @@ export default function DashboardPage() {
                   </Link>
                   <Link
                     href="/settings/organization"
-                    prefetch={false}
+                    prefetch={true}
                     className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-xl font-medium transition-all cursor-pointer hover:shadow-md"
                   >
                     <div className="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center">

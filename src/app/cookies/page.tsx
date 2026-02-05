@@ -126,7 +126,7 @@ export default function CookiePolicyPage() {
                     <div className="flex items-start gap-3">
                       <span className="text-green-500 mt-1">•</span>
                       <p className="text-gray-600 text-sm">
-                        <strong>Browser Settings:</strong> Most web browsers allow you to control cookies through their settings. You can usually find these options in the "Preferences" or "Settings" menu of your browser.
+                        <strong>Browser Settings:</strong> Most web browsers allow you to control cookies through their settings. You can usually find these options in the &quot;Preferences&quot; or &quot;Settings&quot; menu of your browser.
                       </p>
                     </div>
                     <div className="flex items-start gap-3">

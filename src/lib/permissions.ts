@@ -1,4 +1,4 @@
-export type UserRole = 'owner' | 'admin' | 'editor' | 'viewer'
+export type UserRole = 'OWNER' | 'ADMIN' | 'EDITOR' | 'VIEWER' | 'MEMBER'
 
 export interface UserWithPermissions {
   id: string
@@ -18,7 +18,7 @@ export interface Permission {
 
 // Role permissions matrix
 const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
-  owner: [
+  OWNER: [
     // Users & Teams
     { resource: 'users', action: 'create', allowed: true },
     { resource: 'users', action: 'read', allowed: true },
@@ -84,7 +84,7 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     { resource: 'settings', action: 'update', allowed: true },
   ],
   
-  admin: [
+  ADMIN: [
     // Users & Teams
     { resource: 'users', action: 'read', allowed: true },
     { resource: 'users', action: 'update', allowed: true },
@@ -146,7 +146,7 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     { resource: 'settings', action: 'update', allowed: true },
   ],
   
-  editor: [
+  EDITOR: [
     // Products
     { resource: 'products', action: 'create', allowed: true },
     { resource: 'products', action: 'read', allowed: true },
@@ -190,7 +190,7 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     { resource: 'reports', action: 'read', allowed: true },
   ],
   
-  viewer: [
+  VIEWER: [
     // Products
     { resource: 'products', action: 'read', allowed: true },
     
@@ -214,6 +214,20 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     { resource: 'alerts', action: 'read', allowed: true },
     
     // Analytics
+    { resource: 'analytics', action: 'read', allowed: true },
+    { resource: 'reports', action: 'read', allowed: true },
+  ],
+  
+  MEMBER: [
+    // Same as VIEWER for now
+    { resource: 'products', action: 'read', allowed: true },
+    { resource: 'locations', action: 'read', allowed: true },
+    { resource: 'suppliers', action: 'read', allowed: true },
+    { resource: 'purchase_orders', action: 'read', allowed: true },
+    { resource: 'stock_transfers', action: 'read', allowed: true },
+    { resource: 'sales', action: 'read', allowed: true },
+    { resource: 'customers', action: 'read', allowed: true },
+    { resource: 'alerts', action: 'read', allowed: true },
     { resource: 'analytics', action: 'read', allowed: true },
     { resource: 'reports', action: 'read', allowed: true },
   ],
@@ -284,14 +298,14 @@ export class PermissionsService {
    * Check if user is owner
    */
   static isOwner(user: UserWithPermissions | null): boolean {
-    return user?.role === 'owner'
+    return user?.role === 'OWNER'
   }
   
   /**
    * Check if user has admin-level access
    */
   static isAdmin(user: UserWithPermissions | null): boolean {
-    return user?.role === 'owner' || user?.role === 'admin'
+    return user?.role === 'OWNER' || user?.role === 'ADMIN'
   }
   
   /**

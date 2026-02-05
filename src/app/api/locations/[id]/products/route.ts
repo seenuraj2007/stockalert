@@ -1,44 +1,34 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
-import { getUserFromRequest } from '@/lib/auth'
+import { getUserFromRequest, requireAuth } from '@/lib/auth'
+import { prisma } from '@/lib/prisma'
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const user = await getUserFromRequest(req)
-    if (!user) {
+    if (!user || !user.tenantId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const { id } = await params
 
-    const { data: location, error } = await supabase
-      .from('locations')
-      .select('*')
-      .eq('id', id)
-      .eq('user_id', user.id)
-      .single()
+    const location = await prisma.location.findFirst({
+      where: { id, tenantId: user.tenantId }
+    })
 
-    if (error || !location) {
+    if (!location) {
       return NextResponse.json({ error: 'Location not found' }, { status: 404 })
     }
 
-    const { data: products, error: productsError } = await supabase
-      .from('product_stock')
-      .select(`
-        *,
-        products (*)
-      `)
-      .eq('location_id', id)
-      .eq('products.user_id', user.id)
+    const stockLevels = await prisma.stockLevel.findMany({
+      where: { locationId: id },
+      include: {
+        product: true
+      }
+    })
 
-    if (productsError) {
-      console.error('Get location products error:', productsError)
-      return NextResponse.json({ error: 'Failed to fetch products' }, { status: 500 })
-    }
-
-    const formattedProducts = (products || []).map(ps => ({
-      ...ps.products,
-      location_quantity: ps.quantity
+    const formattedProducts = stockLevels.map(sl => ({
+      ...sl.product,
+      location_quantity: sl.quantity
     }))
 
     return NextResponse.json({ products: formattedProducts })

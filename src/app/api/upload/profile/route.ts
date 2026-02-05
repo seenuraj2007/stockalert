@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
-import { getUserFromRequest } from '@/lib/auth'
+import { getUserFromRequest, requireAuth } from '@/lib/auth'
 import { processAvatarUpload, deleteOptimizedImage } from '@/lib/image-optimizer'
+import { prisma } from '@/lib/prisma'
 
 export async function POST(req: NextRequest) {
   try {
@@ -41,25 +41,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: result.error }, { status: 400 })
     }
 
-    const { data: oldUser } = await supabase
-      .from('users')
-      .select('profile_image')
-      .eq('id', user.id)
-      .single()
-
-    if (oldUser?.profile_image) {
-      await deleteOptimizedImage(oldUser.profile_image)
-    }
-
-    const { error } = await supabase
-      .from('users')
-      .update({ profile_image: result.url })
-      .eq('id', user.id)
-
-    if (error) {
-      console.error('Update profile image error:', error)
-      return NextResponse.json({ error: 'Failed to update profile image' }, { status: 500 })
-    }
+    // Update user profile image using Prisma
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { metadata: { profileImage: result.url } }
+    })
 
     return NextResponse.json({
       success: true,
@@ -78,25 +64,11 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { data: oldUser } = await supabase
-      .from('users')
-      .select('profile_image')
-      .eq('id', user.id)
-      .single()
-
-    if (oldUser?.profile_image) {
-      await deleteOptimizedImage(oldUser.profile_image)
-    }
-
-    const { error } = await supabase
-      .from('users')
-      .update({ profile_image: null })
-      .eq('id', user.id)
-
-    if (error) {
-      console.error('Delete profile image error:', error)
-      return NextResponse.json({ error: 'Failed to delete profile image' }, { status: 500 })
-    }
+    // Delete profile image using Prisma
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { metadata: undefined }
+    })
 
     return NextResponse.json({ success: true })
   } catch (error) {

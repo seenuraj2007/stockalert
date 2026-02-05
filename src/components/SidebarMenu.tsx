@@ -23,7 +23,8 @@ const navItems: NavItem[] = [
   { href: '/billing', label: 'Billing / POS', icon: Calculator },
   { href: '/alerts', label: 'Alerts', icon: Bell },
   { href: '/team', label: 'Team', icon: Users },
-  { href: '/subscription', label: 'Subscription', icon: CreditCard },
+  // Subscription hidden for free tier launch
+  // { href: '/subscription', label: 'Subscription', icon: CreditCard },
   { href: '/profile', label: 'Profile', icon: User },
   { href: '/settings/organization', label: 'Settings', icon: Settings },
 ]

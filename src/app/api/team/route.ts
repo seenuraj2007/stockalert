@@ -1,38 +1,50 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getUserFromRequest } from '@/lib/auth'
+import { getUserFromRequest, requireAuth } from '@/lib/auth'
 import { PermissionsService } from '@/lib/permissions'
+import { getOrganizationSubscription } from '@/lib/subscription'
 import bcrypt from 'bcryptjs'
-import { getOrganizationSubscription, hasReachedLimit } from '@/lib/subscription'
-import { supabaseAdmin } from '@/lib/serverSupabase'
-import { supabase } from '@/lib/supabase'
+import { prisma } from '@/lib/prisma'
 
 // GET /api/team - List team members
 export async function GET(req: NextRequest) {
   try {
     const user = await getUserFromRequest(req)
-    if (!user || !user.organization_id) {
+    if (!user || !user.tenantId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { data: team, error } = await supabase
-      .from('users')
-      .select('id, email, full_name, role, status, created_at')
-      .eq('organization_id', user.organization_id)
-      .order('created_at')
+    const members = await prisma.member.findMany({
+      where: { tenantId: user.tenantId },
+      include: {
+        user: {
+          select: {
+            id: true,
+            email: true,
+            name: true,
+            createdAt: true
+          }
+        }
+      },
+      orderBy: { createdAt: 'asc' }
+    })
 
-    if (error) {
-      console.error('Error fetching team:', error)
-      return NextResponse.json({ error: 'Failed to fetch team' }, { status: 500 })
-    }
+    const team = members.map(m => ({
+      id: m.user.id,
+      email: m.user.email,
+      full_name: m.user.name,
+      role: m.role,
+      status: m.status,
+      created_at: m.createdAt
+    }))
 
-    return NextResponse.json({ team: team || [] })
+    return NextResponse.json({ team })
   } catch (error) {
     console.error('Error fetching team:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
 
-// POST /api/team/create-user - Create team member directly
+// POST /api/team - Create team member directly
 export async function POST(req: NextRequest) {
   try {
     const user = await getUserFromRequest(req)
@@ -52,7 +64,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Email, password, and role are required' }, { status: 400 })
     }
 
-    if (!['admin', 'editor', 'viewer'].includes(role)) {
+    const validRoles = ['ADMIN', 'EDITOR', 'VIEWER', 'MEMBER']
+    if (!validRoles.includes(role)) {
       return NextResponse.json({ error: 'Invalid role' }, { status: 400 })
     }
 
@@ -67,83 +80,118 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid email address' }, { status: 400 })
     }
 
-    // Check subscription limits
-    if (!user.organization_id) {
+    if (!user.tenantId) {
       return NextResponse.json({ error: 'No organization found' }, { status: 400 })
     }
-    const subscription = await getOrganizationSubscription(user.organization_id)
-    if (!subscription) {
-      return NextResponse.json({ error: 'No subscription found' }, { status: 400 })
-    }
 
-    if (subscription.status === 'expired' || subscription.status === 'cancelled') {
+    // Check subscription and team member limit
+    const subscription = await getOrganizationSubscription(user.tenantId)
+    const maxTeamMembers = subscription?.plan?.max_team_members || 3
+
+    if (subscription && (subscription.status === 'expired' || subscription.status === 'cancelled')) {
       return NextResponse.json({ error: 'Subscription is not active' }, { status: 403 })
     }
 
-    const { count: currentTeamCount } = await supabase
-      .from('users')
-      .select('*', { count: 'exact', head: true })
-      .eq('organization_id', user.organization_id)
-
-    console.log('Team member limit check:', { 
-      count: currentTeamCount, 
-      maxLimit: subscription?.plan?.max_team_members,
-      subscriptionStatus: subscription?.status,
-      planName: subscription?.plan?.display_name || 'Free',
-      planType: subscription?.plan?.name || 'free',
-      orgId: user.organization_id
+    const memberCount = await prisma.member.count({
+      where: { tenantId: user.tenantId }
     })
 
-    if (hasReachedLimit(subscription, currentTeamCount || 0, 'team_members')) {
+    console.log('Team member limit check:', {
+      count: memberCount,
+      maxLimit: maxTeamMembers,
+      subscriptionStatus: subscription?.status,
+      planName: subscription?.plan?.display_name || 'Free',
+      planType: subscription?.plan?.name || 'free'
+    })
+
+    if (maxTeamMembers !== -1 && memberCount >= maxTeamMembers) {
+      console.log('Blocking team member creation - limit reached')
       return NextResponse.json({
         error: 'Team member limit reached',
-        limit: subscription.plan?.max_team_members,
-        current: currentTeamCount,
+        limit: maxTeamMembers,
+        current: memberCount,
         upgradeUrl: '/subscription'
       }, { status: 403 })
     }
 
-    // Check if email already exists in organization
-    const { data: existingUser } = await supabase
-      .from('users')
-      .select('id')
-      .eq('email', email)
-      .eq('organization_id', user.organization_id)
-      .single()
+    // Check if user already exists in the tenant
+    const existingMember = await prisma.member.findFirst({
+      where: {
+        tenantId: user.tenantId,
+        user: { email }
+      }
+    })
 
-    if (existingUser) {
+    if (existingMember) {
       return NextResponse.json({ error: 'User already exists in organization' }, { status: 400 })
     }
 
-    if (!supabaseAdmin) {
-      return NextResponse.json({ error: 'Server configuration error' }, { status: 500 })
-    }
+    // Check if user exists in the system
+    let targetUser = await prisma.user.findUnique({
+      where: { email }
+    })
 
-    // Hash password
-    const hashedPassword = await bcrypt.hash(password, 10)
-
-    // Create user
-    const { data: newUser, error: insertError } = await supabaseAdmin
-      .from('users')
-      .insert({
-        email,
-        password: hashedPassword,
-        full_name: full_name || null,
-        organization_id: user.organization_id,
-        role,
-        status: 'active',
-        invited_by: user.id,
-        invited_at: new Date().toISOString()
+    if (targetUser) {
+      // User exists, add them to the tenant as a member
+      await prisma.member.create({
+        data: {
+          tenantId: user.tenantId,
+          userId: targetUser.id,
+          role: role as any,
+          status: 'ACTIVE',
+          invitedBy: user.id
+        }
       })
-      .select('id, email, full_name, role, status, created_at')
-      .single()
+    } else {
+      // User doesn't exist, create them with password
+      const hashedPassword = await bcrypt.hash(password, 10)
 
-    if (insertError) {
-      console.error('Error creating user:', insertError)
-      return NextResponse.json({ error: 'Failed to create user' }, { status: 500 })
+      targetUser = await prisma.user.create({
+        data: {
+          email,
+          name: full_name || null,
+          passwordHash: hashedPassword
+        }
+      })
+
+      await prisma.member.create({
+        data: {
+          tenantId: user.tenantId,
+          userId: targetUser.id,
+          role: role as any,
+          status: 'INVITED',
+          invitedBy: user.id
+        }
+      })
     }
 
-    return NextResponse.json({ user: newUser }, { status: 201 })
+    // Fetch the created member
+    const member = await prisma.member.findFirst({
+      where: {
+        tenantId: user.tenantId,
+        userId: targetUser.id
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            email: true,
+            name: true
+          }
+        }
+      }
+    })
+
+    return NextResponse.json({
+      user: {
+        id: member?.user.id,
+        email: member?.user.email,
+        full_name: member?.user.name,
+        role: member?.role,
+        status: member?.status,
+        created_at: member?.createdAt
+      }
+    }, { status: 201 })
   } catch (error) {
     console.error('Error creating team member:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

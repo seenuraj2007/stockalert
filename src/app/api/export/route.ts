@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
-import { getUserFromRequest } from '@/lib/auth'
+import { getUserFromRequest, requireAuth } from '@/lib/auth'
+import { prisma } from '@/lib/prisma'
 
 export async function GET(req: NextRequest) {
   try {
     const user = await getUserFromRequest(req)
-    if (!user) {
+    if (!user || !user.tenantId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -21,6 +21,8 @@ export async function GET(req: NextRequest) {
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-')
     const filename = `stockalert-export-${timestamp}`
 
+    const tenantId = user.tenantId
+
     if (scope === 'all' && !table) {
       const exportData: Record<string, any[]> = {}
 
@@ -35,25 +37,45 @@ export async function GET(req: NextRequest) {
       ]
 
       for (const t of tables) {
-        const { data, error } = await supabase
-          .from(t)
-          .select('*')
-          .eq('user_id', user.id)
+        try {
+          let data: any[] = []
 
-        if (!error && data) {
+          switch (t) {
+            case 'products':
+              data = await prisma.product.findMany({ where: { tenantId } })
+              break
+            case 'locations':
+              data = await prisma.location.findMany({ where: { tenantId } })
+              break
+            case 'suppliers':
+              data = await prisma.product.findMany({
+                where: { tenantId },
+                select: { id: true, supplierName: true, supplierEmail: true, supplierPhone: true }
+              })
+              break
+            case 'purchase_orders':
+              data = await prisma.purchaseOrder.findMany({ where: { tenantId: user.tenantId } })
+              break
+            case 'stock_transfers':
+              data = await prisma.stockTransfer.findMany({ where: { tenantId: user.tenantId } })
+              break
+            case 'alerts':
+              data = await prisma.alert.findMany({ where: { tenantId: user.tenantId } })
+              break
+            case 'stock_history':
+              data = await prisma.inventoryEvent.findMany({ where: { tenantId: user.tenantId } })
+              break
+          }
+
           exportData[t] = data
+        } catch (err) {
+          console.error(`Error exporting ${t}:`, err)
         }
       }
 
       exportData.user_profile = [{
         id: user.id,
-        email: user.email,
-        full_name: user.full_name,
-        organization_id: user.organization_id,
-        role: user.role,
-        status: user.status,
-        created_at: user.created_at,
-        updated_at: user.updated_at
+        email: user.email
       }]
 
       const json = JSON.stringify(exportData, null, 2)
@@ -73,14 +95,36 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid table' }, { status: 400 })
     }
 
-    const { data, error } = await supabase
-      .from(exportTable)
-      .select('*')
-      .eq('user_id', user.id)
+    let data: any[] = []
 
-    if (error) {
-      console.error('Export error:', error)
-      return NextResponse.json({ error: 'Export failed' }, { status: 500 })
+    switch (exportTable) {
+      case 'products':
+        data = await prisma.product.findMany({ where: { tenantId: user.tenantId } })
+        break
+      case 'locations':
+        data = await prisma.location.findMany({ where: { tenantId: user.tenantId } })
+        break
+      case 'suppliers':
+        data = await prisma.product.findMany({
+          where: { tenantId: user.tenantId },
+          select: { id: true, supplierName: true, supplierEmail: true, supplierPhone: true }
+        })
+        break
+      case 'customers':
+        data = await prisma.member.findMany({ where: { tenantId: user.tenantId } })
+        break
+      case 'purchase_orders':
+        data = await prisma.purchaseOrder.findMany({ where: { tenantId: user.tenantId } })
+        break
+      case 'stock_transfers':
+        data = await prisma.stockTransfer.findMany({ where: { tenantId: user.tenantId } })
+        break
+      case 'stock_history':
+        data = await prisma.inventoryEvent.findMany({ where: { tenantId: user.tenantId } })
+        break
+      case 'alerts':
+        data = await prisma.alert.findMany({ where: { tenantId: user.tenantId } })
+        break
     }
 
     if (!data || data.length === 0) {
@@ -96,7 +140,7 @@ export async function GET(req: NextRequest) {
       })
     }
 
-    const headers = Object.keys(data[0])
+    const headers = Object.keys(data[0] as Record<string, unknown>)
     const csv = convertToCSV(data, headers)
 
     return new NextResponse(csv, {

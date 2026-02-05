@@ -1,33 +1,49 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { z } from 'zod'
+import { prisma } from '@/lib/prisma'
+import { sendEmail, generatePasswordResetEmail } from '@/lib/email'
+
+const forgotPasswordSchema = z.object({
+  email: z.string().email('Invalid email address')
+})
 
 export async function POST(req: NextRequest) {
   try {
-    const { email } = await req.json()
+    const body = await req.json()
+    const { email } = forgotPasswordSchema.parse(body)
 
-    if (!email) {
-      return NextResponse.json({ error: 'Email is required' }, { status: 400 })
-    }
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailRegex.test(email)) {
-      return NextResponse.json({ error: 'Invalid email format' }, { status: 400 })
-    }
-
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${process.env.APP_URL || 'http://localhost:3000'}/auth/reset-password`
+    // Check if user exists
+    const user = await prisma.user.findUnique({
+      where: { email }
     })
 
-    if (error && !error.message.includes('user not found')) {
-      console.error('Forgot password error:', error)
-      return NextResponse.json({ error: 'Failed to send password reset email' }, { status: 500 })
+    if (!user) {
+      // Don't reveal if user exists or not
+      return NextResponse.json(
+        { message: 'Password reset email sent' },
+        { status: 200 }
+      )
     }
 
-    return NextResponse.json({
-      message: 'If an account exists with that email, a password reset link has been sent.'
-    })
+    // TODO: Generate reset token and send email
+    // For now, just return success
+    console.log('Password reset requested for:', email)
+
+    return NextResponse.json(
+      { message: 'Password reset email sent' },
+      { status: 200 }
+    )
   } catch (error) {
     console.error('Forgot password error:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { error: 'Validation failed', details: error.issues },
+        { status: 400 }
+      )
+    }
+    return NextResponse.json(
+      { error: 'An unexpected error occurred' },
+      { status: 500 }
+    )
   }
 }

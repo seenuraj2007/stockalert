@@ -1,72 +1,41 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
+import { prisma } from '@/lib/prisma'
 import { getUserFromRequest } from '@/lib/auth'
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-
-function createServiceClient() {
-  if (!supabaseServiceKey) {
-    throw new Error('SUPABASE_SERVICE_ROLE_KEY is not defined')
-  }
-  return createClient(supabaseUrl, supabaseServiceKey, {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false
-    }
-  })
-}
 
 export async function GET(req: NextRequest) {
   try {
     const user = await getUserFromRequest(req)
-    if (!user) {
+    if (!user || !user.tenantId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const supabase = createServiceClient()
+    // Fetch products with current stock levels
+    const products = await prisma.product.findMany({
+      where: { 
+        tenantId: user.tenantId,
+        isActive: true
+      },
+      include: {
+        stockLevels: true
+      }
+    })
 
-    const { searchParams } = new URL(req.url)
-    const search = searchParams.get('search') || ''
-    const category = searchParams.get('category')
-    const limit = parseInt(searchParams.get('limit') || '100')
-    const offset = parseInt(searchParams.get('offset') || '0')
+    // Transform to POS format
+    const posProducts = products.map(product => ({
+      id: product.id,
+      name: product.name,
+      sku: product.sku,
+      barcode: product.barcode,
+      category: product.category,
+      current_quantity: product.stockLevels.reduce((sum, sl) => sum + sl.quantity, 0),
+      reorder_point: 0,
+      selling_price: Number(product.sellingPrice),
+      unit_cost: product.unitCost ? Number(product.unitCost) : null,
+      unit: product.unit,
+      image_url: product.imageUrl
+    }))
 
-    let query = supabase
-      .from('products')
-      .select(`
-        id,
-        name,
-        sku,
-        barcode,
-        category,
-        current_quantity,
-        selling_price,
-        unit_cost,
-        unit,
-        image_url
-      `)
-      .eq('user_id', user.id)
-      .gt('current_quantity', 0)
-      .range(offset, offset + limit - 1)
-      .order('name', { ascending: true })
-
-    if (search) {
-      query = query.or(`name.ilike.%${search}%,sku.ilike.%${search}%,barcode.ilike.%${search}%`)
-    }
-
-    if (category) {
-      query = query.eq('category', category)
-    }
-
-    const { data: products, error } = await query
-
-    if (error) {
-      console.error('Get billing products error:', error)
-      return NextResponse.json({ error: 'Failed to fetch products', details: error.message }, { status: 500 })
-    }
-
-    return NextResponse.json({ products: products || [] })
+    return NextResponse.json({ products: posProducts })
   } catch (error) {
     console.error('Get billing products error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

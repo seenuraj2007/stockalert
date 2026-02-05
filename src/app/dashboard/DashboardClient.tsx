@@ -134,8 +134,6 @@ export default function DashboardClient({ initialStats }: { initialStats: Dashbo
   const [stats, setStats] = useState<DashboardStats | null>(initialStats)
   const [analytics, setAnalytics] = useState<{ sales: { total: number; count: number } } | null>(null)
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [trialDaysLeft, setTrialDaysLeft] = useState<number | null>(null)
-
   const fetchDashboard = useCallback(async () => {
     try {
       const res = await fetch('/api/dashboard/stats', {
@@ -167,17 +165,18 @@ export default function DashboardClient({ initialStats }: { initialStats: Dashbo
 
   useEffect(() => {
     if (!initialStats) {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+     
       fetchDashboard()
     }
     fetchAnalytics()
   }, [initialStats, fetchDashboard, fetchAnalytics])
 
-  useEffect(() => {
+  const trialDaysLeft = useMemo(() => {
     if (stats?.subscription?.status === 'trial' && stats.subscription.trial_end_date) {
       const days = Math.ceil((new Date(stats.subscription.trial_end_date).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
-      setTrialDaysLeft(days > 0 ? days : 0)
+      return days > 0 ? days : 0
     }
+    return null
   }, [stats?.subscription?.status, stats?.subscription?.trial_end_date])
 
   const handleLogout = async () => {
@@ -248,16 +247,16 @@ export default function DashboardClient({ initialStats }: { initialStats: Dashbo
       )}
 
       {stats?.subscription?.status === 'active' && stats.subscription.plan?.name === 'free' && (
-        <div className="bg-gradient-to-r from-amber-50 to-orange-50 border-b border-amber-200 px-3 py-2 sm:px-4 sm:py-3">
+        <div className="bg-gradient-to-r from-green-50 to-emerald-50 border-b border-green-200 px-3 py-2 sm:px-4 sm:py-3">
           <div className="max-w-7xl mx-auto flex items-center justify-between">
-            <div className="flex items-center gap-2 sm:gap-3 text-amber-800 text-xs sm:text-sm">
-              <div className="w-6 h-6 sm:w-8 sm:h-8 bg-amber-100 rounded-lg flex items-center justify-center">
-                <AlertTriangle className="w-3 h-3 sm:w-4 sm:h-4" />
+            <div className="flex items-center gap-2 sm:gap-3 text-green-800 text-xs sm:text-sm">
+              <div className="w-6 h-6 sm:w-8 sm:h-8 bg-green-100 rounded-lg flex items-center justify-center">
+                <Zap className="w-3 h-3 sm:w-4 sm:h-4" />
               </div>
-              <span className="font-medium">You&apos;re on the free plan with limited features</span>
+              <span className="font-medium">Free Forever Plan - All features unlocked!</span>
             </div>
-            <Link href="/subscription" className="text-xs sm:text-sm font-medium text-amber-700 hover:underline flex items-center gap-0.5 sm:gap-1 cursor-pointer">
-              Upgrade to Pro <ChevronRight className="w-3 h-3 sm:w-4 sm:h-4" />
+            <Link href="/subscription" className="text-xs sm:text-sm font-medium text-green-700 hover:underline flex items-center gap-0.5 sm:gap-1 cursor-pointer">
+              Learn more <ChevronRight className="w-3 h-3 sm:w-4 sm:h-4" />
             </Link>
           </div>
         </div>

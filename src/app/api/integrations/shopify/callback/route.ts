@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { ShopifyClient } from '@/lib/shopify'
 import { syncService } from '@/lib/integration-sync'
-import { getUserFromRequest } from '@/lib/auth'
+import { getUserFromRequest, requireAuth } from '@/lib/auth'
 
 export async function GET(req: NextRequest) {
   try {

@@ -1,19 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase as globalSupabase } from '@/lib/supabase'
 import { getUserFromRequest } from '@/lib/auth'
 import { getOrganizationSubscription, hasReachedLimit } from '@/lib/subscription'
-import { supabaseAdmin } from '@/lib/serverSupabase'
+import { ProductRepository } from '@/lib/repositories'
+import { prisma } from '@/lib/prisma'
 
 export async function GET(req: NextRequest) {
   try {
-    const accessToken = req.cookies.get('sb-access-token')?.value
+    const accessToken = req.cookies.get('auth_token')?.value
     if (!accessToken) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const user = await getUserFromRequest(req)
-    
-    if (!user) {
+
+    if (!user || !user.tenantId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -21,31 +21,71 @@ export async function GET(req: NextRequest) {
     const category = searchParams.get('category')
     const supplier_id = searchParams.get('supplier_id')
 
-    let query = globalSupabase.from('products').select('*').eq('user_id', user.id)
+    const repo = new ProductRepository(user.tenantId, user.id)
 
+    const filters: any = {}
     if (category) {
-      query = query.eq('category', category)
+      filters.category = category
     }
-
     if (supplier_id) {
-      query = query.eq('supplier_id', supplier_id)
+      filters.search = supplier_id
     }
 
-    query = query.order('created_at', { ascending: false })
+    const products = await repo.findAll(filters)
 
-    const { data: products, error } = await query
+    const stockLevels = await prisma.stockLevel.findMany({
+      where: {
+        tenantId: user.tenantId!,
+        productId: { in: products.map((p: any) => p.id) }
+      }
+    })
 
-    if (error) {
-      console.error('Get products error:', error)
-      return NextResponse.json({ error: 'Failed to fetch products', details: error.message }, { status: 500 })
-    }
+    const stockByProductId = stockLevels.reduce((acc, sl) => {
+      if (!acc[sl.productId]) {
+        acc[sl.productId] = { quantity: 0, reorderPoint: sl.reorderPoint }
+      }
+      acc[sl.productId].quantity += sl.quantity
+      // Use the highest reorder point if multiple locations have different values
+      acc[sl.productId].reorderPoint = Math.max(acc[sl.productId].reorderPoint, sl.reorderPoint)
+      return acc
+    }, {} as Record<string, { quantity: number; reorderPoint: number }>)
 
-    const productsWithAlerts = (products || []).map((product: any) => ({
-      ...product,
-      needs_restock: product.current_quantity <= product.reorder_point,
-      is_out_of_stock: product.current_quantity === 0,
-      profit_margin: product.selling_price > 0 ? ((product.selling_price - product.unit_cost) / product.selling_price * 100).toFixed(1) : '0'
-    }))
+    const productsWithAlerts = products.map((product: any) => {
+      const stockInfo = stockByProductId[product.id] || { quantity: 0, reorderPoint: 0 }
+      const currentQuantity = stockInfo.quantity
+      const reorderPoint = stockInfo.reorderPoint
+      const isOutOfStock = currentQuantity === 0
+      const needsRestock = !isOutOfStock && currentQuantity <= reorderPoint && reorderPoint > 0
+      
+      return {
+        id: product.id,
+        tenant_id: product.tenantId,
+        user_id: user.id,
+        name: product.name,
+        sku: product.sku,
+        barcode: product.barcode,
+        category: product.category,
+        current_quantity: currentQuantity,
+        reorder_point: reorderPoint,
+        supplier_id: null,
+        supplier_name: product.supplierName,
+        supplier_email: product.supplierEmail,
+        supplier_phone: product.supplierPhone,
+        unit_cost: product.unitCost,
+        selling_price: product.sellingPrice,
+        unit: product.unit,
+        image_url: product.imageUrl,
+        is_active: product.isActive,
+        deleted_at: product.deletedAt,
+        created_at: product.createdAt.toISOString(),
+        updated_at: product.updatedAt.toISOString(),
+        needs_restock: needsRestock,
+        is_out_of_stock: isOutOfStock,
+        profit_margin: product.sellingPrice > 0
+          ? ((Number(product.sellingPrice) - Number(product.unitCost)) / Number(product.sellingPrice) * 100).toFixed(1)
+          : '0'
+      }
+    })
 
     return NextResponse.json({ products: productsWithAlerts }, {
       headers: {
@@ -54,7 +94,7 @@ export async function GET(req: NextRequest) {
     })
   } catch (error) {
     console.error('Get products error:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ error: 'Internal server error', details: error instanceof Error ? error.message : 'Unknown error' }, { status: 500 })
   }
 }
 
@@ -66,119 +106,124 @@ export async function POST(req: NextRequest) {
     }
 
     const user = await getUserFromRequest(req)
-    
-    if (!user) {
+
+    if (!user || !user.tenantId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const body = await req.json()
-    const { 
-      name, 
-      sku, 
-      barcode,
-      category, 
-      current_quantity, 
-      reorder_point, 
-      supplier_id,
-      supplier_name, 
-      supplier_email, 
-      supplier_phone,
-      unit_cost,
-      selling_price,
-      unit,
-      image_url
+    const {
+      name, sku, barcode, category, current_quantity, reorder_point,
+      supplier_id, supplier_name, supplier_email, supplier_phone,
+      unit_cost, selling_price, unit, image_url
     } = body
 
     if (!name) {
       return NextResponse.json({ error: 'Product name is required' }, { status: 400 })
     }
 
-    const subscription = await getOrganizationSubscription(user.organization_id || '')
+    const subscription = await getOrganizationSubscription(user.tenantId)
     const maxProducts = subscription?.plan?.max_products || 10
 
     if (subscription && (subscription.status === 'expired' || subscription.status === 'cancelled')) {
       return NextResponse.json({ error: 'Subscription is not active' }, { status: 403 })
     }
 
-    if (!supabaseAdmin) {
-      return NextResponse.json({ error: 'Server configuration error' }, { status: 500 })
-    }
-
-    const { count, error: countError } = await supabaseAdmin
-      .from('products')
-      .select('id', { count: 'exact', head: true })
-      .eq('user_id', user.id)
-
-    if (countError) {
-      console.error('Error counting products:', countError)
-    }
-
-    console.log('Product limit check:', { 
-      count, 
-      maxLimit: maxProducts,
-      subscriptionStatus: subscription?.status,
-      planName: subscription?.plan?.display_name || 'Free',
-      planType: subscription?.plan?.name || 'free',
-      hasOrg: !!user.organization_id
+    const count = await prisma.product.count({
+      where: { tenantId: user.tenantId, isActive: true, deletedAt: null }
     })
 
-    if (maxProducts !== -1 && count !== null && count >= maxProducts) {
-      console.log('Blocking product creation - limit reached')
+    if (maxProducts !== -1 && count >= maxProducts) {
       return NextResponse.json({
         error: 'Product limit reached',
-        limit: maxProducts,
-        current: count,
+        limit: maxProducts, current: count,
         upgradeUrl: '/subscription'
       }, { status: 403 })
     }
 
-    const { data: product, error: productError } = await supabaseAdmin
-      .from('products')
-      .insert({
-        user_id: user.id,
-        name,
-        sku: sku || null,
-        barcode: barcode || null,
-        category: category || null,
-        current_quantity: current_quantity ?? 0,
-        reorder_point: reorder_point ?? 0,
-        supplier_id: supplier_id || null,
-        supplier_name: supplier_name || null,
-        supplier_email: supplier_email || null,
-        supplier_phone: supplier_phone || null,
-        unit_cost: unit_cost ?? 0,
-        selling_price: selling_price ?? 0,
-        unit: unit || 'unit',
-        image_url: image_url || null
+    const repo = new ProductRepository(user.tenantId, user.id)
+
+    let product
+    try {
+      product = await repo.create({
+        name, sku: sku || null, barcode: barcode || null,
+        category: category || null, unitCost: unit_cost ?? 0,
+        sellingPrice: selling_price ?? 0, unit: unit || 'unit',
+        imageUrl: image_url || null,
+        supplierName: supplier_name || null,
+        supplierEmail: supplier_email || null,
+        supplierPhone: supplier_phone || null
       })
-      .select()
-      .single()
-
-    if (productError || !product) {
-      console.error('Create product error:', productError)
-      return NextResponse.json({ error: 'Failed to create product', details: productError?.message }, { status: 500 })
+    } catch (error) {
+      if (error instanceof Error && error.message.includes('PRODUCT_CONFLICT')) {
+        return NextResponse.json({
+          error: 'Product with this SKU or barcode already exists',
+          details: error.message
+        }, { status: 409 })
+      }
+      throw error
     }
 
-    const { data: location } = await globalSupabase
-      .from('locations')
-      .select('id')
-      .eq('user_id', user.id)
-      .eq('is_primary', true)
-      .single()
-
-    if (location) {
-      await globalSupabase
-        .from('product_stock')
-        .insert({
-          product_id: product.id,
-          location_id: location.id,
-          quantity: current_quantity ?? 0
-        })
+    if (!product) {
+      return NextResponse.json({ error: 'Failed to create product' }, { status: 500 })
     }
 
-    return NextResponse.json({ product }, { status: 201 })
+    const primaryLocation = await prisma.location.findFirst({
+      where: {
+        tenantId: user.tenantId,
+        isPrimary: true, isActive: true, deletedAt: null
+      }
+    })
+
+    if (primaryLocation && current_quantity > 0) {
+      await prisma.stockLevel.upsert({
+        where: {
+          tenantId_productId_locationId: {
+            tenantId: user.tenantId,
+            productId: product.id,
+            locationId: primaryLocation.id
+          }
+        },
+        create: {
+          tenantId: user.tenantId,
+          productId: product.id,
+          locationId: primaryLocation.id,
+          quantity: current_quantity,
+          reservedQuantity: 0,
+          reorderPoint: reorder_point ?? 0,
+          version: 0
+        },
+        update: { quantity: current_quantity }
+      })
+    }
+
+    const responseData = {
+      id: product.id,
+      tenant_id: product.tenantId,
+      user_id: user.id,
+      name: product.name,
+      sku: product.sku,
+      barcode: product.barcode,
+      category: product.category,
+      current_quantity: current_quantity ?? 0,
+      reorder_point: reorder_point ?? 0,
+      supplier_id: null,
+      supplier_name: product.supplierName,
+      supplier_email: product.supplierEmail,
+      supplier_phone: product.supplierPhone,
+      unit_cost: product.unitCost,
+      selling_price: product.sellingPrice,
+      unit: product.unit,
+      image_url: product.imageUrl,
+      is_active: product.isActive,
+      deleted_at: product.deletedAt,
+      created_at: product.createdAt.toISOString(),
+      updated_at: product.updatedAt.toISOString()
+    }
+
+    return NextResponse.json({ product: responseData }, { status: 201 })
   } catch (error) {
     console.error('Create product error:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ error: 'Internal server error', details: error instanceof Error ? error.message : 'Unknown error' }, { status: 500 })
   }
 }

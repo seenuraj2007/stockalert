@@ -1,85 +1,90 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
-import { supabase } from '@/lib/supabase'
+import { signIn } from '@/lib/auth'
 import { loginSchema } from '@/lib/validators'
+import { prisma } from '@/lib/prisma'
+import { ensureUserTenant } from '@/lib/tenant-setup'
+import { checkLoginRateLimit } from '@/lib/rate-limit'
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json()
-    const validatedData = loginSchema.parse(body)
+    const validatedData = loginSchema.parse(await req.json())
 
-    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-      email: validatedData.email,
-      password: validatedData.password
+    // Check rate limit
+    const rateLimit = checkLoginRateLimit(validatedData.email)
+    
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        { 
+          error: 'Too many login attempts. Please try again later.',
+          retryAfter: rateLimit.retryAfter
+        },
+        { 
+          status: 429,
+          headers: { 'Retry-After': rateLimit.retryAfter.toString() }
+        }
+      )
+    }
+
+    // Use our custom signIn function with Neon auth
+    const result = await signIn(validatedData.email, validatedData.password)
+
+    if (!result) {
+      return NextResponse.json(
+        { error: 'Invalid email or password' },
+        { status: 401 }
+      )
+    }
+
+    const { user, token } = result
+
+    // Get or create tenant for user
+    let tenant = await prisma.tenant.findFirst({
+      where: { ownerId: user.id }
     })
 
-    if (authError) {
-      return NextResponse.json(
-        { error: authError.message || 'Invalid email or password' },
-        { status: 401 }
-      )
+    if (!tenant) {
+      tenant = await ensureUserTenant(user.id, user.email)
     }
 
-    if (!authData.user) {
-      return NextResponse.json(
-        { error: 'User not found after authentication' },
-        { status: 401 }
-      )
-    }
-
-    // Try to get user profile
-    // eslint-disable-next-line prefer-const
-    let { data: user, error: userError } = await supabase
-      .from('users')
-      .select('*')
-      .eq('id', authData.user.id)
-      .single()
-
-    // If user doesn't exist, create them
-    if (userError) {
-      console.log('Creating user profile for:', authData.user.id)
-      const { data: newUser, error: insertError } = await supabase
-        .from('users')
-        .insert({
-          id: authData.user.id,
-          email: authData.user.email,
-          full_name: authData.user.user_metadata?.full_name || null,
-          organization_id: null,
-          role: 'member',
-          status: 'active'
-        })
-        .select()
-        .single()
-
-      if (insertError) {
-        console.error('Failed to create user:', insertError)
-        return NextResponse.json(
-          { error: 'Failed to create user profile: ' + insertError.message },
-          { status: 500 }
-        )
+    const member = await prisma.member.findUnique({
+      where: {
+        tenantId_userId: {
+          tenantId: tenant.id,
+          userId: user.id
+        }
       }
+    })
 
-      user = newUser
+    const responseUser = {
+      id: user.id,
+      email: user.email,
+      full_name: user.name,
+      organization_id: tenant.id,
+      role: member?.role || 'MEMBER',
+      status: 'active',
+      created_at: user.created_at,
+      tenant_id: tenant.id
     }
 
-    const response = NextResponse.json({ user }, { status: 200 })
-    response.cookies.set('sb-access-token', authData.session.access_token, {
+    // Create response with user data
+    const response = NextResponse.json({ user: responseUser }, { status: 200 })
+
+    // Set session token cookie
+    response.cookies.set('auth_token', token, {
       httpOnly: true,
-      secure: true,
-      sameSite: 'strict',
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 24 * 7, // 7 days
       path: '/',
-      maxAge: 60 * 60 * 24 * 7
     })
-    response.cookies.set('sb-refresh-token', authData.session.refresh_token, {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'strict',
-      path: '/',
-      maxAge: 60 * 60 * 24 * 7
-    })
+
+    // Add rate limit headers
+    response.headers.set('X-RateLimit-Limit', LOGIN_MAX_ATTEMPTS.toString())
+    response.headers.set('X-RateLimit-Remaining', rateLimit.remaining.toString())
+
     return response
   } catch (error) {
-    console.error('Login error:', error)
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: 'Validation failed', details: error.issues },
@@ -92,3 +97,5 @@ export async function POST(req: NextRequest) {
     )
   }
 }
+
+const LOGIN_MAX_ATTEMPTS = 5

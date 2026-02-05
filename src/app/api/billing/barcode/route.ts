@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
 import { getUserFromRequest } from '@/lib/auth'
+import { prisma } from '@/lib/prisma'
 
 export async function POST(req: NextRequest) {
   try {
     const user = await getUserFromRequest(req)
-    if (!user) {
+    if (!user || !user.tenantId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -16,31 +16,47 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Barcode is required' }, { status: 400 })
     }
 
-    const { data: product, error } = await supabase
-      .from('products')
-      .select(`
-        id,
-        name,
-        sku,
-        barcode,
-        category,
-        current_quantity,
-        selling_price,
-        unit_cost,
-        unit,
-        image_url,
-        reorder_point
-      `)
-      .eq('user_id', user.id)
-      .eq('current_quantity', 0)
-      .or(`barcode.eq.${barcode},sku.eq.${barcode}`)
-      .single()
+    // Find product by barcode or SKU
+    const product = await prisma.product.findFirst({
+      where: {
+        tenantId: user.tenantId,
+        OR: [
+          { barcode },
+          { sku: barcode }
+        ],
+        isActive: true
+      }
+    })
 
-    if (error || !product) {
+    if (!product) {
       return NextResponse.json({ error: 'Product not found' }, { status: 404 })
     }
 
-    return NextResponse.json({ product })
+    // Get stock levels for this product
+    const stockLevels = await prisma.stockLevel.findMany({
+      where: { productId: product.id },
+      include: { location: true }
+    })
+
+    // Calculate total quantity
+    const current_quantity = stockLevels.reduce((sum, sl) => sum + sl.quantity, 0)
+
+    const productResponse = {
+      id: product.id,
+      name: product.name,
+      sku: product.sku,
+      barcode: product.barcode,
+      category: product.category,
+      current_quantity,
+      selling_price: product.sellingPrice,
+      unit_cost: product.unitCost,
+      unit: product.unit,
+      image_url: product.imageUrl,
+      reorder_point: stockLevels[0]?.reorderPoint || 0,
+      stock_levels: stockLevels
+    }
+
+    return NextResponse.json({ product: productResponse })
   } catch (error) {
     console.error('Barcode lookup error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

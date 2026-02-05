@@ -1,47 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
 import { getUserFromRequest } from '@/lib/auth'
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-
-function createServiceClient() {
-  if (!supabaseServiceKey) {
-    throw new Error('SUPABASE_SERVICE_ROLE_KEY is not defined')
-  }
-  return createClient(supabaseUrl, supabaseServiceKey, {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false
-    }
-  })
-}
+import { prisma } from '@/lib/prisma'
 
 export async function GET(req: NextRequest) {
   try {
     const user = await getUserFromRequest(req)
+
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
-
-    const supabase = createServiceClient()
-
-    const { data: org, error: orgError } = await supabase
-      .from('organizations')
-      .select('id, name')
-      .eq('id', user.organization_id || '')
-      .single()
 
     return NextResponse.json({
       user: {
         id: user.id,
         email: user.email,
-        full_name: user.full_name,
-        role: user.role,
-        status: user.status,
-        organization_id: user.organization_id,
+        full_name: user.displayName,
+        role: null,
+        status: 'active',
+        organization_id: user.tenantId,
         created_at: user.created_at,
-        organization: org
+        tenantId: user.tenantId,
+        metadata: user.metadata
       }
     })
   } catch (error) {
@@ -53,29 +32,40 @@ export async function GET(req: NextRequest) {
 export async function PATCH(req: NextRequest) {
   try {
     const user = await getUserFromRequest(req)
-    if (!user) {
+
+    if (!user || !user.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
-
-    const supabase = createServiceClient()
 
     const body = await req.json()
     const { full_name } = body
 
     if (full_name !== undefined) {
-      await supabase
-        .from('users')
-        .update({ full_name: full_name || null })
-        .eq('id', user.id)
+      try {
+        await prisma.user.update({
+          where: { id: user.id },
+          data: { name: full_name || null }
+        })
+      } catch (error) {
+        console.error('Update user name error:', error)
+      }
     }
 
-    const { data: updatedUser } = await supabase
-      .from('users')
-      .select('id, email, full_name, role, status, organization_id, created_at')
-      .eq('id', user.id)
-      .single()
+    const updatedUser = await getUserFromRequest(req)
 
-    return NextResponse.json({ user: updatedUser })
+    return NextResponse.json({
+      user: updatedUser ? {
+        id: updatedUser.id,
+        email: updatedUser.email,
+        full_name: updatedUser.displayName,
+        role: null,
+        status: 'active',
+        organization_id: updatedUser.tenantId,
+        created_at: updatedUser.created_at,
+        tenantId: updatedUser.tenantId,
+        metadata: updatedUser.metadata
+      } : null
+    })
   } catch (error) {
     console.error('Update profile error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

@@ -28,7 +28,7 @@ const InputField = ({ label, icon: Icon, type = 'text', name, value, onChange, p
         onChange={onChange}
         placeholder={placeholder}
         required={required}
-        className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all text-gray-900"
+        className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all text-gray-900 placeholder-gray-400 bg-white"
       />
     </div>
   </div>

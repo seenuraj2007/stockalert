@@ -7,120 +7,112 @@ import {
   Package, TrendingDown, AlertTriangle, Bell, Users, MapPin, 
   Truck, BarChart3, Shield, Zap, ArrowRight, CheckCircle, 
   ChevronRight, Layers, Target, Sparkles, Cpu, Lock, 
-  Database, Code2, Globe, Server 
+  Database, Code2, Globe, Server, Receipt, QrCode, FileText,
+  IndianRupee, Building2, UserPlus
 } from 'lucide-react'
 
 const stats = [
-  { label: 'Total Products', value: '1,247', change: '+12%', color: 'from-blue-500 to-blue-600', Icon: Package },
-  { label: 'Low Stock', value: '23', change: '-5', color: 'from-yellow-500 to-orange-500', Icon: TrendingDown },
-  { label: 'Out of Stock', value: '5', change: '-2', color: 'from-red-500 to-red-600', Icon: AlertTriangle },
-  { label: 'This Month (₹)', value: '+45,000', change: '+8%', color: 'from-green-500 to-green-600', Icon: BarChart3 },
+  { label: 'Products Tracked', value: '156', change: '+12 this week', color: 'from-blue-500 to-blue-600', Icon: Package },
+  { label: 'Low Stock Items', value: '8', change: 'Action needed', color: 'from-yellow-500 to-orange-500', Icon: TrendingDown },
+  { label: 'Out of Stock', value: '2', change: 'Restock ASAP', color: 'from-red-500 to-red-600', Icon: AlertTriangle },
+  { label: 'Stock Value (₹)', value: '₹2.4L', change: '+₹45K', color: 'from-green-500 to-green-600', Icon: IndianRupee },
 ]
 
 const alerts = [
-  { name: 'Basmati Rice (5kg)', stock: 5, reorder: 20, status: 'critical' },
-  { name: 'Cotton T-Shirt (L)', stock: 8, reorder: 50, status: 'warning' },
-  { name: 'Masala Powder (Pack of 10)', stock: 12, reorder: 100, status: 'warning' },
+  { name: 'Aashirvaad Atta (5kg)', stock: 4, reorder: 20, status: 'critical' },
+  { name: 'Patanjali Honey (500g)', stock: 6, reorder: 50, status: 'warning' },
+  { name: 'MDH Masala (100g)', stock: 15, reorder: 100, status: 'warning' },
 ]
 
 const features = [
   {
     icon: Package,
-    title: 'Product Tracking',
-    description: 'Track all products with barcode support, categories, and detailed stock levels across locations.',
+    title: 'Real-time Stock Tracking',
+    description: 'Track inventory levels across multiple warehouses and retail locations in real-time. Know exactly what you have, where you have it.',
     size: 'wide',
     glow: 'from-blue-500/20 to-cyan-500/20'
   },
   {
     icon: Bell,
-    title: 'Smart Alerts',
-    description: 'Get notified when stock runs low or hits zero. Never miss a restock opportunity.',
+    title: 'Smart Alerts & Notifications',
+    description: 'Get instant alerts when stock runs low or hits zero. Never lose a sale due to stockouts.',
     size: 'small',
     glow: 'from-purple-500/20 to-pink-500/20'
   },
   {
-    icon: Shield,
-    title: 'GST Compliant',
-    description: 'Generate GST-ready invoices automatically. Stay compliant with India\'s tax regulations effortlessly.',
+    icon: Receipt,
+    title: 'GST-Ready Invoicing',
+    description: 'Generate GST-compliant invoices automatically with HSN codes, tax breakdowns, and e-way bill integration.',
     size: 'small',
     glow: 'from-green-500/20 to-emerald-500/20'
   },
   {
-    icon: Truck,
-    title: 'Supplier Management',
-    description: 'Manage suppliers, track purchase orders, and streamline your supply chain.',
+    icon: MapPin,
+    title: 'Multi-Location Management',
+    description: 'Manage stock across multiple godowns, shops, and warehouses from a single dashboard.',
     size: 'small',
     glow: 'from-orange-500/20 to-red-500/20'
   },
   {
-    icon: Database,
-    title: 'Data Stored in India',
-    description: 'Your data stays in Indian servers. ISO 27001 certified for maximum security and compliance.',
+    icon: QrCode,
+    title: 'Barcode Generation',
+    description: 'Generate and print barcodes for any product. Scan to quickly update stock or process sales.',
     size: 'small',
     glow: 'from-indigo-500/20 to-violet-500/20'
   },
   {
-    icon: Target,
+    icon: FileText,
     title: 'Purchase Orders',
-    description: 'Create, track, and manage purchase orders with automatic stock updates.',
+    description: 'Create and manage purchase orders with suppliers. Track pending deliveries and auto-update stock on receipt.',
     size: 'wide',
     glow: 'from-violet-500/20 to-fuchsia-500/20'
+  },
+  {
+    icon: Users,
+    title: 'Team Collaboration',
+    description: 'Add your team with role-based access. Shop staff, warehouse managers, and accountants - everyone sees what they need.',
+    size: 'small',
+    glow: 'from-teal-500/20 to-emerald-500/20'
+  },
+  {
+    icon: BarChart3,
+    title: 'Sales Analytics',
+    description: 'Track best-selling products, seasonal trends, and profit margins. Make data-driven decisions.',
+    size: 'small',
+    glow: 'from-pink-500/20 to-rose-500/20'
   },
 ]
 
 const howItWorksSteps = [
-  { step: '01', title: 'Create Account', desc: 'Sign up with your email. No credit card required for the 30-day trial.', icon: Sparkles },
-  { step: '02', title: 'Add Products', desc: 'Import your products or add them one by one with barcode support.', icon: Package },
-  { step: '03', title: 'Start Tracking', desc: 'Get instant alerts, track stock levels, and manage your inventory smarter.', icon: Bell },
-]
-
-const plans = [
-  {
-    name: 'Free',
-    price: '₹0',
-    description: 'Perfect for personal use',
-    features: ['1 team member', '10 products', '1 location', 'Basic tracking', 'Email support'],
-    cta: 'Get Started Free',
-  },
-  {
-    name: 'Starter',
-    price: '₹499',
-    description: 'Great for small businesses',
-    features: ['3 team members', '100 products', '5 locations', 'Priority email support'],
-    cta: 'Start Free Trial',
-  },
-  {
-    name: 'Professional',
-    price: '₹1,499',
-    description: 'For growing businesses',
-    features: ['10 team members', '1000 products', '20 locations', 'Stock transfers', 'Priority support'],
-    cta: 'Start Free Trial',
-    popular: true,
-  },
+  { step: '01', title: 'Setup Your Business', desc: 'Create your free account. Add your locations (shops/warehouses) and invite your team.', icon: Building2 },
+  { step: '02', title: 'Add Your Products', desc: 'Import via Excel or add products individually with barcode support. Set reorder levels and GST rates.', icon: Package },
+  { step: '03', title: 'Track & Manage', desc: 'Monitor stock levels, get low stock alerts, generate GST invoices, and never run out of inventory again.', icon: Bell },
 ]
 
 const techStack = [
-  { name: 'Next.js', icon: Code2, color: 'text-white' },
-  { name: 'React', icon: Globe, color: 'text-cyan-400' },
-  { name: 'Cashfree', icon: Lock, color: 'text-blue-400' },
-  { name: 'Supabase', icon: Database, color: 'text-green-400' },
-  { name: 'TypeScript', icon: Cpu, color: 'text-indigo-400' },
-  { name: 'Tailwind', icon: Sparkles, color: 'text-teal-400' },
+  { name: 'Next.js 16', icon: Code2, color: 'text-white' },
+  { name: 'React 19', icon: Globe, color: 'text-cyan-400' },
+  { name: 'Prisma ORM', icon: Database, color: 'text-indigo-400' },
+  { name: 'Neon PostgreSQL', icon: Server, color: 'text-green-400' },
+  { name: 'TypeScript', icon: Cpu, color: 'text-blue-400' },
+  { name: 'Tailwind CSS', icon: Sparkles, color: 'text-teal-400' },
+  { name: 'Framer Motion', icon: Zap, color: 'text-pink-400' },
+  { name: 'Cashfree', icon: Lock, color: 'text-violet-400' },
 ]
 
 function Marquee({ items }: { items: typeof techStack }) {
   return (
     <div className="relative overflow-hidden">
       <motion.div 
-        className="flex gap-12"
+        className="flex gap-8"
         animate={{
-          x: [0, -2000],
+          x: [0, -2500],
         }}
         transition={{
           x: {
             repeat: Infinity,
             repeatType: "loop",
-            duration: 30,
+            duration: 35,
             ease: "linear",
           },
         }}
@@ -128,10 +120,10 @@ function Marquee({ items }: { items: typeof techStack }) {
         {[...items, ...items, ...items, ...items].map((item, i) => (
           <div 
             key={`${item.name}-${i}`} 
-            className="flex items-center gap-3 px-6 py-3 rounded-xl bg-white/5 border border-white/10 backdrop-blur-sm"
+            className="flex items-center gap-3 px-6 py-3 rounded-xl bg-white/5 border border-white/10 backdrop-blur-sm hover:border-violet-500/30 transition-colors"
           >
             <item.icon className={`w-5 h-5 ${item.color}`} />
-            <span className="text-white/80 font-medium">{item.name}</span>
+            <span className="text-white/80 font-medium whitespace-nowrap">{item.name}</span>
           </div>
         ))}
       </motion.div>
@@ -200,7 +192,7 @@ export default function HomePage() {
             
             <div className="hidden md:flex items-center gap-8">
               <a href="#features" className="text-white/60 hover:text-white transition-colors cursor-pointer font-medium">Features</a>
-              <Link href="/pricing" className="text-white/60 hover:text-white transition-colors cursor-pointer font-medium">Pricing</Link>
+              <a href="#pricing" className="text-white/60 hover:text-white transition-colors cursor-pointer font-medium">Pricing</a>
               <a href="#how-it-works" className="text-white/60 hover:text-white transition-colors cursor-pointer font-medium">How It Works</a>
             </div>
 
@@ -209,7 +201,7 @@ export default function HomePage() {
                 Sign In
               </Link>
               <Link href="/auth" className="bg-gradient-to-r from-violet-500 to-fuchsia-600 text-white px-5 py-2.5 rounded-xl font-medium hover:from-violet-600 hover:to-fuchsia-700 transition-all shadow-lg shadow-violet-500/25 hover:shadow-violet-500/40 hover:-translate-y-0.5 flex items-center gap-2 cursor-pointer">
-                Start Free Trial
+                Get Started Free
                 <ArrowRight className="w-4 h-4" />
               </Link>
             </div>
@@ -277,18 +269,18 @@ export default function HomePage() {
             animate="visible"
           >
             <motion.div 
-              className="inline-flex items-center gap-2 px-5 py-2.5 bg-white/5 backdrop-blur-xl border border-white/10 text-violet-300 rounded-full text-sm font-semibold mb-8"
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-green-500/10 to-emerald-500/10 backdrop-blur-xl border border-green-500/20 text-green-300 rounded-full text-sm font-semibold mb-8"
               variants={itemVariants}
             >
-              <Zap className="w-4 h-4 text-violet-400" />
-              Now with 30-day free trial - No credit card required
+              <Zap className="w-4 h-4 text-green-400" />
+              100% Free Forever • No Credit Card Required
             </motion.div>
             
             <motion.h1
               className="text-5xl md:text-7xl lg:text-8xl font-bold mb-6 leading-tight tracking-tight"
               variants={itemVariants}
             >
-              <span className="bg-gradient-to-r from-white via-white to-white/70 bg-clip-text text-transparent">Inventory Management,</span>
+              <span className="bg-gradient-to-r from-white via-white to-white/70 bg-clip-text text-transparent">Inventory Management</span>
               <br />
               <span className="bg-gradient-to-r from-violet-400 via-fuchsia-400 to-cyan-400 bg-clip-text text-transparent relative inline-block">
                 Built for India.
@@ -312,7 +304,8 @@ export default function HomePage() {
               className="text-xl text-white/60 mb-10 max-w-2xl mx-auto leading-relaxed"
               variants={itemVariants}
             >
-              Track stock in Rupees, generate GST-ready invoices, and manage your inventory with zero headache. Simple, reliable, and powerful.
+              Track stock in Rupees, manage multiple locations, generate GST invoices — completely free forever. 
+              Stop using Excel, start scaling your business.
             </motion.p>
             
             <motion.div
@@ -320,33 +313,43 @@ export default function HomePage() {
               variants={itemVariants}
             >
               <Link href="/auth" className="w-full sm:w-auto bg-gradient-to-r from-violet-600 via-fuchsia-600 to-violet-700 text-white px-8 py-4 rounded-xl font-semibold text-lg hover:from-violet-700 hover:via-fuchsia-700 hover:to-violet-800 transition-all shadow-xl shadow-violet-500/25 hover:shadow-violet-500/40 hover:-translate-y-0.5 flex items-center justify-center gap-2 cursor-pointer">
-                Start Free - No Credit Card
+                Start Free Forever
                 <ArrowRight className="w-5 h-5" />
               </Link>
               <a href="#features" className="w-full sm:w-auto px-8 py-4 rounded-xl font-semibold text-lg text-white border-2 border-white/10 hover:border-white/20 hover:bg-white/5 backdrop-blur-sm transition-all flex items-center justify-center gap-2 cursor-pointer">
-                See How It Works
+                See Features
               </a>
             </motion.div>
             
-            <motion.p 
-              className="mt-6 text-sm text-white/50 flex items-center justify-center gap-2"
+            <motion.div 
+              className="mt-8 flex flex-wrap items-center justify-center gap-6 text-sm text-white/50"
               variants={itemVariants}
             >
-              <motion.span 
-                className="w-2 h-2 bg-green-400 rounded-full shadow-[0_0_10px_rgba(74,222,128,0.5)]"
-                animate={{
-                  scale: [1, 1.2, 1],
-                  opacity: [0.7, 1, 0.7],
-                }}
-                transition={{
-                  duration: 2,
-                  repeat: Infinity,
-                  ease: [0.4, 0, 0.2, 1],
-                  times: [0, 0.5, 1],
-                }}
-              />
-              Free 30-day trial • No credit card required • Cancel anytime
-              </motion.p>
+              <div className="flex items-center gap-2">
+                <motion.span 
+                  className="w-2 h-2 bg-green-400 rounded-full shadow-[0_0_10px_rgba(74,222,128,0.5)]"
+                  animate={{
+                    scale: [1, 1.2, 1],
+                    opacity: [0.7, 1, 0.7],
+                  }}
+                  transition={{
+                    duration: 2,
+                    repeat: Infinity,
+                    ease: [0.4, 0, 0.2, 1],
+                    times: [0, 0.5, 1],
+                  }}
+                />
+                No credit card required
+              </div>
+              <div className="flex items-center gap-2">
+                <Shield className="w-4 h-4 text-violet-400" />
+                Data stored in India
+              </div>
+              <div className="flex items-center gap-2">
+                <Receipt className="w-4 h-4 text-violet-400" />
+                GST Compliant
+              </div>
+            </motion.div>
           </motion.div>
         </motion.div>
 
@@ -383,6 +386,7 @@ export default function HomePage() {
                   <div className="w-3 h-3 rounded-full bg-yellow-500/70" />
                   <div className="w-3 h-3 rounded-full bg-green-500/70" />
                 </div>
+                <div className="flex-1 text-center text-xs text-white/40 font-mono">DKS StockAlert Dashboard</div>
               </div>
               <div className="p-6 bg-gradient-to-br from-slate-900/50 to-slate-800/50">
                 <div className="grid grid-cols-4 gap-4 mb-6">
@@ -406,16 +410,19 @@ export default function HomePage() {
                         </div>
                         <div className="flex items-baseline gap-2">
                           <p className="text-2xl font-bold text-white">{stat.value}</p>
-                          <span className="text-xs text-green-400 font-medium">{stat.change}</span>
                         </div>
                         <p className="text-sm text-white/60">{stat.label}</p>
+                        <span className="text-xs text-green-400 font-medium mt-1 block">{stat.change}</span>
                       </motion.div>
                     )
                   })}
                 </div>
                 <div className="bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-white/10">
                   <div className="flex items-center justify-between mb-4">
-                    <h3 className="font-semibold text-white">Low Stock Alerts</h3>
+                    <h3 className="font-semibold text-white flex items-center gap-2">
+                      <AlertTriangle className="w-4 h-4 text-yellow-400" />
+                      Low Stock Alerts
+                    </h3>
                     <span className="text-sm text-violet-400 font-medium cursor-pointer hover:text-violet-300">View All</span>
                   </div>
                   {alerts.map((item, i) => (
@@ -436,7 +443,7 @@ export default function HomePage() {
                         </div>
                         <div>
                           <p className="font-medium text-white">{item.name}</p>
-                          <p className="text-sm text-white/60">{item.stock} / {item.reorder} units</p>
+                          <p className="text-sm text-white/60">{item.stock} units left (reorder at {item.reorder})</p>
                         </div>
                       </div>
                       <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
@@ -459,7 +466,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section id="features" className="py-16 px-4 relative">
+      <section id="features" className="py-24 px-4 relative">
         <div className="max-w-7xl mx-auto">
           <motion.div 
             className="text-center mb-16"
@@ -470,10 +477,10 @@ export default function HomePage() {
           >
             <span className="text-violet-400 font-semibold text-sm uppercase tracking-wider mb-3 block">Features</span>
             <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4">
-              <span className="bg-gradient-to-r from-white to-white/70 bg-clip-text text-transparent">Everything You Need</span>
+              <span className="bg-gradient-to-r from-white to-white/70 bg-clip-text text-transparent">Everything You Need to Manage Inventory</span>
             </h2>
             <p className="text-xl text-white/60 max-w-2xl mx-auto leading-relaxed">
-              Powerful features to track, manage, and optimize your inventory across all locations.
+              Stop juggling Excel sheets. Get real-time visibility into your stock across all locations with powerful features designed for Indian businesses.
             </p>
           </motion.div>
 
@@ -513,7 +520,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section id="how-it-works" className="py-24 px-4 relative">
+      <section id="how-it-works" className="py-24 px-4 relative bg-slate-900/30">
         <div className="max-w-7xl mx-auto">
           <motion.div 
             className="text-center mb-16"
@@ -524,10 +531,10 @@ export default function HomePage() {
           >
             <span className="text-violet-400 font-semibold text-sm uppercase tracking-wider mb-3 block">How It Works</span>
             <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4">
-              <span className="bg-gradient-to-r from-white to-white/70 bg-clip-text text-transparent">Get Started in Minutes</span>
+              <span className="bg-gradient-to-r from-white to-white/70 bg-clip-text text-transparent">Setup in 5 Minutes</span>
             </h2>
             <p className="text-xl text-white/60 max-w-2xl mx-auto">
-              Start tracking your inventory in 3 simple steps.
+              Get started immediately. No complex implementation, no training required.
             </p>
           </motion.div>
 
@@ -584,8 +591,8 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section id="pricing" className="py-10 px-4 relative">
-        <div className="max-w-7xl mx-auto">
+      <section id="pricing" className="py-24 px-4 relative">
+        <div className="max-w-5xl mx-auto">
           <motion.div 
             className="text-center mb-16"
             initial={{ opacity: 0, y: 30 }}
@@ -595,104 +602,197 @@ export default function HomePage() {
           >
             <span className="text-violet-400 font-semibold text-sm uppercase tracking-wider mb-3 block">Pricing</span>
             <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4">
-              <span className="bg-gradient-to-r from-white to-white/70 bg-clip-text text-transparent">Simple, Transparent Pricing</span>
+              <span className="bg-gradient-to-r from-white to-white/70 bg-clip-text text-transparent">Free Forever. Seriously.</span>
             </h2>
-            <p className="text-xl text-white/60">Start free, upgrade when you&apos;re ready.</p>
+            <p className="text-xl text-white/60">No hidden fees, no credit card required, no time limits.</p>
           </motion.div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {plans.map((plan, i) => {
-              return (
-                <motion.div
-                  key={i}
-                  className={`bg-white/5 backdrop-blur-xl rounded-3xl p-8 border hover:border-violet-500/50 transition-all duration-300 relative group ${plan.popular ? 'border-violet-500/50 ring-2 ring-violet-500/30 shadow-xl shadow-violet-500/10' : 'border-white/10'}`}
-                  initial={{ opacity: 0, y: 40 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: "-50px" }}
-                  transition={{ 
-                    delay: i * 0.08,
-                    duration: 0.8,
-                    ease: [0.4, 0, 0.2, 1],
-                  }}
-                  whileHover={{ scale: 1.02, y: -8 }}
-                >
-                  {plan.popular && (
-                    <motion.div 
-                      className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1.5 bg-gradient-to-r from-violet-500 to-fuchsia-600 text-white text-sm font-semibold rounded-full shadow-lg shadow-violet-500/50"
-                      animate={{
-                        scale: [1, 1.03, 1],
-                        boxShadow: [
-                          '0 0 20px rgba(139, 92, 246, 0.3)',
-                          '0 0 30px rgba(139, 92, 246, 0.5)',
-                          '0 0 20px rgba(139, 92, 246, 0.3)',
-                        ],
-                      }}
-                      transition={{
-                        duration: 3,
-                        repeat: Infinity,
-                        ease: [0.4, 0, 0.2, 1],
-                        times: [0, 0.5, 1],
-                      }}
-                    >
-                      Most Popular
-                    </motion.div>
-                  )}
-                  <div className="mb-6">
-                    <div className={`w-14 h-14 rounded-2xl ${plan.popular ? 'bg-gradient-to-br from-violet-500 to-fuchsia-600' : 'bg-gradient-to-br from-white/10 to-white/5'} flex items-center justify-center mb-6 ${plan.popular ? 'shadow-lg shadow-violet-500/20' : ''}`}>
-                      <span className={`text-white font-bold text-xl`}>{plan.name.charAt(0)}</span>
-                    </div>
-                    <h3 className="text-2xl font-bold text-white mb-2">{plan.name}</h3>
-                    <p className="text-white/60 mb-4">{plan.description}</p>
-                    <div className="mb-6">
-                      <span className="text-4xl font-bold text-white">{plan.price}</span>
-                      <span className="text-white/60">/month</span>
-                    </div>
+          <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+            <motion.div
+              className="bg-gradient-to-br from-violet-600/20 to-fuchsia-600/20 backdrop-blur-xl rounded-3xl p-8 border border-violet-500/50 relative overflow-hidden"
+              initial={{ opacity: 0, y: 40 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-50px" }}
+              transition={{ 
+                duration: 0.8,
+                ease: [0.4, 0, 0.2, 1],
+              }}
+              whileHover={{ scale: 1.02, y: -5 }}
+            >
+              <motion.div 
+                className="absolute top-4 right-4 px-4 py-1.5 bg-gradient-to-r from-violet-500 to-fuchsia-600 text-white text-sm font-semibold rounded-full shadow-lg shadow-violet-500/50"
+                animate={{
+                  scale: [1, 1.03, 1],
+                  boxShadow: [
+                    '0 0 20px rgba(139, 92, 246, 0.3)',
+                    '0 0 30px rgba(139, 92, 246, 0.5)',
+                    '0 0 20px rgba(139, 92, 246, 0.3)',
+                  ],
+                }}
+                transition={{
+                  duration: 3,
+                  repeat: Infinity,
+                  ease: [0.4, 0, 0.2, 1],
+                  times: [0, 0.5, 1],
+                }}
+              >
+                Popular
+              </motion.div>
+              
+              <div className="mb-6">
+                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-violet-500 to-fuchsia-600 flex items-center justify-center mb-6 shadow-lg shadow-violet-500/20">
+                  <Sparkles className="w-7 h-7 text-white" />
+                </div>
+                <h3 className="text-2xl font-bold text-white mb-2">Free Forever</h3>
+                <p className="text-white/60 mb-4">Perfect for small businesses getting started</p>
+                <div className="mb-6">
+                  <span className="text-5xl font-bold text-white">₹0</span>
+                  <span className="text-white/60 text-lg">/forever</span>
+                </div>
+              </div>
+              
+              <ul className="space-y-4 mb-8">
+                <li className="flex items-center gap-3">
+                  <div className="w-5 h-5 rounded-full bg-violet-500/20 flex items-center justify-center flex-shrink-0">
+                    <CheckCircle className="w-3.5 h-3.5 text-violet-400" />
                   </div>
-                  <ul className="space-y-3 mb-8">
-                    {plan.features.map((feature, j) => (
-                      <li key={j} className="flex items-center gap-3">
-                        <div className={`w-5 h-5 rounded-full ${plan.popular ? 'bg-violet-500/20' : 'bg-green-500/20'} flex items-center justify-center flex-shrink-0`}>
-                          <CheckCircle className={`w-3.5 h-3.5 ${plan.popular ? 'text-violet-400' : 'text-green-400'}`} />
-                        </div>
-                        <span className="text-white/60 text-sm">{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-                  <Link href="/auth" className={`block w-full py-3.5 px-6 text-center font-semibold rounded-xl transition-all duration-300 ${plan.popular 
-                    ? 'bg-gradient-to-r from-violet-500 to-fuchsia-600 text-white hover:from-violet-600 hover:to-fuchsia-700 shadow-lg shadow-violet-500/25 hover:shadow-violet-500/40' 
-                    : 'bg-white/10 text-white hover:bg-white/15 border border-white/10'}`}>
-                    {plan.cta}
-                  </Link>
-                  {plan.price === '₹0' && (
-                    <p className="text-center text-white/50 text-xs mt-3">No credit card required</p>
-                  )}
-                  {plan.price !== '₹0' && (
-                    <p className="text-center text-white/50 text-xs mt-3 flex items-center justify-center gap-2">
-                      <Shield className="w-3 h-3 text-violet-400" />
-                      No credit card required • UPI accepted
-                    </p>
-                  )}
-                </motion.div>
-              )
-            })}
+                  <span className="text-white/80">Up to 500 products</span>
+                </li>
+                <li className="flex items-center gap-3">
+                  <div className="w-5 h-5 rounded-full bg-violet-500/20 flex items-center justify-center flex-shrink-0">
+                    <CheckCircle className="w-3.5 h-3.5 text-violet-400" />
+                  </div>
+                  <span className="text-white/80">5 locations/godowns</span>
+                </li>
+                <li className="flex items-center gap-3">
+                  <div className="w-5 h-5 rounded-full bg-violet-500/20 flex items-center justify-center flex-shrink-0">
+                    <CheckCircle className="w-3.5 h-3.5 text-violet-400" />
+                  </div>
+                  <span className="text-white/80">3 team members</span>
+                </li>
+                <li className="flex items-center gap-3">
+                  <div className="w-5 h-5 rounded-full bg-violet-500/20 flex items-center justify-center flex-shrink-0">
+                    <CheckCircle className="w-3.5 h-3.5 text-violet-400" />
+                  </div>
+                  <span className="text-white/80">GST invoicing</span>
+                </li>
+                <li className="flex items-center gap-3">
+                  <div className="w-5 h-5 rounded-full bg-violet-500/20 flex items-center justify-center flex-shrink-0">
+                    <CheckCircle className="w-3.5 h-3.5 text-violet-400" />
+                  </div>
+                  <span className="text-white/80">Barcode generation</span>
+                </li>
+                <li className="flex items-center gap-3">
+                  <div className="w-5 h-5 rounded-full bg-violet-500/20 flex items-center justify-center flex-shrink-0">
+                    <CheckCircle className="w-3.5 h-3.5 text-violet-400" />
+                  </div>
+                  <span className="text-white/80">Email support</span>
+                </li>
+              </ul>
+              
+              <Link href="/auth" className="block w-full py-4 px-6 text-center font-semibold rounded-xl bg-gradient-to-r from-violet-500 to-fuchsia-600 text-white hover:from-violet-600 hover:to-fuchsia-700 transition-all shadow-lg shadow-violet-500/25 hover:shadow-violet-500/40">
+                Start Free Forever
+              </Link>
+              <p className="text-center text-white/50 text-sm mt-3">No credit card required</p>
+            </motion.div>
+
+            <motion.div
+              className="bg-white/5 backdrop-blur-xl rounded-3xl p-8 border border-white/10 hover:border-white/20 transition-all duration-300"
+              initial={{ opacity: 0, y: 40 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-50px" }}
+              transition={{ 
+                delay: 0.1,
+                duration: 0.8,
+                ease: [0.4, 0, 0.2, 1],
+              }}
+              whileHover={{ scale: 1.02, y: -5 }}
+            >
+              <div className="mb-6">
+                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-white/10 to-white/5 flex items-center justify-center mb-6 border border-white/10">
+                  <Building2 className="w-7 h-7 text-white" />
+                </div>
+                <h3 className="text-2xl font-bold text-white mb-2">Enterprise</h3>
+                <p className="text-white/60 mb-4">For large businesses with custom needs</p>
+                <div className="mb-6">
+                  <span className="text-5xl font-bold text-white">Custom</span>
+                </div>
+              </div>
+              
+              <ul className="space-y-4 mb-8">
+                <li className="flex items-center gap-3">
+                  <div className="w-5 h-5 rounded-full bg-green-500/20 flex items-center justify-center flex-shrink-0">
+                    <CheckCircle className="w-3.5 h-3.5 text-green-400" />
+                  </div>
+                  <span className="text-white/80">Unlimited products</span>
+                </li>
+                <li className="flex items-center gap-3">
+                  <div className="w-5 h-5 rounded-full bg-green-500/20 flex items-center justify-center flex-shrink-0">
+                    <CheckCircle className="w-3.5 h-3.5 text-green-400" />
+                  </div>
+                  <span className="text-white/80">Unlimited locations</span>
+                </li>
+                <li className="flex items-center gap-3">
+                  <div className="w-5 h-5 rounded-full bg-green-500/20 flex items-center justify-center flex-shrink-0">
+                    <CheckCircle className="w-3.5 h-3.5 text-green-400" />
+                  </div>
+                  <span className="text-white/80">Unlimited team members</span>
+                </li>
+                <li className="flex items-center gap-3">
+                  <div className="w-5 h-5 rounded-full bg-green-500/20 flex items-center justify-center flex-shrink-0">
+                    <CheckCircle className="w-3.5 h-3.5 text-green-400" />
+                  </div>
+                  <span className="text-white/80">Priority support</span>
+                </li>
+                <li className="flex items-center gap-3">
+                  <div className="w-5 h-5 rounded-full bg-green-500/20 flex items-center justify-center flex-shrink-0">
+                    <CheckCircle className="w-3.5 h-3.5 text-green-400" />
+                  </div>
+                  <span className="text-white/80">Custom integrations</span>
+                </li>
+                <li className="flex items-center gap-3">
+                  <div className="w-5 h-5 rounded-full bg-green-500/20 flex items-center justify-center flex-shrink-0">
+                    <CheckCircle className="w-3.5 h-3.5 text-green-400" />
+                  </div>
+                  <span className="text-white/80">Dedicated account manager</span>
+                </li>
+              </ul>
+              
+              <Link href="/contact" className="block w-full py-4 px-6 text-center font-semibold rounded-xl bg-white/10 text-white hover:bg-white/15 border border-white/10 transition-all">
+                Contact Sales
+              </Link>
+              <p className="text-center text-white/50 text-sm mt-3">Tailored for your business</p>
+            </motion.div>
           </div>
+          
           <motion.div 
-            className="mt-8 text-center"
+            className="mt-12 text-center"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
-            <p className="text-white/50 text-sm mb-2">Accepts UPI, GPay, PhonePe, Net Banking & Credit Cards</p>
-            <div className="flex items-center justify-center gap-2">
-              <Shield className="w-4 h-4 text-green-400" />
-              <span className="text-white/60 text-sm">Powered by Cashfree • Secure Payments</span>
+            <div className="inline-flex items-center gap-6 px-8 py-4 rounded-2xl bg-white/5 border border-white/10">
+              <div className="flex items-center gap-2 text-white/60 text-sm">
+                <Shield className="w-5 h-5 text-green-400" />
+                <span>ISO 27001 Certified</span>
+              </div>
+              <div className="w-px h-4 bg-white/20" />
+              <div className="flex items-center gap-2 text-white/60 text-sm">
+                <Database className="w-5 h-5 text-violet-400" />
+                <span>Data stored in India</span>
+              </div>
+              <div className="w-px h-4 bg-white/20" />
+              <div className="flex items-center gap-2 text-white/60 text-sm">
+                <Lock className="w-5 h-5 text-blue-400" />
+                <span>256-bit Encryption</span>
+              </div>
             </div>
           </motion.div>
         </div>
       </section>
 
-      <section className="py-10 px-4 relative">
+      <section className="py-24 px-4 relative bg-slate-900/30">
         <div className="max-w-4xl mx-auto text-center">
           <motion.div 
             className="bg-gradient-to-br from-violet-600/90 to-fuchsia-600/90 backdrop-blur-xl rounded-3xl p-12 relative overflow-hidden border border-white/10 shadow-2xl"
@@ -707,30 +807,28 @@ export default function HomePage() {
             <div className="absolute top-0 left-0 w-64 h-64 bg-white/10 rounded-full -translate-x-1/2 -translate-y-1/2 blur-3xl" />
             <div className="absolute bottom-0 right-0 w-64 h-64 bg-white/10 rounded-full translate-x-1/2 translate-y-1/2 blur-3xl" />
             <div className="relative">
-              <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">Ready to Get Started?</h2>
+              <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">Ready to Stop Using Excel?</h2>
               <p className="text-xl text-white/80 mb-8 max-w-2xl mx-auto">
-                Join modern operations teams using DKS StockAlert to manage their inventory.
+                Join thousands of Indian businesses managing their inventory smarter with DKS StockAlert.
               </p>
               <Link href="/auth" className="inline-flex items-center gap-2 bg-white text-violet-600 px-8 py-4 rounded-xl font-semibold text-lg hover:bg-white/90 transition-all shadow-xl hover:shadow-2xl hover:-translate-y-0.5 cursor-pointer">
-                Start Free Trial
+                Start Free Forever
                 <ChevronRight className="w-5 h-5" />
               </Link>
-              <p className="text-white/60 text-sm mt-6 flex items-center justify-center gap-2">
-                <motion.span 
-                  className="w-2 h-2 bg-green-400 rounded-full shadow-[0_0_10px_rgba(74,222,128,0.5)]"
-                  animate={{
-                    scale: [1, 1.2, 1],
-                    opacity: [0.7, 1, 0.7],
-                  }}
-                  transition={{
-                    duration: 2,
-                    repeat: Infinity,
-                    ease: [0.4, 0, 0.2, 1],
-                    times: [0, 0.5, 1],
-                  }}
-                />
-                No credit card required • UPI/Net Banking accepted • Cancel anytime
-              </p>
+              <div className="flex flex-wrap items-center justify-center gap-6 mt-8 text-white/60 text-sm">
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="w-4 h-4 text-green-400" />
+                  <span>Free forever</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="w-4 h-4 text-green-400" />
+                  <span>No credit card</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="w-4 h-4 text-green-400" />
+                  <span>Setup in 5 minutes</span>
+                </div>
+              </div>
             </div>
           </motion.div>
         </div>
@@ -738,41 +836,62 @@ export default function HomePage() {
 
       <footer className="bg-slate-950/50 backdrop-blur-sm border-t border-white/5 text-white/60 py-16 px-4">
         <div className="max-w-7xl mx-auto">
-          <div className="grid md:grid-cols-2 gap-12 mb-12">
-            <div>
+          <div className="grid md:grid-cols-4 gap-12 mb-12">
+            <div className="md:col-span-2">
               <Link href="/" className="flex items-center gap-2 mb-6 group cursor-pointer">
                 <div className="w-10 h-10 bg-gradient-to-br from-violet-500 to-fuchsia-600 rounded-xl flex items-center justify-center shadow-lg shadow-violet-500/20 group-hover:shadow-violet-500/40 transition-all">
                   <Package className="w-6 h-6 text-white" />
                 </div>
                 <span className="text-xl font-bold text-white">DKS StockAlert</span>
               </Link>
-              <p className="text-sm leading-relaxed">
-                Smart inventory management for growing businesses. Track stock, manage suppliers, never run out.
+              <p className="text-sm leading-relaxed mb-4 max-w-sm">
+                Free inventory management software built for Indian businesses. Track stock, generate GST invoices, and manage multiple locations with ease.
               </p>
+              <div className="flex items-center gap-2 text-sm text-white/50">
+                <MapPin className="w-4 h-4" />
+                <span>Made with ❤️ in India</span>
+              </div>
+            </div>
+
+            <div>
+              <h4 className="text-white font-semibold mb-4">Product</h4>
+              <ul className="space-y-3 text-sm">
+                <li><a href="#features" className="hover:text-white transition-colors cursor-pointer">Features</a></li>
+                <li><a href="#pricing" className="hover:text-white transition-colors cursor-pointer">Pricing</a></li>
+                <li><Link href="/auth" className="hover:text-white transition-colors cursor-pointer">Get Started</Link></li>
+              </ul>
             </div>
 
             <div>
               <h4 className="text-white font-semibold mb-4">Legal</h4>
               <ul className="space-y-3 text-sm">
-                <li><Link href="/privacy" className="hover:text-white transition-colors cursor-pointer flex items-center gap-2">Privacy Policy <ChevronRight className="w-3 h-3" /></Link></li>
-                <li><Link href="/terms" className="hover:text-white transition-colors cursor-pointer flex items-center gap-2">Terms of Service <ChevronRight className="w-3 h-3" /></Link></li>
-                <li><Link href="/cookies" className="hover:text-white transition-colors cursor-pointer flex items-center gap-2">Cookie Policy <ChevronRight className="w-3 h-3" /></Link></li>
+                <li><Link href="/privacy" className="hover:text-white transition-colors cursor-pointer">Privacy Policy</Link></li>
+                <li><Link href="/terms" className="hover:text-white transition-colors cursor-pointer">Terms of Service</Link></li>
+                <li><Link href="/contact" className="hover:text-white transition-colors cursor-pointer">Contact Us</Link></li>
               </ul>
             </div>
           </div>
           
-          <div className="border-t border-white/5 pt-8 flex flex-col md:flex-row items-center justify-between">
-            <div className="flex flex-col items-center md:items-start gap-1">
-              <p className="text-sm">© {new Date().getFullYear()} DKS StockAlert. All rights reserved.</p>
-              <p className="text-xs text-white/40 flex items-center gap-1">
-                Made with ❤️ in India • <span className="text-violet-400">ISO 27001 Certified</span> • Data stored in India
-              </p>
-            </div>
-            <div className="flex items-center gap-4 mt-4 md:mt-0">
-              <div className="flex items-center gap-2 text-xs text-white/50">
-                <Shield className="w-4 h-4 text-green-400" />
-                <span>Powered by Cashfree</span>
+          <div className="border-t border-white/5 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="flex flex-col md:flex-row items-center gap-4 text-sm text-white/50">
+              <p>© {new Date().getFullYear()} DKS StockAlert. All rights reserved.</p>
+              <div className="hidden md:block w-1 h-1 bg-white/30 rounded-full" />
+              <div className="flex items-center gap-4">
+                <span className="flex items-center gap-1">
+                  <Shield className="w-3 h-3 text-green-400" />
+                  ISO 27001
+                </span>
+                <span className="flex items-center gap-1">
+                  <Database className="w-3 h-3 text-violet-400" />
+                  Indian Servers
+                </span>
+                <span className="flex items-center gap-1">
+                  <Receipt className="w-3 h-3 text-blue-400" />
+                  GST Ready
+                </span>
               </div>
+            </div>
+            <div className="flex items-center gap-4">
               <a href="#" className="hover:text-white transition-colors p-2 hover:bg-white/5 rounded-lg cursor-pointer">
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z"/></svg>
               </a>

@@ -58,7 +58,7 @@ export default function AboutPage() {
                   <h2 className="text-2xl font-semibold text-gray-900">Our Mission</h2>
                 </div>
                 <p className="text-gray-600">
-                  We're building inventory management software that helps businesses never run out of stock, eliminate waste, and make smarter decisions about their products. We combine powerful features with an intuitive interface that anyone can use.
+                  We&apos;re building inventory management software that helps businesses never run out of stock, eliminate waste, and make smarter decisions about their products. We combine powerful features with an intuitive interface that anyone can use.
                 </p>
               </section>
 
@@ -120,7 +120,7 @@ export default function AboutPage() {
                   <h2 className="text-2xl font-semibold text-gray-900">Our Team</h2>
                 </div>
                 <p className="text-gray-600">
-                  We're a small but growing team passionate about building great software. Our diverse backgrounds in technology, design, and business help us create products that truly serve our customers' needs.
+                  We&apos;re a small but growing team passionate about building great software. Our diverse backgrounds in technology, design, and business help us create products that truly serve our customers&apos; needs.
                 </p>
               </section>
             </div>
