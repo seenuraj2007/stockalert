@@ -129,14 +129,14 @@ export default async function SettingsPage(props: { params: Promise<{ locale: st
                     <span className="ml-auto text-xs font-semibold bg-green-900 text-green-400 px-2 py-1 rounded">FREE Forever</span>
                   </CardTitle>
                   <CardDescription>
-                    Unlimited email notifications at no cost
+                    Unlimited email notifications - no limits, no costs
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="flex items-center gap-2 p-3 bg-green-900/20 border border-green-500/20 rounded-lg">
                     <CheckCircle2 className="w-5 h-5 text-green-400" />
                     <p className="text-sm text-slate-300">
-                      <span className="font-semibold text-green-400">FREE:</span> Gmail (500/day), Resend (100,000/month), Brevo (9,000/month)
+                      <span className="font-semibold text-green-400">FREE:</span> Unlimited email notifications with no message limits
                     </p>
                   </div>
                   <div className="p-4 bg-slate-800/50 rounded-lg">
@@ -162,7 +162,7 @@ export default async function SettingsPage(props: { params: Promise<{ locale: st
                   </div>
                   <div className="flex items-start gap-2 text-xs text-slate-500">
                     <Info className="w-4 h-4 flex-shrink-0 mt-0.5 text-blue-400" />
-                    <p>Configure email service in the <span className="text-blue-400 font-medium">Email</span> tab. 99.9% of businesses pay ₹0 for email notifications.</p>
+                    <p>Configure email settings in the <span className="text-blue-400 font-medium">Email</span> tab. Contact your admin for SMTP credentials.</p>
                   </div>
                 </CardContent>
               </Card>
@@ -238,10 +238,10 @@ export default async function SettingsPage(props: { params: Promise<{ locale: st
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Mail className="w-5 h-5 text-green-400" />
-                  Email Configuration
+                  Email Notifications
                 </CardTitle>
                 <CardDescription>
-                  Set up email notifications - FREE for 99.9% of businesses
+                  Configure email notifications - FREE forever
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
@@ -252,105 +252,30 @@ export default async function SettingsPage(props: { params: Promise<{ locale: st
                     <div>
                       <p className="text-sm font-medium text-green-400">Email Notifications are FREE Forever!</p>
                       <p className="text-xs text-slate-300 mt-1">
-                        Choose from generous free tiers: Gmail (500/day), Resend (100,000/month), Brevo (9,000/month).
-                        <a href="#" className="text-blue-400 underline ml-1">View pricing comparison</a>
+                        Email notifications are completely free. There are no message limits and no costs - forever.
                       </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Quick Setup Options */}
-                <div className="space-y-4">
-                  <h3 className="text-sm font-semibold text-white">Quick Setup - Choose Your FREE Service</h3>
-                  
-                  <div className="grid gap-3">
-                    {/* Gmail */}
-                    <div className="p-4 bg-slate-800/50 border border-slate-700 rounded-lg">
-                      <div className="flex items-start gap-3">
-                        <div className="w-10 h-10 bg-red-500/20 rounded-lg flex items-center justify-center">
-                          <Mail className="w-5 h-5 text-red-400" />
-                        </div>
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
-                            <h4 className="text-sm font-medium text-white">Gmail</h4>
-                            <span className="text-xs bg-green-900 text-green-400 px-2 py-0.5 rounded">FREE</span>
-                          </div>
-                          <p className="text-xs text-slate-400">Best for: Personal & small business use (500 emails/day)</p>
-                          <div className="mt-2 text-xs font-mono text-slate-500 bg-slate-900 p-2 rounded">
-                            <p>SMTP_HOST=smtp.gmail.com</p>
-                            <p>SMTP_PORT=587</p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Resend */}
-                    <div className="p-4 bg-slate-800/50 border border-slate-700 rounded-lg">
-                      <div className="flex items-start gap-3">
-                        <div className="w-10 h-10 bg-purple-500/20 rounded-lg flex items-center justify-center">
-                          <Zap className="w-5 h-5 text-purple-400" />
-                        </div>
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
-                            <h4 className="text-sm font-medium text-white">Resend.com</h4>
-                            <span className="text-xs bg-green-900 text-green-400 px-2 py-0.5 rounded">100K/mo FREE</span>
-                          </div>
-                          <p className="text-xs text-slate-400">Best for: Production & custom domain (noreply@yourdomain.com)</p>
-                          <div className="mt-2 text-xs font-mono text-slate-500 bg-slate-900 p-2 rounded">
-                            <p>SMTP_HOST=smtp.resend.com</p>
-                            <p>SMTP_PORT=587</p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Brevo */}
-                    <div className="p-4 bg-slate-800/50 border border-slate-700 rounded-lg">
-                      <div className="flex items-start gap-3">
-                        <div className="w-10 h-10 bg-blue-500/20 rounded-lg flex items-center justify-center">
-                          <Mail className="w-5 h-5 text-blue-400" />
-                        </div>
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
-                            <h4 className="text-sm font-medium text-white">Brevo (Sendinblue)</h4>
-                            <span className="text-xs bg-green-900 text-green-400 px-2 py-0.5 rounded">9K/mo FREE</span>
-                          </div>
-                          <p className="text-xs text-slate-400">Best for: Email marketing & transactional emails</p>
-                          <div className="mt-2 text-xs font-mono text-slate-500 bg-slate-900 p-2 rounded">
-                            <p>SMTP_HOST=smtp-relay.brevo.com</p>
-                            <p>SMTP_PORT=587</p>
-                          </div>
-                        </div>
-                      </div>
                     </div>
                   </div>
                 </div>
 
                 {/* Configuration Instructions */}
                 <div className="space-y-4">
-                  <h3 className="text-sm font-semibold text-white">Add to .env.local</h3>
+                  <h3 className="text-sm font-semibold text-white">Environment Configuration</h3>
+                  <p className="text-xs text-slate-400">
+                    Add these environment variables to your .env.local file to enable email notifications.
+                  </p>
                   <div className="text-xs font-mono text-slate-300 bg-slate-900 p-4 rounded-lg overflow-x-auto">
-                    <p># Email Configuration (FREE forever for 99.9% of businesses)</p>
-                    <p>SMTP_HOST=smtp.gmail.com</p>
+                    <p># Email Configuration</p>
+                    <p>SMTP_HOST=your-smtp-host</p>
                     <p>SMTP_PORT=587</p>
-                    <p>SMTP_USER=your-email@gmail.com</p>
-                    <p>SMTP_PASS=your-16-char-app-password</p>
-                    <p>SMTP_FROM=your-email@gmail.com</p>
+                    <p>SMTP_USER=your-email@example.com</p>
+                    <p>SMTP_PASS=your-email-password</p>
+                    <p>SMTP_FROM=noreply@yourdomain.com</p>
                   </div>
                   <div className="flex items-start gap-2 text-xs text-slate-500">
                     <Info className="w-4 h-4 flex-shrink-0 mt-0.5 text-blue-400" />
-                    <p>After updating .env.local, restart the dev server with <code className="bg-slate-800 px-1.5 py-0.5 rounded">npm run dev</code></p>
+                    <p>Contact your server administrator or email service provider for SMTP credentials. After updating .env.local, restart the server.</p>
                   </div>
-                </div>
-
-                {/* Test Email Button */}
-                <div className="p-4 bg-blue-900/20 border border-blue-500/20 rounded-lg">
-                  <p className="text-sm text-blue-300 mb-2">
-                    <strong className="text-blue-400">📬 Need help setting up?</strong>
-                  </p>
-                  <p className="text-xs text-slate-300">
-                    See <a href="#" className="text-blue-400 underline">docs/EMAIL_SETUP.md</a> for detailed setup instructions for Gmail, Resend, Brevo, and other services.
-                  </p>
                 </div>
               </CardContent>
             </Card>
