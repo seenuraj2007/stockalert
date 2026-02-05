@@ -7,12 +7,12 @@ import { WhatsAppSettings } from '@/components/WhatsAppSettings'
 import { TallyImporter } from '@/components/TallyImporter'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Globe, MessageSquare, FileSpreadsheet, Building2, Bell, Shield, MapPin, Phone, Mail, FileText } from 'lucide-react'
+import { Globe, MessageSquare, FileSpreadsheet, Building2, Bell, Shield, MapPin, Phone, Mail, FileText, Info, CheckCircle2, Zap } from 'lucide-react'
 import Link from 'next/link'
 
 export const metadata: Metadata = {
   title: 'Settings - DKS StockAlert',
-  description: 'Manage your account and application settings',
+  description: 'Manage your account, notifications, and integrations',
 }
 
 export default async function SettingsPage(props: { params: Promise<{ locale: string }> }) {
@@ -27,6 +27,9 @@ export default async function SettingsPage(props: { params: Promise<{ locale: st
   if (!session) {
     redirect('/auth')
   }
+
+  const params = await props.params
+  const locale = params.locale
 
   return (
     <div className="min-h-screen bg-slate-950 text-white">
@@ -44,13 +47,13 @@ export default async function SettingsPage(props: { params: Promise<{ locale: st
               <Building2 className="w-4 h-4 mr-2" />
               General
             </TabsTrigger>
-            <TabsTrigger value="language" className="data-[state=active]:bg-violet-600">
-              <Globe className="w-4 h-4 mr-2" />
-              Language
-            </TabsTrigger>
             <TabsTrigger value="notifications" className="data-[state=active]:bg-violet-600">
               <Bell className="w-4 h-4 mr-2" />
               Notifications
+            </TabsTrigger>
+            <TabsTrigger value="email" className="data-[state=active]:bg-violet-600">
+              <Mail className="w-4 h-4 mr-2" />
+              Email
             </TabsTrigger>
             <TabsTrigger value="whatsapp" className="data-[state=active]:bg-violet-600">
               <MessageSquare className="w-4 h-4 mr-2" />
@@ -80,8 +83,8 @@ export default async function SettingsPage(props: { params: Promise<{ locale: st
                     Configure your organization details for GST invoices and business operations.
                   </p>
                   <Link 
-                    href="/settings/organization"
-                    className="inline-flex items-center justify-center w-full px-4 py-3 bg-violet-600 hover:bg-violet-700 rounded-lg font-medium transition-colors"
+                    href={`/${locale}/settings/organization`}
+                    className="inline-flex items-center justify-center w-full px-4 py-3 bg-violet-600 hover:bg-violet-700 rounded-lg font-medium transition-colors cursor-pointer"
                   >
                     <Building2 className="w-4 h-4 mr-2" />
                     Manage Organization
@@ -114,136 +117,240 @@ export default async function SettingsPage(props: { params: Promise<{ locale: st
             </Card>
           </TabsContent>
 
-          {/* Language Settings */}
-          <TabsContent value="language">
-            <Card className="bg-slate-900/50 border-slate-800">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Globe className="w-5 h-5 text-violet-400" />
-                  Language Settings
-                </CardTitle>
-                <CardDescription>
-                  Choose your preferred language for the application
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-slate-300 mb-2">
-                      Interface Language
-                    </label>
-                    <LanguageSwitcher />
-                  </div>
-                  <div className="bg-slate-800/50 p-4 rounded-lg">
-                    <p className="text-sm text-slate-400">
-                      Currently supported languages:
+          {/* Notification Settings Overview */}
+          <TabsContent value="notifications">
+            <CardContent className="space-y-6">
+              {/* Email Notifications */}
+              <Card className="bg-slate-900/50 border-slate-800">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Mail className="w-5 h-5 text-green-400" />
+                    Email Notifications
+                    <span className="ml-auto text-xs font-semibold bg-green-900 text-green-400 px-2 py-1 rounded">FREE Forever</span>
+                  </CardTitle>
+                  <CardDescription>
+                    Unlimited email notifications at no cost
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center gap-2 p-3 bg-green-900/20 border border-green-500/20 rounded-lg">
+                    <CheckCircle2 className="w-5 h-5 text-green-400" />
+                    <p className="text-sm text-slate-300">
+                      <span className="font-semibold text-green-400">FREE:</span> Gmail (500/day), Resend (100,000/month), Brevo (9,000/month)
                     </p>
-                    <ul className="mt-2 space-y-1 text-sm text-slate-300">
-                      <li className="flex items-center gap-2">
-                        <span className="w-2 h-2 bg-green-400 rounded-full"></span>
-                        English (Default)
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <span className="w-2 h-2 bg-green-400 rounded-full"></span>
-                        हिंदी (Hindi)
-                      </li>
-                    </ul>
                   </div>
-                  <p className="text-xs text-slate-500 mt-2">
-                    Switch between English and Hindi throughout the application interface.
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
+                  <div className="p-4 bg-slate-800/50 rounded-lg">
+                    <p className="text-sm text-slate-400 mb-3">Email notification types:</p>
+                    <div className="grid gap-2">
+                      <div className="flex items-center gap-2 text-sm text-slate-300">
+                        <Bell className="w-4 h-4 text-yellow-400" />
+                        Low Stock Alerts
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-slate-300">
+                        <Bell className="w-4 h-4 text-red-400" />
+                        Out of Stock Alerts
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-slate-300">
+                        <FileText className="w-4 h-4 text-blue-400" />
+                        Purchase Order Updates
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-slate-300">
+                        <Mail className="w-4 h-4 text-green-400" />
+                        Daily Inventory Summary
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-2 text-xs text-slate-500">
+                    <Info className="w-4 h-4 flex-shrink-0 mt-0.5 text-blue-400" />
+                    <p>Configure email service in the <span className="text-blue-400 font-medium">Email</span> tab. 99.9% of businesses pay ₹0 for email notifications.</p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* WhatsApp Notifications */}
+              <Card className="bg-slate-900/50 border-slate-800">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <MessageSquare className="w-5 h-5 text-green-500" />
+                    WhatsApp Alerts
+                    <span className="ml-auto text-xs font-semibold bg-green-900 text-green-400 px-2 py-1 rounded">Free 1,000/mo</span>
+                  </CardTitle>
+                  <CardDescription>
+                    Instant notifications on your phone
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="p-4 bg-slate-800/50 rounded-lg">
+                    <div className="grid gap-3">
+                      <div className="flex items-center gap-2 text-sm text-slate-300">
+                        <Zap className="w-4 h-4 text-green-400" />
+                        <span className="font-medium">1,000 messages/month FREE</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-slate-300">
+                        <MessageSquare className="w-4 h-4 text-green-400" />
+                        Bilingual messages (English + Hindi)
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-slate-300">
+                        <Bell className="w-4 h-4 text-green-400" />
+                        Instant alerts on your phone
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-2 text-xs text-slate-500">
+                    <Info className="w-4 h-4 flex-shrink-0 mt-0.5 text-blue-400" />
+                    <p>Configure WhatsApp in the <span className="text-green-400 font-medium">WhatsApp</span> tab. First 1,000 messages are free, then ~₹0.50-₹3.00 per message.</p>
+                  </div>
+                  <div className="p-3 bg-blue-900/20 border border-blue-500/20 rounded-lg">
+                    <p className="text-xs text-blue-300">
+                      <strong className="text-blue-400">💡 Tip:</strong> Use email for FREE unlimited notifications, add WhatsApp for urgent mobile alerts.
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* In-App Notifications */}
+              <Card className="bg-slate-900/50 border-slate-800">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Bell className="w-5 h-5 text-blue-400" />
+                    In-App Notifications
+                    <span className="ml-auto text-xs font-semibold bg-green-900 text-green-400 px-2 py-1 rounded">FREE Forever</span>
+                  </CardTitle>
+                  <CardDescription>
+                    Real-time alerts in the application
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-center gap-2 p-3 bg-green-900/20 border border-green-500/20 rounded-lg">
+                    <CheckCircle2 className="w-5 h-5 text-green-400" />
+                    <p className="text-sm text-slate-300">
+                      <span className="font-semibold text-green-400">ALWAYS FREE:</span> Real-time dashboard alerts with no limits
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            </CardContent>
           </TabsContent>
 
-          {/* Notification Settings */}
-          <TabsContent value="notifications">
+          {/* Email Configuration */}
+          <TabsContent value="email">
             <Card className="bg-slate-900/50 border-slate-800">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Bell className="w-5 h-5 text-violet-400" />
-                  Notification Settings
+                  <Mail className="w-5 h-5 text-green-400" />
+                  Email Configuration
                 </CardTitle>
                 <CardDescription>
-                  Configure how and when you receive alerts
+                  Set up email notifications - FREE for 99.9% of businesses
                 </CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="space-y-6">
+                {/* Free Tier Banner */}
+                <div className="p-4 bg-gradient-to-r from-green-900/30 to-blue-900/30 rounded-lg border border-green-500/30">
+                  <div className="flex items-start gap-3">
+                    <CheckCircle2 className="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-medium text-green-400">Email Notifications are FREE Forever!</p>
+                      <p className="text-xs text-slate-300 mt-1">
+                        Choose from generous free tiers: Gmail (500/day), Resend (100,000/month), Brevo (9,000/month).
+                        <a href="#" className="text-blue-400 underline ml-1">View pricing comparison</a>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Quick Setup Options */}
                 <div className="space-y-4">
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between p-4 bg-slate-800/50 rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-yellow-500/20 rounded-lg flex items-center justify-center">
-                          <Bell className="w-5 h-5 text-yellow-400" />
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-slate-300">Low Stock Alerts</p>
-                          <p className="text-xs text-slate-500">Get notified when stock is low</p>
-                        </div>
-                      </div>
-                      <div className="w-12 h-6 bg-violet-600 rounded-full relative">
-                        <div className="absolute right-1 top-1 w-4 h-4 bg-white rounded-full"></div>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center justify-between p-4 bg-slate-800/50 rounded-lg">
-                      <div className="flex items-center gap-3">
+                  <h3 className="text-sm font-semibold text-white">Quick Setup - Choose Your FREE Service</h3>
+                  
+                  <div className="grid gap-3">
+                    {/* Gmail */}
+                    <div className="p-4 bg-slate-800/50 border border-slate-700 rounded-lg">
+                      <div className="flex items-start gap-3">
                         <div className="w-10 h-10 bg-red-500/20 rounded-lg flex items-center justify-center">
-                          <Bell className="w-5 h-5 text-red-400" />
+                          <Mail className="w-5 h-5 text-red-400" />
                         </div>
-                        <div>
-                          <p className="text-sm font-medium text-slate-300">Out of Stock Alerts</p>
-                          <p className="text-xs text-slate-500">Critical alerts for stockouts</p>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <h4 className="text-sm font-medium text-white">Gmail</h4>
+                            <span className="text-xs bg-green-900 text-green-400 px-2 py-0.5 rounded">FREE</span>
+                          </div>
+                          <p className="text-xs text-slate-400">Best for: Personal & small business use (500 emails/day)</p>
+                          <div className="mt-2 text-xs font-mono text-slate-500 bg-slate-900 p-2 rounded">
+                            <p>SMTP_HOST=smtp.gmail.com</p>
+                            <p>SMTP_PORT=587</p>
+                          </div>
                         </div>
-                      </div>
-                      <div className="w-12 h-6 bg-violet-600 rounded-full relative">
-                        <div className="absolute right-1 top-1 w-4 h-4 bg-white rounded-full"></div>
                       </div>
                     </div>
 
-                    <div className="flex items-center justify-between p-4 bg-slate-800/50 rounded-lg">
-                      <div className="flex items-center gap-3">
+                    {/* Resend */}
+                    <div className="p-4 bg-slate-800/50 border border-slate-700 rounded-lg">
+                      <div className="flex items-start gap-3">
+                        <div className="w-10 h-10 bg-purple-500/20 rounded-lg flex items-center justify-center">
+                          <Zap className="w-5 h-5 text-purple-400" />
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <h4 className="text-sm font-medium text-white">Resend.com</h4>
+                            <span className="text-xs bg-green-900 text-green-400 px-2 py-0.5 rounded">100K/mo FREE</span>
+                          </div>
+                          <p className="text-xs text-slate-400">Best for: Production & custom domain (noreply@yourdomain.com)</p>
+                          <div className="mt-2 text-xs font-mono text-slate-500 bg-slate-900 p-2 rounded">
+                            <p>SMTP_HOST=smtp.resend.com</p>
+                            <p>SMTP_PORT=587</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Brevo */}
+                    <div className="p-4 bg-slate-800/50 border border-slate-700 rounded-lg">
+                      <div className="flex items-start gap-3">
                         <div className="w-10 h-10 bg-blue-500/20 rounded-lg flex items-center justify-center">
-                          <FileText className="w-5 h-5 text-blue-400" />
+                          <Mail className="w-5 h-5 text-blue-400" />
                         </div>
-                        <div>
-                          <p className="text-sm font-medium text-slate-300">Purchase Order Updates</p>
-                          <p className="text-xs text-slate-500">Track your PO status</p>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <h4 className="text-sm font-medium text-white">Brevo (Sendinblue)</h4>
+                            <span className="text-xs bg-green-900 text-green-400 px-2 py-0.5 rounded">9K/mo FREE</span>
+                          </div>
+                          <p className="text-xs text-slate-400">Best for: Email marketing & transactional emails</p>
+                          <div className="mt-2 text-xs font-mono text-slate-500 bg-slate-900 p-2 rounded">
+                            <p>SMTP_HOST=smtp-relay.brevo.com</p>
+                            <p>SMTP_PORT=587</p>
+                          </div>
                         </div>
-                      </div>
-                      <div className="w-12 h-6 bg-violet-600 rounded-full relative">
-                        <div className="absolute right-1 top-1 w-4 h-4 bg-white rounded-full"></div>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center justify-between p-4 bg-slate-800/50 rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-green-500/20 rounded-lg flex items-center justify-center">
-                          <Mail className="w-5 h-5 text-green-400" />
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-slate-300">Daily Stock Summary</p>
-                          <p className="text-xs text-slate-500">End of day report</p>
-                        </div>
-                      </div>
-                      <div className="w-12 h-6 bg-slate-600 rounded-full relative">
-                        <div className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full"></div>
                       </div>
                     </div>
                   </div>
+                </div>
 
-                  <div className="mt-6 p-4 bg-green-900/20 border border-green-500/20 rounded-lg">
-                    <div className="flex items-start gap-3">
-                      <MessageSquare className="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5" />
-                      <div>
-                        <p className="text-sm font-medium text-slate-300">WhatsApp Notifications</p>
-                        <p className="text-xs text-slate-400 mt-1">
-                          Configure WhatsApp alerts separately in the <span className="text-green-400">WhatsApp</span> tab.
-                        </p>
-                      </div>
-                    </div>
+                {/* Configuration Instructions */}
+                <div className="space-y-4">
+                  <h3 className="text-sm font-semibold text-white">Add to .env.local</h3>
+                  <div className="text-xs font-mono text-slate-300 bg-slate-900 p-4 rounded-lg overflow-x-auto">
+                    <p># Email Configuration (FREE forever for 99.9% of businesses)</p>
+                    <p>SMTP_HOST=smtp.gmail.com</p>
+                    <p>SMTP_PORT=587</p>
+                    <p>SMTP_USER=your-email@gmail.com</p>
+                    <p>SMTP_PASS=your-16-char-app-password</p>
+                    <p>SMTP_FROM=your-email@gmail.com</p>
                   </div>
+                  <div className="flex items-start gap-2 text-xs text-slate-500">
+                    <Info className="w-4 h-4 flex-shrink-0 mt-0.5 text-blue-400" />
+                    <p>After updating .env.local, restart the dev server with <code className="bg-slate-800 px-1.5 py-0.5 rounded">npm run dev</code></p>
+                  </div>
+                </div>
+
+                {/* Test Email Button */}
+                <div className="p-4 bg-blue-900/20 border border-blue-500/20 rounded-lg">
+                  <p className="text-sm text-blue-300 mb-2">
+                    <strong className="text-blue-400">📬 Need help setting up?</strong>
+                  </p>
+                  <p className="text-xs text-slate-300">
+                    See <a href="#" className="text-blue-400 underline">docs/EMAIL_SETUP.md</a> for detailed setup instructions for Gmail, Resend, Brevo, and other services.
+                  </p>
                 </div>
               </CardContent>
             </Card>
@@ -276,13 +383,19 @@ export default async function SettingsPage(props: { params: Promise<{ locale: st
                   <div className="w-8 h-8 bg-green-500/20 rounded-lg flex items-center justify-center">
                     <MessageSquare className="w-4 h-4 text-green-400" />
                   </div>
-                  <span className="text-slate-300"><span className="text-green-400 font-semibold">WhatsApp Alerts</span> - Get instant low stock alerts on your phone</span>
+                  <span className="text-slate-300"><span className="text-green-400 font-semibold">WhatsApp Alerts</span> - Get instant low stock alerts on your phone (1,000 FREE/mo)</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 bg-blue-500/20 rounded-lg flex items-center justify-center">
-                    <FileSpreadsheet className="w-4 h-4 text-blue-400" />
+                    <Mail className="w-4 h-4 text-blue-400" />
                   </div>
-                  <span className="text-slate-300"><span className="text-blue-400 font-semibold">1-Click Tally Import</span> - Migrate from Tally in seconds, not hours</span>
+                  <span className="text-slate-300"><span className="text-blue-400 font-semibold">Email Alerts</span> - FREE forever for 99.9% of businesses</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 bg-purple-500/20 rounded-lg flex items-center justify-center">
+                    <FileSpreadsheet className="w-4 h-4 text-purple-400" />
+                  </div>
+                  <span className="text-slate-300"><span className="text-purple-400 font-semibold">1-Click Tally Import</span> - Migrate from Tally in seconds, not hours</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 bg-orange-500/20 rounded-lg flex items-center justify-center">

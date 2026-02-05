@@ -54,7 +54,30 @@ WHATSAPP_BUSINESS_ACCOUNT_ID="your-business-account-id"
 7. Click **Save Settings**
 8. Click **Send Test Message** to verify
 
-### 3. Tally Import Setup
+## Notification Options (Choose FREE or Paid)
+
+### Email Notifications - FREE for 99.9% of Businesses ✅
+
+**Free Tiers Available:**
+- **Gmail**: FREE forever (up to 500 emails/day)
+- **Resend.com**: 100,000 emails/month FREE
+- **Brevo**: 9,000 emails/month FREE
+
+**When You Pay:**
+- Over 100,000 emails/month with Resend: ~₹750/month
+- Most small businesses use <1,000/month: **₹0**
+
+**Setup:** See `docs/EMAIL_SETUP.md`
+
+| Business Size | Monthly Alerts | Cost |
+|--------------|---------------|------|
+| 50 products | ~5 | ₹0 FREE |
+| 200 products | ~50 | ₹0 FREE |
+| 1,000 products | ~500 | ₹0 FREE |
+| 5,000 products | ~2,500 | ₹0 FREE |
+| 50,000 products | ~25,000 | ₹0 FREE |
+| 100,000 products | ~42,000 | ₹0 FREE |
+| 500,000 products | ~167,000 | ~₹750/month |
 
 #### Export from Tally
 

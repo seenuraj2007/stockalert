@@ -33,6 +33,80 @@ export async function sendEmail(options: EmailOptions): Promise<boolean> {
   }
 }
 
+export function generatePasswordResetEmail(resetUrl: string, expiresIn: string) {
+  return {
+    subject: 'Reset your DKS StockAlert password',
+    html: `
+      <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <div style="text-align: center; margin-bottom: 30px;">
+          <h1 style="color: #4F46E5; margin: 0;">DKS StockAlert</h1>
+          <p style="color: #6B7280; margin-top: 8px;">Inventory Management System</p>
+        </div>
+        
+        <div style="background: #F9FAFB; border-radius: 12px; padding: 30px; margin-bottom: 30px;">
+          <h2 style="color: #111827; margin: 0 0 16px 0;">Password Reset Request</h2>
+          <p style="color: #4B5563; line-height: 1.6; margin: 0 0 20px 0;">
+            We received a request to reset your password. Click the button below to create a new password.
+          </p>
+          
+          <a href="${resetUrl}" style="display: inline-block; background: linear-gradient(to right, #4F46E5, #7C3AED); color: white; text-decoration: none; padding: 14px 28px; border-radius: 8px; font-weight: 600;">
+            Reset Password
+          </a>
+          
+          <p style="color: #6B7280; font-size: 14px; margin-top: 20px;">
+            This link expires in ${expiresIn}. If you didn't request this, please ignore this email.
+          </p>
+        </div>
+        
+        <div style="text-align: center; color: #9CA3AF; font-size: 12px;">
+          <p>DKS StockAlert - Inventory Management System</p>
+          <p>© ${new Date().getFullYear()} DKS StockAlert. All rights reserved.</p>
+        </div>
+      </div>
+    `,
+  }
+}
+
+export function generateWelcomeEmail(userName: string, dashboardUrl: string) {
+  return {
+    subject: 'Welcome to DKS StockAlert!',
+    html: `
+      <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <div style="text-align: center; margin-bottom: 30px;">
+          <h1 style="color: #4F46E5; margin: 0;">DKS StockAlert</h1>
+          <p style="color: #6B7280; margin-top: 8px;">Inventory Management System</p>
+        </div>
+        
+        <div style="background: #F9FAFB; border-radius: 12px; padding: 30px; margin-bottom: 30px;">
+          <h2 style="color: #111827; margin: 0 0 16px 0;">Welcome, ${userName}!</h2>
+          <p style="color: #4B5563; line-height: 1.6; margin: 0 0 20px 0;">
+            Thank you for joining DKS StockAlert. You're now ready to start managing your inventory efficiently.
+          </p>
+          
+          <a href="${dashboardUrl}" style="display: inline-block; background: linear-gradient(to right, #4F46E5, #7C3AED); color: white; text-decoration: none; padding: 14px 28px; border-radius: 8px; font-weight: 600;">
+            Go to Dashboard
+          </a>
+        </div>
+        
+        <div style="background: #F0FDF4; border-radius: 12px; padding: 20px; margin-bottom: 30px; border-left: 4px solid #22C55E;">
+          <h3 style="color: #166534; margin: 0 0 8px 0;">💡 Quick Tips</h3>
+          <ul style="color: #15803D; margin: 0; padding-left: 20px; line-height: 1.8;">
+            <li>Add your products and set reorder points</li>
+            <li>Create locations for multi-warehouse tracking</li>
+            <li>Invite team members to collaborate</li>
+            <li>Set up alerts for low stock notifications</li>
+          </ul>
+        </div>
+        
+        <div style="text-align: center; color: #9CA3AF; font-size: 12px;">
+          <p>DKS StockAlert - Inventory Management System</p>
+          <p>© ${new Date().getFullYear()} DKS StockAlert. All rights reserved.</p>
+        </div>
+      </div>
+    `,
+  }
+}
+
 export function generateLowStockAlertEmail(
   productName: string,
   currentStock: number,
@@ -263,3 +337,35 @@ export function generateDailySummaryEmail(
     `,
   }
 }
+
+export function generateTrialEndingEmail(daysRemaining: number, upgradeUrl: string) {
+  return {
+    subject: `Your DKS StockAlert trial ends in ${daysRemaining} day${daysRemaining > 1 ? 's' : ''}`,
+    html: `
+      <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <div style="text-align: center; margin-bottom: 30px;">
+          <h1 style="color: #4F46E5; margin: 0;">DKS StockAlert</h1>
+          <p style="color: #6B7280; margin-top: 8px;">Inventory Management System</p>
+        </div>
+        
+        <div style="background: linear-gradient(to right, #4F46E5, #7C3AED); border-radius: 12px; padding: 30px; margin-bottom: 30px; color: white;">
+          <h2 style="margin: 0 0 16px 0;">Trial Ending Soon!</h2>
+          <p style="margin: 0; opacity: 0.9;">
+            Your 30-day free trial ends in <strong>${daysRemaining} day${daysRemaining > 1 ? 's' : ''}</strong>.
+            Upgrade now to continue accessing all features.
+          </p>
+        </div>
+        
+        <a href="${upgradeUrl}" style="display: inline-block; background: linear-gradient(to right, #4F46E5, #7C3AED); color: white; text-decoration: none; padding: 14px 28px; border-radius: 8px; font-weight: 600;">
+          Upgrade Now
+        </a>
+        
+        <div style="text-align: center; color: #9CA3AF; font-size: 12px; margin-top: 30px;">
+          <p>DKS StockAlert - Inventory Management System</p>
+          <p>© ${new Date().getFullYear()} DKS StockAlert. All rights reserved.</p>
+        </div>
+      </div>
+    `,
+  }
+}
+
