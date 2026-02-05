@@ -134,6 +134,21 @@ export function WhatsAppSettings() {
 
   return (
     <div className="space-y-6">
+      {/* Pricing Banner */}
+      <div className="p-4 bg-gradient-to-r from-green-900/30 to-blue-900/30 rounded-lg border border-green-500/30">
+        <div className="flex items-start gap-3">
+          <MessageSquare className="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5" />
+          <div>
+            <p className="text-sm font-medium text-white">Free Tier Available!</p>
+            <p className="text-xs text-slate-400 mt-1">
+              First <span className="text-green-400 font-semibold">1,000 messages/month</span> are FREE. 
+              Email notifications are always <span className="text-green-400 font-semibold">100% free</span>.
+              <a href="#pricing-info" className="text-blue-400 underline ml-1">Learn more</a>
+            </p>
+          </div>
+        </div>
+      </div>
+
       <div className="p-6 bg-gray-800/50 rounded-xl border border-gray-700">
         <div className="flex items-start gap-4 mb-6">
           <div className="w-12 h-12 bg-green-500/20 rounded-xl flex items-center justify-center flex-shrink-0">

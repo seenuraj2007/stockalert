@@ -498,10 +498,11 @@ export default function HomePage() {
                 <MessageSquare className="w-8 h-8 text-green-400" />
               </div>
               <h3 className="text-xl font-bold text-white mb-2">WhatsApp Alerts</h3>
-              <p className="text-white/60">The only inventory software in India with WhatsApp notifications. Get instant alerts on your phone.</p>
-              <div className="mt-4 inline-flex items-center gap-1 text-green-400 text-sm font-medium">
+              <p className="text-white/60 mb-3">Instant alerts on your phone. First 1,000 messages FREE/month, then optional paid tier.</p>
+              <div className="text-xs text-slate-400 mb-3">Email alerts always FREE • No hidden costs</div>
+              <div className="mt-2 inline-flex items-center gap-1 text-green-400 text-sm font-medium">
                 <Star className="w-4 h-4" />
-                <span>EXCLUSIVE FEATURE</span>
+                <span>EXCLUSIVE + FREE TIER</span>
               </div>
             </div>
             
@@ -873,7 +874,13 @@ export default function HomePage() {
                   <div className="w-5 h-5 rounded-full bg-violet-500/20 flex items-center justify-center flex-shrink-0">
                     <CheckCircle className="w-3.5 h-3.5 text-violet-400" />
                   </div>
-                  <span className="text-white/80 font-semibold text-green-400">✨ WhatsApp alerts</span>
+                  <span className="text-white/80 font-semibold text-green-400">✨ WhatsApp alerts (1,000 msgs FREE)</span>
+                </li>
+                <li className="flex items-center gap-3">
+                  <div className="w-5 h-5 rounded-full bg-violet-500/20 flex items-center justify-center flex-shrink-0">
+                    <CheckCircle className="w-3.5 h-3.5 text-violet-400" />
+                  </div>
+                  <span className="text-white/80">✅ Email notifications (UNLIMITED FREE)</span>
                 </li>
                 <li className="flex items-center gap-3">
                   <div className="w-5 h-5 rounded-full bg-violet-500/20 flex items-center justify-center flex-shrink-0">

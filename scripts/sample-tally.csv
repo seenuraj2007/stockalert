@@ -1,0 +1,11 @@
+Name,SKU,Unit Cost,Selling Price,GST Rate,HSN Code,Opening Stock,Category
+Aashirvaad Atta 5kg,ATTA001,245,285,5,1001,50,Groceries
+Patanjali Honey 500g,HONEY001,180,210,12,0409,30,Groceries
+MDH Masala 100g,MDH001,45,55,5,0910,100,Groceries
+Tata Salt 1kg,SALT001,28,32,5,2501,200,Groceries
+Fortune Oil 1L,OIL001,120,135,5,1509,75,Groceries
+Amul Butter 500g,BUTTER001,240,265,12,0405,40,Dairy
+Maggi Noodles 70g,MAGGI001,12,15,18,1905,150,Instant Food
+Parle G Biscuits,PARLE001,25,30,18,1905,120,Biscuits
+Red Label Tea 250g,TEA001,85,95,5,0902,60,Beverages
+Coca Cola 2L,COLA001,65,75,28,2202,90,Beverages
