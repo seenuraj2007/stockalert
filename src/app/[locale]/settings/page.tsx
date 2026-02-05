@@ -155,17 +155,39 @@ export default async function SettingsPage(props: { params: Promise<{ locale: st
           </TabsContent>
         </Tabs>
 
-        {/* Security Notice */}
-        <div className="mt-8 p-6 bg-gradient-to-r from-violet-900/20 to-fuchsia-900/20 rounded-xl border border-violet-500/20">
+        {/* Why Choose DKS StockAlert */}
+        <div className="mt-8 p-6 bg-gradient-to-r from-green-900/20 to-violet-900/20 rounded-xl border border-green-500/20">
           <div className="flex items-start gap-4">
-            <div className="w-10 h-10 bg-violet-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
-              <Shield className="w-5 h-5 text-violet-400" />
+            <div className="w-10 h-10 bg-green-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
+              <Shield className="w-5 h-5 text-green-400" />
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-white">Security First</h3>
-              <p className="text-slate-400 mt-1">
-                Your data is securely stored in India and protected with enterprise-grade encryption. 
-                All integrations use secure API connections with OAuth 2.0 authentication.
+              <h3 className="text-lg font-semibold text-white">Why DKS StockAlert?</h3>
+              <p className="text-slate-400 mt-1 mb-4">
+                We're the only inventory software in India with these killer features:
+              </p>
+              <div className="grid gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 bg-green-500/20 rounded-lg flex items-center justify-center">
+                    <MessageSquare className="w-4 h-4 text-green-400" />
+                  </div>
+                  <span className="text-slate-300"><span className="text-green-400 font-semibold">WhatsApp Alerts</span> - Get instant low stock alerts on your phone</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 bg-blue-500/20 rounded-lg flex items-center justify-center">
+                    <FileSpreadsheet className="w-4 h-4 text-blue-400" />
+                  </div>
+                  <span className="text-slate-300"><span className="text-blue-400 font-semibold">1-Click Tally Import</span> - Migrate from Tally in seconds, not hours</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 bg-orange-500/20 rounded-lg flex items-center justify-center">
+                    <Globe className="w-4 h-4 text-orange-400" />
+                  </div>
+                  <span className="text-slate-300"><span className="text-orange-400 font-semibold">Complete Hindi Support</span> - Manage your business in हिंदी</span>
+                </div>
+              </div>
+              <p className="text-slate-400 mt-4 text-sm">
+                Your data is securely stored in India with enterprise-grade encryption.
               </p>
             </div>
           </div>
