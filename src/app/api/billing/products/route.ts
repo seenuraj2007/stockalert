@@ -21,18 +21,20 @@ export async function GET(req: NextRequest) {
     })
 
     // Transform to POS format
-    const posProducts = products.map(product => ({
+    const posProducts = products.map((product: any) => ({
       id: product.id,
       name: product.name,
       sku: product.sku,
       barcode: product.barcode,
       category: product.category,
-      current_quantity: product.stockLevels.reduce((sum, sl) => sum + sl.quantity, 0),
+      current_quantity: product.stockLevels.reduce((sum: number, sl: any) => sum + sl.quantity, 0),
       reorder_point: 0,
       selling_price: Number(product.sellingPrice),
       unit_cost: product.unitCost ? Number(product.unitCost) : null,
       unit: product.unit,
-      image_url: product.imageUrl
+      image_url: product.imageUrl,
+      hsn_code: product.hsnCode,
+      gst_rate: product.gstRate ? Number(product.gstRate) : 0
     }))
 
     return NextResponse.json({ products: posProducts })

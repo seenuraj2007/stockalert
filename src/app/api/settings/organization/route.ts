@@ -31,10 +31,20 @@ export async function GET(req: NextRequest) {
       where: { tenantId: user.tenantId }
     })
 
+    // Parse tenant settings for business details
+    const settings = tenant.settings as any || {}
+
     return NextResponse.json({
       organization: {
         id: tenant.id,
         name: tenant.name,
+        address: settings.address || null,
+        city: settings.city || null,
+        state: settings.state || null,
+        pincode: settings.pincode || null,
+        gstNumber: settings.gstNumber || null,
+        phone: settings.phone || null,
+        email: settings.email || null,
         created_at: tenant.createdAt,
         updated_at: tenant.updatedAt
       },

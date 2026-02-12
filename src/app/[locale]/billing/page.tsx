@@ -6,12 +6,14 @@ import {
   Plus, Minus, Trash2, Search, X, 
   Package, Barcode, User, CheckCircle, ShoppingCart, 
   History, Percent, Receipt, Zap,
-  ChevronRight, Save, ArrowLeft, IndianRupee
+  ChevronRight, Save, ArrowLeft, IndianRupee,
+  FileText, QrCode, Calculator
 } from 'lucide-react'
 import { SubscriptionGate } from '@/components/SubscriptionGate'
+import QRCode from 'qrcode'
 
 interface Product {
-  id: number
+  id: string
   name: string
   sku: string | null
   barcode: string | null
@@ -22,6 +24,8 @@ interface Product {
   unit_cost: number | null
   unit: string
   image_url: string | null
+  hsn_code?: string | null
+  gst_rate?: number
 }
 
 interface CartItem {
@@ -29,21 +33,33 @@ interface CartItem {
   quantity: number
   unitPrice: number
   discount: number
+  taxableAmount: number
+  cgstAmount: number
+  sgstAmount: number
+  igstAmount: number
+  totalAmount: number
 }
 
 interface Customer {
-  id: number
+  id: string
   name: string
   email: string | null
   phone: string | null
+  address?: string | null
+  city?: string | null
+  state?: string | null
+  pincode?: string | null
+  gstNumber?: string | null
 }
 
 interface SaleResult {
   success: boolean
-  sale?: {
-    id: number
-    sale_number: string
-    total: number
+  invoice?: {
+    id: string
+    invoiceNumber: string
+    totalAmount: number
+    invoiceDate: string
+    qrCode?: string
   }
   error?: string
 }
@@ -55,6 +71,32 @@ interface HeldSale {
   timestamp: Date
   total: number
 }
+
+interface GSTBreakdown {
+  cgstRate: number
+  sgstRate: number
+  igstRate: number
+  cgstAmount: number
+  sgstAmount: number
+  igstAmount: number
+}
+
+interface OrganizationSettings {
+  name?: string
+  address?: string
+  city?: string
+  state?: string
+  pincode?: string
+  gstNumber?: string
+  phone?: string
+  email?: string
+}
+
+// GST Rate configurations
+const GST_RATES = [0, 5, 12, 18, 28]
+
+// Default state for intra-state transactions (CGST + SGST)
+const DEFAULT_STATE = 'Karnataka'
 
 export default function BillingPage() {
   const router = useRouter()
@@ -79,7 +121,6 @@ export default function BillingPage() {
   const [lastSale, setLastSale] = useState<SaleResult | null>(null)
   const [showScanner, setShowScanner] = useState(false)
   const [scannedBarcode, setScannedBarcode] = useState('')
-  const [taxRate] = useState(10)
   const [globalDiscount, setGlobalDiscount] = useState(0)
   const [heldSales, setHeldSales] = useState<HeldSale[]>([])
   const [showHoldModal, setShowHoldModal] = useState(false)
@@ -90,8 +131,12 @@ export default function BillingPage() {
   const [showOrderType, setShowOrderType] = useState(false)
   const [orderType, setOrderType] = useState<'dine-in' | 'takeaway' | 'delivery'>('dine-in')
   const [recentItems, setRecentItems] = useState<CartItem[]>([])
-  const [addedItems, setAddedItems] = useState<number[]>([])
+  const [addedItems, setAddedItems] = useState<string[]>([])
   const [isMobileCartOpen, setIsMobileCartOpen] = useState(true)
+  const [organization, setOrganization] = useState<OrganizationSettings>({})
+  const [isInterState, setIsInterState] = useState(false)
+  const [showGstDetails, setShowGstDetails] = useState(false)
+  const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string>('')
 
   const categories = useMemo(() => 
     Array.from(new Set(products.map(p => p.category).filter(Boolean) as string[])),
@@ -127,11 +172,33 @@ export default function BillingPage() {
     }
   }, [])
 
+  const fetchOrganization = useCallback(async () => {
+    try {
+      const res = await fetch('/api/settings/organization')
+      if (res.ok) {
+        const data = await res.json()
+        setOrganization(data.organization || {})
+      }
+    } catch (error) {
+      console.error('Error fetching organization:', error)
+    }
+  }, [])
+
   useEffect(() => {
     fetchProducts()
     fetchCustomers()
+    fetchOrganization()
     searchInputRef.current?.focus()
-  }, [fetchProducts, fetchCustomers])
+  }, [fetchProducts, fetchCustomers, fetchOrganization])
+
+  // Check if transaction is inter-state when customer changes
+  useEffect(() => {
+    if (selectedCustomer?.state && organization.state) {
+      setIsInterState(selectedCustomer.state.toLowerCase() !== organization.state.toLowerCase())
+    } else {
+      setIsInterState(false)
+    }
+  }, [selectedCustomer, organization.state])
 
   useEffect(() => {
     if (showCustomerSelect && customerSearchRef.current) {
@@ -175,6 +242,7 @@ export default function BillingPage() {
           setShowHoldModal(false)
           setShowDiscountModal(false)
           setShowOrderType(false)
+          setShowGstDetails(false)
         }
         return
       }
@@ -217,24 +285,93 @@ export default function BillingPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cart.length])
 
+  // Calculate GST for a cart item
+  const calculateGST = (item: CartItem, interState: boolean): GSTBreakdown => {
+    const gstRate = item.product.gst_rate || 0
+    const taxableAmount = (item.unitPrice * item.quantity) - item.discount
+    
+    if (interState) {
+      // Inter-state: IGST only
+      const igstAmount = (taxableAmount * gstRate) / 100
+      return {
+        cgstRate: 0,
+        sgstRate: 0,
+        igstRate: gstRate,
+        cgstAmount: 0,
+        sgstAmount: 0,
+        igstAmount
+      }
+    } else {
+      // Intra-state: CGST + SGST (50% each)
+      const halfRate = gstRate / 2
+      const cgstAmount = (taxableAmount * halfRate) / 100
+      const sgstAmount = (taxableAmount * halfRate) / 100
+      return {
+        cgstRate: halfRate,
+        sgstRate: halfRate,
+        igstRate: 0,
+        cgstAmount,
+        sgstAmount,
+        igstAmount: 0
+      }
+    }
+  }
+
   const addToCart = (product: Product) => {
     if (product.current_quantity <= 0) return
+
+    const unitPrice = product.selling_price
+    const quantity = 1
+    const discount = 0
+    const taxableAmount = (unitPrice * quantity) - discount
+    const gstRate = product.gst_rate || 0
+    const halfRate = gstRate / 2
+    
+    let cgstAmount = 0
+    let sgstAmount = 0
+    let igstAmount = 0
+    
+    if (isInterState) {
+      igstAmount = (taxableAmount * gstRate) / 100
+    } else {
+      cgstAmount = (taxableAmount * halfRate) / 100
+      sgstAmount = (taxableAmount * halfRate) / 100
+    }
+
+    const totalAmount = taxableAmount + cgstAmount + sgstAmount + igstAmount
 
     setCart(prev => {
       const existing = prev.find(item => item.product.id === product.id)
       if (existing) {
         if (existing.quantity >= product.current_quantity) return prev
+        const newQuantity = existing.quantity + 1
+        const newTaxable = (existing.unitPrice * newQuantity) - existing.discount
+        const newGST = calculateGST({ ...existing, quantity: newQuantity }, isInterState)
+        
         return prev.map(item =>
           item.product.id === product.id
-            ? { ...item, quantity: item.quantity + 1 }
+            ? { 
+                ...item, 
+                quantity: newQuantity,
+                taxableAmount: newTaxable,
+                cgstAmount: newGST.cgstAmount,
+                sgstAmount: newGST.sgstAmount,
+                igstAmount: newGST.igstAmount,
+                totalAmount: newTaxable + newGST.cgstAmount + newGST.sgstAmount + newGST.igstAmount
+              }
             : item
         )
       }
       return [...prev, {
         product,
-        quantity: 1,
-        unitPrice: product.selling_price,
-        discount: 0
+        quantity,
+        unitPrice,
+        discount,
+        taxableAmount,
+        cgstAmount,
+        sgstAmount,
+        igstAmount,
+        totalAmount
       }]
     })
 
@@ -252,34 +389,58 @@ export default function BillingPage() {
             : item
         ).slice(0, 6)
       }
-      return [{ product, quantity: 1, unitPrice: product.selling_price, discount: 0 }, ...prev].slice(0, 6)
+      return [{ product, quantity: 1, unitPrice, discount, taxableAmount, cgstAmount, sgstAmount, igstAmount, totalAmount }, ...prev].slice(0, 6)
     })
 
     lastItemRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' })
   }
 
-  const updateQuantity = useCallback((productId: number, newQuantity: number) => {
+  const updateQuantity = useCallback((productId: string, newQuantity: number) => {
     if (newQuantity < 1) {
       removeFromCart(productId)
       return
     }
 
-    setCart(prev => prev.map(item =>
-      item.product.id === productId
-        ? { ...item, quantity: newQuantity }
-        : item
-    ))
-  }, [])
+    setCart(prev => prev.map(item => {
+      if (item.product.id !== productId) return item
+      
+      const taxableAmount = (item.unitPrice * newQuantity) - item.discount
+      const gstBreakdown = calculateGST({ ...item, quantity: newQuantity }, isInterState)
+      
+      return {
+        ...item,
+        quantity: newQuantity,
+        taxableAmount,
+        cgstAmount: gstBreakdown.cgstAmount,
+        sgstAmount: gstBreakdown.sgstAmount,
+        igstAmount: gstBreakdown.igstAmount,
+        totalAmount: taxableAmount + gstBreakdown.cgstAmount + gstBreakdown.sgstAmount + gstBreakdown.igstAmount
+      }
+    }))
+  }, [isInterState])
 
-  const _updateDiscount = (productId: number, discount: number) => {
-    setCart(prev => prev.map(item =>
-      item.product.id === productId
-        ? { ...item, discount: Math.max(0, Math.min(discount, item.unitPrice * item.quantity)) }
-        : item
-    ))
+  const updateDiscount = (productId: string, discount: number) => {
+    setCart(prev => prev.map(item => {
+      if (item.product.id !== productId) return item
+      
+      const maxDiscount = item.unitPrice * item.quantity
+      const newDiscount = Math.max(0, Math.min(discount, maxDiscount))
+      const taxableAmount = (item.unitPrice * item.quantity) - newDiscount
+      const gstBreakdown = calculateGST({ ...item, discount: newDiscount }, isInterState)
+      
+      return {
+        ...item,
+        discount: newDiscount,
+        taxableAmount,
+        cgstAmount: gstBreakdown.cgstAmount,
+        sgstAmount: gstBreakdown.sgstAmount,
+        igstAmount: gstBreakdown.igstAmount,
+        totalAmount: taxableAmount + gstBreakdown.cgstAmount + gstBreakdown.sgstAmount + gstBreakdown.igstAmount
+      }
+    }))
   }
 
-  const removeFromCart = (productId: number) => {
+  const removeFromCart = (productId: string) => {
     setCart(prev => prev.filter(item => item.product.id !== productId))
   }
 
@@ -290,22 +451,17 @@ export default function BillingPage() {
     setCashReceived(0)
   }
 
-  const _holdSale = () => {
+  const holdSale = () => {
     if (cart.length === 0) return
     
-    const subtotal = cart.reduce((sum, item) => sum + (item.unitPrice * item.quantity), 0)
-    const globalDiscAmount = (subtotal * globalDiscount) / 100
-    const totalDiscount = globalDiscAmount
-    const taxableAmount = subtotal - totalDiscount
-    const taxAmount = (taxableAmount * taxRate) / 100
-    const saleTotal = taxableAmount + taxAmount
+    const total = cart.reduce((sum, item) => sum + item.totalAmount, 0)
     
     const heldSale: HeldSale = {
       id: Date.now().toString(),
       cart: [...cart],
       customer: selectedCustomer,
       timestamp: new Date(),
-      total: saleTotal
+      total
     }
     setHeldSales(prev => [heldSale, ...prev])
     clearCart()
@@ -322,22 +478,60 @@ export default function BillingPage() {
     setHeldSales(prev => prev.filter(h => h.id !== id))
   }
 
+  // Calculate totals
   const subtotal = cart.reduce((sum, item) => sum + (item.unitPrice * item.quantity), 0)
-  const globalDiscAmount = (subtotal * globalDiscount) / 100
-  const taxableAmount = subtotal - globalDiscAmount
-  const taxAmount = (taxableAmount * taxRate) / 100
-  const total = taxableAmount + taxAmount
+  const itemDiscounts = cart.reduce((sum, item) => sum + item.discount, 0)
+  const globalDiscAmount = ((subtotal - itemDiscounts) * globalDiscount) / 100
+  const totalDiscount = itemDiscounts + globalDiscAmount
+  const totalTaxableAmount = cart.reduce((sum, item) => sum + item.taxableAmount, 0)
+  const totalCgst = cart.reduce((sum, item) => sum + item.cgstAmount, 0)
+  const totalSgst = cart.reduce((sum, item) => sum + item.sgstAmount, 0)
+  const totalIgst = cart.reduce((sum, item) => sum + item.igstAmount, 0)
+  const totalGst = totalCgst + totalSgst + totalIgst
+  const total = cart.reduce((sum, item) => sum + item.totalAmount, 0) - globalDiscAmount
   const change = Math.max(0, cashReceived - total)
+
+  // Update cart GST when inter-state status changes
+  useEffect(() => {
+    if (cart.length > 0) {
+      setCart(prev => prev.map(item => {
+        const gstBreakdown = calculateGST(item, isInterState)
+        return {
+          ...item,
+          cgstAmount: gstBreakdown.cgstAmount,
+          sgstAmount: gstBreakdown.sgstAmount,
+          igstAmount: gstBreakdown.igstAmount,
+          totalAmount: item.taxableAmount + gstBreakdown.cgstAmount + gstBreakdown.sgstAmount + gstBreakdown.igstAmount
+        }
+      }))
+    }
+  }, [isInterState])
 
   useEffect(() => {
     if (cart.length > 0 && paymentMethod === 'cash' && cashReceived === 0) {
       setCashReceived(Math.ceil(total))
     }
-    // Auto-expand cart on mobile when items are added
     if (cart.length > 0) {
       setIsMobileCartOpen(true)
     }
   }, [cart.length, paymentMethod, total, cashReceived])
+
+  // Generate QR Code for e-invoicing
+  const generateQRCode = async (invoiceData: any) => {
+    try {
+      const qrData = {
+        invoiceNumber: invoiceData.invoiceNumber,
+        invoiceDate: invoiceData.invoiceDate,
+        totalAmount: invoiceData.totalAmount,
+        gstNumber: organization.gstNumber,
+        items: invoiceData.items.length
+      }
+      const dataUrl = await QRCode.toDataURL(JSON.stringify(qrData))
+      setQrCodeDataUrl(dataUrl)
+    } catch (error) {
+      console.error('Error generating QR code:', error)
+    }
+  }
 
   const handleCompleteSale = async () => {
     if (cart.length === 0 || (paymentMethod === 'cash' && cashReceived < total)) return
@@ -349,25 +543,46 @@ export default function BillingPage() {
         product_id: item.product.id,
         quantity: item.quantity,
         unit_price: item.unitPrice,
-        discount: item.discount
+        discount: item.discount,
+        hsn_code: item.product.hsn_code,
+        gst_rate: item.product.gst_rate || 0,
+        cgst_amount: item.cgstAmount,
+        sgst_amount: item.sgstAmount,
+        igst_amount: item.igstAmount,
+        taxable_amount: item.taxableAmount,
+        total_amount: item.totalAmount
       }))
 
-      const res = await fetch('/api/sales', {
+      const res = await fetch('/api/invoices', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           customer_id: selectedCustomer?.id,
           items,
           payment_method: paymentMethod,
-          payment_status: 'paid',
-          notes: `Tax: ${taxRate}%, Discount: ${globalDiscount}%`
+          global_discount: globalDiscount,
+          is_inter_state: isInterState,
+          total_cgst: totalCgst,
+          total_sgst: totalSgst,
+          total_igst: totalIgst,
+          total_gst: totalGst,
+          subtotal: totalTaxableAmount,
+          total_amount: total,
+          notes: `Order Type: ${orderType}`
         })
       })
 
       const data = await res.json()
 
       if (res.ok) {
-        setLastSale({ success: true, sale: data.sale })
+        await generateQRCode(data.invoice)
+        setLastSale({ 
+          success: true, 
+          invoice: {
+            ...data.invoice,
+            qrCode: qrCodeDataUrl
+          }
+        })
         setShowReceipt(true)
         clearCart()
         fetchProducts()
@@ -387,7 +602,8 @@ export default function BillingPage() {
     const matchesSearch = !searchTerm || 
       product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       product.sku?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.barcode?.includes(searchTerm)
+      product.barcode?.includes(searchTerm) ||
+      product.hsn_code?.includes(searchTerm)
     const matchesCategory = !selectedCategory || product.category === selectedCategory
     return matchesSearch && matchesCategory
   })
@@ -418,6 +634,7 @@ export default function BillingPage() {
   return (
     <SubscriptionGate>
       <div className="h-screen bg-gray-100 flex flex-col overflow-hidden">
+        {/* Header */}
         <header className="bg-white shadow-sm px-4 py-3 flex-shrink-0">
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2 sm:gap-4">
@@ -429,11 +646,17 @@ export default function BillingPage() {
               </button>
               <div className="hidden sm:block">
                 <h1 className="text-lg sm:text-xl font-bold text-gray-900">Point of Sale</h1>
-                <p className="text-xs sm:text-sm text-gray-500">Fast checkout</p>
+                <p className="text-xs sm:text-sm text-gray-500">GST-Ready Billing</p>
               </div>
             </div>
 
             <div className="flex items-center gap-1 sm:gap-2">
+              {organization.gstNumber && (
+                <div className="hidden md:flex items-center gap-2 px-3 py-2 bg-green-50 rounded-xl">
+                  <FileText className="w-4 h-4 text-green-600" />
+                  <span className="text-xs font-medium text-green-700">GST: {organization.gstNumber}</span>
+                </div>
+              )}
               {cart.length > 0 && (
                 <button
                   onClick={() => {
@@ -477,6 +700,7 @@ export default function BillingPage() {
         </header>
 
         <div className="flex-1 flex overflow-hidden flex-col lg:flex-row">
+          {/* Product Grid */}
           <div className="flex-1 flex flex-col overflow-hidden order-2 lg:order-1">
             <div className="bg-white border-b border-gray-200 px-4 py-3 flex-shrink-0">
               <div className="flex items-center gap-3 mb-3">
@@ -487,7 +711,7 @@ export default function BillingPage() {
                     type="text"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    placeholder="Search products by name, SKU or barcode..."
+                    placeholder="Search by name, SKU, barcode, or HSN..."
                     className="w-full pl-11 pr-11 py-3 bg-gray-100 border-0 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-lg"
                   />
                   {searchTerm && (
@@ -543,6 +767,9 @@ export default function BillingPage() {
                     >
                       <span className="text-gray-900 font-medium">{item.product.name}</span>
                       <span className="text-gray-400">×{item.quantity}</span>
+                      {item.product.gst_rate ? (
+                        <span className="text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">{item.product.gst_rate}% GST</span>
+                      ) : null}
                     </button>
                   ))}
                 </div>
@@ -581,6 +808,14 @@ export default function BillingPage() {
                             <CheckCircle className="w-5 h-5 text-white" />
                           </div>
                         )}
+                        
+                        {/* GST Badge */}
+                        {product.gst_rate ? (
+                          <div className="absolute -top-2 -left-2 px-2 py-1 bg-blue-500 text-white text-xs font-bold rounded-full shadow-md">
+                            {product.gst_rate}%
+                          </div>
+                        ) : null}
+                        
                         <div className={`aspect-square rounded-xl mb-3 flex items-center justify-center ${
                           isOutOfStock ? 'bg-gray-100' : 'bg-gray-50'
                         }`}>
@@ -594,9 +829,15 @@ export default function BillingPage() {
                         <h3 className="font-semibold text-gray-900 text-sm truncate mb-1">
                           {product.name}
                         </h3>
+                        
+                        {/* HSN Code */}
+                        {product.hsn_code && (
+                          <p className="text-xs text-gray-500 mb-1">HSN: {product.hsn_code}</p>
+                        )}
+                        
                         <div className="flex items-center justify-between">
                           <span className="text-xl font-bold text-indigo-600">
-                            ₹{product.selling_price.toFixed(2)}
+                            ₹{Number(product.selling_price || 0).toFixed(2)}
                           </span>
                           <span className={`text-xs px-2 py-1 rounded-full font-semibold ${
                             isOutOfStock 
@@ -616,8 +857,9 @@ export default function BillingPage() {
             </div>
           </div>
 
+          {/* Cart Section */}
           <div id="cart-section" className="w-full sm:w-80 md:w-96 lg:flex-1 xl:w-96 bg-white shadow-xl flex flex-col border-l border-gray-200 order-1 lg:order-2 fixed lg:relative bottom-0 left-0 right-0 z-40 lg:z-auto lg:h-auto">
-            {/* Mobile Cart Toggle - Fixed at top of cart on mobile */}
+            {/* Mobile Cart Toggle */}
             <div className="lg:hidden flex items-center justify-between p-4 bg-indigo-600 text-white">
               <div className="flex items-center gap-3">
                 <ShoppingCart className="w-5 h-5" />
@@ -635,9 +877,9 @@ export default function BillingPage() {
               </button>
             </div>
 
-            {/* Cart Content - Collapsible on mobile */}
+            {/* Cart Content */}
             <div className={`flex-1 flex flex-col lg:flex overflow-hidden transition-all duration-300 ${isMobileCartOpen ? 'h-[calc(100vh-140px)] lg:h-auto' : 'h-0 lg:h-auto overflow-visible'}`}>
-              {/* Desktop header - hidden on mobile */}
+              {/* Desktop header */}
               <div className="p-4 border-b border-gray-100 hidden lg:block">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
@@ -682,13 +924,26 @@ export default function BillingPage() {
                             <h3 className="font-semibold text-gray-900">{item.product.name}</h3>
                             <p className="text-sm text-gray-500">
                               ₹{item.unitPrice.toFixed(2)} × {item.quantity}
-                              {item.discount > 0 && (
-                                <span className="text-green-600 ml-1">(-₹{item.discount.toFixed(2)})</span>
+                              {item.product.hsn_code && (
+                                <span className="ml-2 text-xs text-blue-600">HSN: {item.product.hsn_code}</span>
                               )}
                             </p>
+                            {item.product.gst_rate ? (
+                              <p className="text-xs text-blue-600">
+                                GST {item.product.gst_rate}% 
+                                {!isInterState ? (
+                                  <span className="text-gray-500"> (CGST {(item.product.gst_rate/2).toFixed(1)}% + SGST {(item.product.gst_rate/2).toFixed(1)}%)</span>
+                                ) : (
+                                  <span className="text-gray-500"> (IGST {item.product.gst_rate}%)</span>
+                                )}
+                              </p>
+                            ) : null}
+                            {item.discount > 0 && (
+                              <p className="text-green-600 text-xs">Discount: -₹{item.discount.toFixed(2)}</p>
+                            )}
                           </div>
                           <p className="font-bold text-gray-900 text-lg">
-                            ₹{((item.unitPrice * item.quantity) - item.discount).toFixed(2)}
+                            ₹{item.totalAmount.toFixed(2)}
                           </p>
                         </div>
                         <div className="flex items-center gap-2">
@@ -726,29 +981,69 @@ export default function BillingPage() {
               </div>
             </div>
 
+            {/* Cart Footer with GST Breakdown */}
             <div className="border-t border-gray-200 bg-gray-50 p-4 space-y-4">
               <div className="space-y-2">
                 <div className="flex justify-between text-gray-600">
                   <span>Subtotal</span>
                   <span className="font-medium">₹{subtotal.toFixed(2)}</span>
                 </div>
-                {globalDiscount > 0 && (
+                {totalDiscount > 0 && (
                   <div className="flex justify-between text-green-600">
                     <span className="flex items-center gap-1">
                       <Percent className="w-4 h-4" />
-                      Discount ({globalDiscount}%)
+                      Discount
                     </span>
-                    <span className="font-medium">-₹{globalDiscAmount.toFixed(2)}</span>
+                    <span className="font-medium">-₹{totalDiscount.toFixed(2)}</span>
                   </div>
                 )}
                 <div className="flex justify-between text-gray-600">
-                  <span>Tax ({taxRate}%)</span>
-                  <span className="font-medium">₹{taxAmount.toFixed(2)}</span>
+                  <span>Taxable Amount</span>
+                  <span className="font-medium">₹{totalTaxableAmount.toFixed(2)}</span>
                 </div>
+                
+                {/* GST Breakdown */}
+                {totalCgst > 0 && (
+                  <div className="flex justify-between text-blue-600 text-sm">
+                    <span>CGST</span>
+                    <span className="font-medium">₹{totalCgst.toFixed(2)}</span>
+                  </div>
+                )}
+                {totalSgst > 0 && (
+                  <div className="flex justify-between text-blue-600 text-sm">
+                    <span>SGST</span>
+                    <span className="font-medium">₹{totalSgst.toFixed(2)}</span>
+                  </div>
+                )}
+                {totalIgst > 0 && (
+                  <div className="flex justify-between text-blue-600 text-sm">
+                    <span>IGST</span>
+                    <span className="font-medium">₹{totalIgst.toFixed(2)}</span>
+                  </div>
+                )}
+                
+                {totalGst > 0 && (
+                  <div className="flex justify-between text-blue-700 font-semibold text-sm border-t border-gray-200 pt-1">
+                    <span>Total GST</span>
+                    <span>₹{totalGst.toFixed(2)}</span>
+                  </div>
+                )}
+                
                 <div className="flex justify-between text-2xl font-bold text-gray-900 pt-2 border-t border-gray-200">
                   <span>Total</span>
                   <span>₹{total.toFixed(2)}</span>
                 </div>
+                
+                {/* GST Badge */}
+                {totalGst > 0 && (
+                  <div className="flex justify-center">
+                    <span className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-semibold">
+                      <FileText className="w-3 h-3" />
+                      GST Invoice
+                      {isInterState && <span className="text-blue-500">(Inter-State)</span>}
+                    </span>
+                  </div>
+                )}
               </div>
 
               <div className="grid grid-cols-2 gap-2">
@@ -772,8 +1067,8 @@ export default function BillingPage() {
                 </button>
               </div>
 
-              <div className="grid grid-cols-2 gap-2">
-                {['cash', 'card', 'transfer'].map(method => (
+              <div className="grid grid-cols-3 gap-2">
+                {['cash', 'card', 'upi'].map(method => (
                   <button
                     key={method}
                     onClick={() => setPaymentMethod(method)}
@@ -785,7 +1080,7 @@ export default function BillingPage() {
                   >
                     {method === 'cash' && '💵 Cash'}
                     {method === 'card' && '💳 Card'}
-                    {method === 'transfer' && '🏦 Transfer'}
+                    {method === 'upi' && '📱 UPI'}
                   </button>
                 ))}
               </div>
@@ -840,6 +1135,7 @@ export default function BillingPage() {
           </div>
         </div>
 
+        {/* Modals */}
         {showScanner && (
           <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-start justify-center pt-20 z-50">
             <div className="bg-white rounded-2xl p-6 w-full max-w-lg mx-4">
@@ -924,12 +1220,18 @@ export default function BillingPage() {
                               {customer.name.charAt(0).toUpperCase()}
                             </span>
                           </div>
-                          <div>
+                          <div className="flex-1">
                             <p className="font-semibold text-gray-900">{customer.name}</p>
                             {(customer.email || customer.phone) && (
                               <p className="text-sm text-gray-500">
                                 {customer.email} {customer.phone && `• ${customer.phone}`}
                               </p>
+                            )}
+                            {customer.gstNumber && (
+                              <p className="text-xs text-blue-600 font-medium">GST: {customer.gstNumber}</p>
+                            )}
+                            {customer.state && (
+                              <p className="text-xs text-gray-400">{customer.state}</p>
                             )}
                           </div>
                         </div>
@@ -944,7 +1246,7 @@ export default function BillingPage() {
 
         {showCompleteModal && (
           <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl">
+            <div className="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
               <div className="flex items-center gap-4 mb-6">
                 <div className="w-14 h-14 bg-green-100 rounded-2xl flex items-center justify-center">
                   <Receipt className="w-7 h-7 text-green-600" />
@@ -954,38 +1256,86 @@ export default function BillingPage() {
                   <p className="text-gray-500">{cart.length} item{cart.length !== 1 ? 's' : ''}</p>
                 </div>
               </div>
+              
+              {/* GST Summary */}
+              <div className="bg-blue-50 rounded-xl p-4 mb-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <FileText className="w-5 h-5 text-blue-600" />
+                  <span className="font-semibold text-blue-900">GST Invoice Summary</span>
+                </div>
+                <div className="space-y-1 text-sm">
+                  {organization.gstNumber && (
+                    <p className="text-blue-700">Seller GST: {organization.gstNumber}</p>
+                  )}
+                  {selectedCustomer?.gstNumber && (
+                    <p className="text-blue-700">Customer GST: {selectedCustomer.gstNumber}</p>
+                  )}
+                  <p className="text-blue-600">
+                    Transaction Type: {isInterState ? 'Inter-State (IGST)' : 'Intra-State (CGST+SGST)'}
+                  </p>
+                </div>
+              </div>
+              
               <div className="space-y-3 py-4 border-t border-b border-gray-100">
                 <div className="flex justify-between">
                   <span className="text-gray-600">Subtotal</span>
                   <span className="font-semibold">₹{subtotal.toFixed(2)}</span>
                 </div>
-                {globalDiscount > 0 && (
+                {totalDiscount > 0 && (
                   <div className="flex justify-between text-green-600">
                     <span>Discount</span>
-                    <span>-₹{globalDiscAmount.toFixed(2)}</span>
+                    <span>-₹{totalDiscount.toFixed(2)}</span>
                   </div>
                 )}
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Tax</span>
-                  <span className="font-semibold">₹{taxAmount.toFixed(2)}</span>
+                  <span className="text-gray-600">Taxable Amount</span>
+                  <span className="font-semibold">₹{totalTaxableAmount.toFixed(2)}</span>
                 </div>
-                <div className="flex justify-between text-2xl font-bold pt-2">
-                  <span>Total</span>
+                
+                {/* GST Details */}
+                {totalCgst > 0 && (
+                  <div className="flex justify-between text-blue-600">
+                    <span>CGST</span>
+                    <span>₹{totalCgst.toFixed(2)}</span>
+                  </div>
+                )}
+                {totalSgst > 0 && (
+                  <div className="flex justify-between text-blue-600">
+                    <span>SGST</span>
+                    <span>₹{totalSgst.toFixed(2)}</span>
+                  </div>
+                )}
+                {totalIgst > 0 && (
+                  <div className="flex justify-between text-blue-600">
+                    <span>IGST</span>
+                    <span>₹{totalIgst.toFixed(2)}</span>
+                  </div>
+                )}
+                
+                <div className="flex justify-between text-blue-700 font-semibold">
+                  <span>Total GST</span>
+                  <span>₹{totalGst.toFixed(2)}</span>
+                </div>
+                
+                <div className="flex justify-between text-2xl font-bold pt-2 border-t border-gray-200">
+                  <span>Grand Total</span>
                   <span className="text-indigo-600">₹{total.toFixed(2)}</span>
                 </div>
               </div>
+              
               {paymentMethod === 'cash' && cashReceived > 0 && (
-                <div className="flex justify-between p-4 bg-green-50 rounded-xl mt-4">
-                  <span className="text-green-700 font-semibold">Cash Received</span>
-                  <span className="font-bold text-green-700">₹{cashReceived.toFixed(2)}</span>
-                </div>
+                <>
+                  <div className="flex justify-between p-4 bg-green-50 rounded-xl mt-4">
+                    <span className="text-green-700 font-semibold">Cash Received</span>
+                    <span className="font-bold text-green-700">₹{cashReceived.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between p-4 bg-green-100 rounded-xl mt-2">
+                    <span className="text-green-800 font-bold">Change</span>
+                    <span className="text-2xl font-bold text-green-800">₹{change.toFixed(2)}</span>
+                  </div>
+                </>
               )}
-              {paymentMethod === 'cash' && cashReceived > 0 && (
-                <div className="flex justify-between p-4 bg-green-100 rounded-xl mt-2">
-                  <span className="text-green-800 font-bold">Change</span>
-                  <span className="text-2xl font-bold text-green-800">₹{change.toFixed(2)}</span>
-                </div>
-              )}
+              
               <div className="flex gap-3 mt-6">
                 <button
                   onClick={() => setShowCompleteModal(false)}
@@ -998,7 +1348,7 @@ export default function BillingPage() {
                   disabled={processing}
                   className="flex-1 py-4 bg-green-600 text-white rounded-xl font-semibold hover:bg-green-700 transition-colors disabled:opacity-50"
                 >
-                  {processing ? 'Processing...' : 'Complete Sale'}
+                  {processing ? 'Processing...' : 'Generate GST Invoice'}
                 </button>
               </div>
             </div>
@@ -1147,36 +1497,191 @@ export default function BillingPage() {
           </div>
         )}
 
-        {showReceipt && lastSale && (
+        {/* GST Invoice Receipt */}
+        {showReceipt && lastSale && lastSale.success && lastSale.invoice && (
           <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-2xl w-full max-w-sm p-6 shadow-2xl">
-              <div className="flex items-center gap-4 mb-6">
-                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
-                  <CheckCircle className="w-8 h-8 text-green-600" />
+            <div className="bg-white rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto shadow-2xl">
+              <div className="p-6">
+                {/* Success Header */}
+                <div className="flex items-center gap-4 mb-6">
+                  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
+                    <CheckCircle className="w-8 h-8 text-green-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-gray-900">GST Invoice Generated!</h3>
+                    <p className="text-gray-500">{lastSale.invoice.invoiceNumber}</p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="text-xl font-bold text-gray-900">Sale Complete!</h3>
-                  <p className="text-gray-500">#{lastSale.sale?.sale_number}</p>
+
+                {/* Invoice Details */}
+                <div className="border-2 border-gray-200 rounded-xl p-4 space-y-4">
+                  {/* Business Info */}
+                  <div className="text-center border-b border-gray-200 pb-4">
+                    <h4 className="font-bold text-lg text-gray-900">{organization.name || 'Your Business'}</h4>
+                    {organization.address && <p className="text-sm text-gray-600">{organization.address}</p>}
+                    {organization.city && organization.state && (
+                      <p className="text-sm text-gray-600">{organization.city}, {organization.state} {organization.pincode}</p>
+                    )}
+                    {organization.gstNumber && (
+                      <p className="text-sm font-semibold text-blue-600 mt-1">GSTIN: {organization.gstNumber}</p>
+                    )}
+                  </div>
+
+                  {/* Invoice Info */}
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Invoice No:</span>
+                    <span className="font-semibold">{lastSale.invoice.invoiceNumber}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Date:</span>
+                    <span>{new Date(lastSale.invoice.invoiceDate).toLocaleString()}</span>
+                  </div>
+                  {selectedCustomer && (
+                    <>
+                      <div className="border-t border-gray-200 pt-2">
+                        <span className="text-gray-600 text-sm">Bill To:</span>
+                        <p className="font-semibold">{selectedCustomer.name}</p>
+                        {selectedCustomer.gstNumber && (
+                          <p className="text-sm text-blue-600">GSTIN: {selectedCustomer.gstNumber}</p>
+                        )}
+                        {selectedCustomer.address && (
+                          <p className="text-sm text-gray-600">{selectedCustomer.address}</p>
+                        )}
+                        {selectedCustomer.state && (
+                          <p className="text-sm text-gray-600">{selectedCustomer.state}</p>
+                        )}
+                      </div>
+                    </>
+                  )}
+
+                  {/* Items */}
+                  <div className="border-t border-gray-200 pt-4">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="text-gray-600 border-b border-gray-200">
+                          <th className="text-left py-2">Item</th>
+                          <th className="text-right py-2">Qty</th>
+                          <th className="text-right py-2">Price</th>
+                          <th className="text-right py-2">Total</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {cart.map((item, idx) => (
+                          <tr key={idx} className="border-b border-gray-100">
+                            <td className="py-2">
+                              <div>
+                                <p className="font-medium">{item.product.name}</p>
+                                {item.product.hsn_code && (
+                                  <p className="text-xs text-gray-500">HSN: {item.product.hsn_code}</p>
+                                )}
+                                {item.product.gst_rate && (
+                                  <p className="text-xs text-blue-600">GST {item.product.gst_rate}%</p>
+                                )}
+                              </div>
+                            </td>
+                            <td className="text-right py-2">{item.quantity}</td>
+                            <td className="text-right py-2">₹{item.unitPrice.toFixed(2)}</td>
+                            <td className="text-right py-2 font-medium">₹{item.totalAmount.toFixed(2)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Totals */}
+                  <div className="border-t border-gray-200 pt-4 space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Subtotal</span>
+                      <span>₹{subtotal.toFixed(2)}</span>
+                    </div>
+                    {totalDiscount > 0 && (
+                      <div className="flex justify-between text-sm text-green-600">
+                        <span>Discount</span>
+                        <span>-₹{totalDiscount.toFixed(2)}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Taxable Amount</span>
+                      <span>₹{totalTaxableAmount.toFixed(2)}</span>
+                    </div>
+                    
+                    {/* GST Breakdown */}
+                    {totalCgst > 0 && (
+                      <div className="flex justify-between text-sm text-blue-600">
+                        <span>CGST</span>
+                        <span>₹{totalCgst.toFixed(2)}</span>
+                      </div>
+                    )}
+                    {totalSgst > 0 && (
+                      <div className="flex justify-between text-sm text-blue-600">
+                        <span>SGST</span>
+                        <span>₹{totalSgst.toFixed(2)}</span>
+                      </div>
+                    )}
+                    {totalIgst > 0 && (
+                      <div className="flex justify-between text-sm text-blue-600">
+                        <span>IGST</span>
+                        <span>₹{totalIgst.toFixed(2)}</span>
+                      </div>
+                    )}
+                    
+                    <div className="flex justify-between text-sm font-semibold text-blue-700">
+                      <span>Total GST</span>
+                      <span>₹{totalGst.toFixed(2)}</span>
+                    </div>
+                    
+                    <div className="flex justify-between text-lg font-bold border-t border-gray-200 pt-2">
+                      <span>Grand Total</span>
+                      <span className="text-indigo-600">₹{total.toFixed(2)}</span>
+                    </div>
+                    
+                    {/* GST Badge */}
+                    <div className="flex justify-center pt-2">
+                      <span className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-semibold">
+                        <FileText className="w-3 h-3" />
+                        GST Invoice Generated
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* QR Code for E-Invoicing */}
+                  {qrCodeDataUrl && (
+                    <div className="border-t border-gray-200 pt-4 flex flex-col items-center">
+                      <p className="text-sm text-gray-600 mb-2">Scan for E-Invoice</p>
+                      <img src={qrCodeDataUrl} alt="E-Invoice QR Code" className="w-32 h-32" />
+                    </div>
+                  )}
+
+                  {/* Payment Method */}
+                  <div className="border-t border-gray-200 pt-4">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Payment Method</span>
+                      <span className="font-semibold capitalize">{paymentMethod}</span>
+                    </div>
+                  </div>
                 </div>
-              </div>
-              <div className="py-6 border-t border-b border-gray-100 text-center">
-                <p className="text-sm text-gray-500 mb-1">Total Paid</p>
-                <p className="text-4xl font-bold text-indigo-600">₹{lastSale.sale?.total.toFixed(2)}</p>
-              </div>
-              <div className="flex gap-3 mt-6">
-                <button
-                  onClick={() => setShowReceipt(false)}
-                  className="flex-1 py-3 bg-gray-100 rounded-xl font-semibold text-gray-700 hover:bg-gray-200 transition-colors"
-                >
-                  Close
-                </button>
-                <button
-                  onClick={() => window.print()}
-                  className="flex-1 py-3 bg-indigo-600 text-white rounded-xl font-semibold hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2"
-                >
-                  <Receipt className="w-5 h-5" />
-                  Print
-                </button>
+
+                {/* Actions */}
+                <div className="mt-6 space-y-3">
+                  <button
+                    onClick={() => {
+                      window.print()
+                    }}
+                    className="w-full py-4 bg-indigo-600 text-white rounded-xl font-semibold hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2"
+                  >
+                    <Receipt className="w-5 h-5" />
+                    Print Invoice
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowReceipt(false)
+                      setQrCodeDataUrl('')
+                    }}
+                    className="w-full py-4 bg-gray-100 text-gray-700 rounded-xl font-semibold hover:bg-gray-200 transition-colors"
+                  >
+                    Close
+                  </button>
+                </div>
               </div>
             </div>
           </div>

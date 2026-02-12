@@ -1,5 +1,6 @@
 generator client {
   provider = "prisma-client-js"
+  output   = "./generated/client"
 }
 
 datasource db {
@@ -17,8 +18,24 @@ model User {
   updatedAt     DateTime @updatedAt @map("updated_at")
 
   members Member[]
+  passwordResetTokens PasswordResetToken[]
 
   @@map("users")
+}
+
+model PasswordResetToken {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  token     String   @unique
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  usedAt    DateTime? @map("used_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([token])
+  @@map("password_reset_tokens")
 }
 
 model Tenant {
@@ -40,6 +57,8 @@ model Tenant {
   members         Member[]
   whatsappSettings WhatsAppSettings?
   productSettings ProductSettings?
+  invoices       Invoice[]
+  customers     Customer[]
 
   @@map("tenants")
 }
@@ -126,6 +145,11 @@ model Product {
   supplierName  String?          @map("supplier_name")
   supplierEmail String?          @map("supplier_email")
   supplierPhone String?          @map("supplier_phone")
+  
+  // GST Fields
+  hsnCode       String?          @map("hsn_code")
+  gstRate       Decimal          @default(0) @map("gst_rate") @db.Decimal(5, 2)
+  
   isActive      Boolean          @default(true) @map("is_active")
   deletedAt     DateTime?        @map("deleted_at")
   createdAt     DateTime         @default(now()) @map("created_at")
@@ -136,6 +160,7 @@ model Product {
   stockLevels      StockLevel[]
   inventoryEvents  InventoryEvent[]
   orderItems       PurchaseOrderItem[]
+  invoiceItems     InvoiceItem[]
 
   @@unique([tenantId, sku])
   @@index([tenantId])
@@ -375,4 +400,117 @@ model ProductSettings {
 
   @@index([tenantId])
   @@map("product_settings")
+}
+
+model Customer {
+  id          String   @id @default(uuid())
+  tenantId    String   @map("tenant_id")
+  name        String
+  email       String?
+  phone       String?
+  address     String?  @db.Text
+  city        String?
+  state       String?
+  pincode     String?
+  gstNumber   String?  @map("gst_number")
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  tenant    Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  invoices  Invoice[]
+
+  @@unique([tenantId, email])
+  @@index([tenantId])
+  @@map("customers")
+}
+
+model Invoice {
+  id            String        @id @default(uuid())
+  tenantId      String        @map("tenant_id")
+  customerId    String?       @map("customer_id")
+  invoiceNumber String        @unique @map("invoice_number")
+  invoiceDate   DateTime      @map("invoice_date")
+  dueDate       DateTime?     @map("due_date")
+  status        InvoiceStatus @default(DRAFT)
+  
+  // Business Details
+  businessName  String        @map("business_name")
+  businessAddress String?     @map("business_address") @db.Text
+  businessCity  String?       @map("business_city")
+  businessState String?       @map("business_state")
+  businessPincode String?     @map("business_pincode")
+  businessGstNumber String?   @map("business_gst_number")
+  
+  // Customer Details
+  customerName  String        @map("customer_name")
+  customerAddress String?     @map("customer_address") @db.Text
+  customerCity  String?       @map("customer_city")
+  customerState String?       @map("customer_state")
+  customerPincode String?     @map("customer_pincode")
+  customerGstNumber String?   @map("customer_gst_number")
+  
+  // Financials
+  subtotal      Decimal       @map("subtotal") @db.Decimal(12, 2)
+  totalCgst     Decimal       @map("total_cgst") @db.Decimal(12, 2) @default(0)
+  totalSgst     Decimal       @map("total_sgst") @db.Decimal(12, 2) @default(0)
+  totalIgst     Decimal       @map("total_igst") @db.Decimal(12, 2) @default(0)
+  totalGst      Decimal       @map("total_gst") @db.Decimal(12, 2) @default(0)
+  totalAmount   Decimal       @map("total_amount") @db.Decimal(12, 2)
+  
+  // E-way Bill (placeholder)
+  ewayBillNumber String?      @map("eway_bill_number")
+  ewayBillDate  DateTime?     @map("eway_bill_date")
+  
+  // Notes
+  notes         String?       @db.Text
+  terms         String?       @db.Text
+  
+  createdAt     DateTime      @default(now()) @map("created_at")
+  updatedAt     DateTime      @updatedAt @map("updated_at")
+
+  tenant      Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  customer    Customer?     @relation(fields: [customerId], references: [id])
+  items       InvoiceItem[]
+
+  @@index([tenantId])
+  @@index([tenantId, status])
+  @@index([tenantId, invoiceDate])
+  @@map("invoices")
+}
+
+model InvoiceItem {
+  id          String   @id @default(uuid())
+  tenantId    String   @map("tenant_id")
+  invoiceId   String   @map("invoice_id")
+  productId   String?  @map("product_id")
+  description String
+  hsnCode     String?  @map("hsn_code")
+  quantity    Int
+  unitPrice   Decimal  @map("unit_price") @db.Decimal(12, 2)
+  discount    Decimal  @default(0) @map("discount") @db.Decimal(12, 2)
+  taxableAmount Decimal @map("taxable_amount") @db.Decimal(12, 2)
+  cgstRate    Decimal  @default(0) @map("cgst_rate") @db.Decimal(5, 2)
+  sgstRate    Decimal  @default(0) @map("sgst_rate") @db.Decimal(5, 2)
+  igstRate    Decimal  @default(0) @map("igst_rate") @db.Decimal(5, 2)
+  cgstAmount  Decimal  @map("cgst_amount") @db.Decimal(12, 2) @default(0)
+  sgstAmount  Decimal  @map("sgst_amount") @db.Decimal(12, 2) @default(0)
+  igstAmount  Decimal  @map("igst_amount") @db.Decimal(12, 2) @default(0)
+  totalAmount Decimal  @map("total_amount") @db.Decimal(12, 2)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  invoice Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  product Product? @relation(fields: [productId], references: [id])
+
+  @@index([tenantId, invoiceId])
+  @@map("invoice_items")
+}
+
+enum InvoiceStatus {
+  DRAFT
+  ISSUED
+  PAID
+  OVERDUE
+  CANCELLED
 }
