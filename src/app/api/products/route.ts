@@ -100,6 +100,11 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
+    const accessToken = req.cookies.get('auth_token')?.value
+    if (!accessToken) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
     const user = await getUserFromRequest(req)
 
     if (!user || !user.tenantId) {
