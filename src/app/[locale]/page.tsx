@@ -336,7 +336,7 @@ export default function HomePage() {
               <span className="text-amber-400 font-semibold"> WhatsApp alerts (Coming Soon)</span>,
               <span className="text-blue-400 font-semibold"> 1-click Tally import</span>, and
               <span className="text-green-400 font-semibold"> in-app notifications</span>.
-              Built by the community, free forever.
+              Built by the community, free tier limited.
             </motion.p>
 
             <motion.div
@@ -799,7 +799,7 @@ export default function HomePage() {
           >
             <span className="text-green-400 font-semibold text-sm uppercase tracking-wider mb-3 block">Open Source</span>
             <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4">
-              <span className="bg-gradient-to-r from-white to-white/70 bg-clip-text text-transparent">Free Now. Free Forever.</span>
+              <span className="bg-gradient-to-r from-white to-white/70 bg-clip-text text-transparent">Free Now. Limited Features.</span>
             </h2>
             <p className="text-xl text-white/60">Open source means no vendor lock-in. Pay for hosting, not for software.</p>
           </motion.div>
@@ -841,7 +841,7 @@ export default function HomePage() {
                   <Sparkles className="w-7 h-7 text-white" />
                 </div>
                 <h3 className="text-2xl font-bold text-white mb-2">Open Source Plan</h3>
-                <p className="text-white/60 mb-4">Fully free forever — No hidden costs, no vendor lock-in</p>
+                <p className="text-white/60 mb-4">Free tier — Limited features, no vendor lock-in</p>
                 <div className="mb-6">
                   <span className="text-5xl font-bold text-white">₹0</span>
                 </div>
