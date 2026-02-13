@@ -18,43 +18,31 @@ After your first 1,000 free messages:
 - First 1,000 messages: FREE
 - Standard business users: Typically ₹500-₹3,000/month
 
-## Alternatives for Cost-conscious Users
+## Available Notification Options
 
-### 1. Email Notifications (ALWAYS FREE)
-- Unlimited email alerts
-- Works for all notification types
-- No setup costs
-- Setup in Settings → Notifications
-
-### 2. In-App Notifications (ALWAYS FREE)
-- Real-time alerts in the app
-- Dashboard notifications
+### 1. In-App Notifications (ALWAYS FREE)
+- Real-time alerts in the dashboard
 - No extra costs
 - Always available
+- Works for all notification types
 
-### 3. WhatsApp Lite (Personal Number)
-- We're exploring free alternatives
-- May use personal WhatsApp in future
-- Subscribe for updates
+### 2. WhatsApp (Free Tier + Paid)
+- First 1,000 messages FREE
+- Instant alerts on your phone
+- Paid tier after free limit
 
 ## Which Should You Choose?
 
 ### Use WhatsApp If:
 - You want instant alerts on your phone
 - You have high-priority stock items
-- You don't mind paying for convenience
+- You don't mind paying for convenience (after free tier)
 - Business value > ₹500/month
 
-### Use Email If:
-- You want 100% free forever
-- You check email regularly
-- Lower notification urgency
-- Small inventory (<100 products)
-
 ### Use In-App If:
-- You check the app daily
+- You want 100% free forever
+- You check the app regularly
 - Want the most cost-effective option
-- Don't need mobile push notifications
 - Free forever option
 
 ## Transparent Pricing
@@ -65,7 +53,6 @@ We believe in being upfront about costs:
 |---------|------|
 | Inventory Management | FREE Forever |
 | All other features | FREE Forever |
-| Email Notifications | FREE Unlimited |
 | In-App Notifications | FREE Unlimited |
 | WhatsApp (first 1,000) | FREE |
 | WhatsApp (after 1,000) | Paid |
@@ -88,13 +75,13 @@ We believe in being upfront about costs:
 - 1,000+ products
 - 500+ alerts/month
 - **Cost**: ₹250-₹1,500/month (whatsapp)
-- **Alternative**: Email (FREE) or reduce alert frequency
+- **Alternative**: In-app notifications (FREE) or reduce alert frequency
 
 ## How to Stay Free
 
-1. **Only enable for critical products**
+1. **Only enable WhatsApp for critical products**
    - Set WhatsApp alerts only for expensive items
-   - Use email for routine alerts
+   - Use in-app notifications for routine alerts
 
 2. **Adjust reorder points**
    - Higher reorder points = fewer alerts
@@ -106,8 +93,8 @@ We believe in being upfront about costs:
 
 4. **Combine methods**
    - WhatsApp for emergencies only
-   - Email for daily updates
-   - In-app for real-time tracking
+   - In-app for daily tracking
+   - Dashboard for real-time monitoring
 
 ## Our Promise
 
@@ -115,7 +102,7 @@ DKS StockAlert is, and will always be:
 - ✅ Completely FREE to use
 - ✅ No credit card required for free tier
 - ✅ All core features FREE forever
-- ✅ Email/in-app notifications FREE
+- ✅ In-app notifications FREE
 - ⚠️ WhatsApp: Free tier (1,000 msgs), then paid
 
 We don't hide costs. We give you options.
@@ -127,4 +114,4 @@ Subject: "WhatsApp Pricing Question"
 
 ---
 
-**Bottom line:** WhatsApp is included free for most small businesses. If you outgrow the free tier, use email notifications instead - they're just as effective and 100% free!
+**Bottom line:** WhatsApp is included free for most small businesses. If you outgrow the free tier, use in-app notifications instead - they're just as effective and 100% free!
