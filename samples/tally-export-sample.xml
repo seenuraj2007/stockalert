@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ENVELOPE>
+  <HEADER>
+    <TALLYREQUEST>Export Data</TALLYREQUEST>
+  </HEADER>
+  <BODY>
+    <IMPORTDATA>
+      <REQUESTDATA>
+        <STOCKITEM NAME="Aashirvaad Atta 5kg">
+          <ALIAS>ATT-001</ALIAS>
+          <PARENT>Groceries</PARENT>
+          <DESCRIPTION>Premium wheat flour, 5kg pack</DESCRIPTION>
+          <BASEUNITS>
+            <UNIT>PCS</UNIT>
+            <RATE>245.00</RATE>
+          </BASEUNITS>
+          <OPENINGBALANCE>
+            <QUANTITY>50</QUANTITY>
+            <UNIT>PCS</UNIT>
+            <AMOUNT>12250.00</AMOUNT>
+          </OPENINGBALANCE>
+          <HSNCODE>1101</HSNCODE>
+          <GSTRATEDUTYHEAD>5</GSTRATEDUTYHEAD>
+        </STOCKITEM>
+        
+        <STOCKITEM NAME="Patanjali Honey 500g">
+          <ALIAS>HON-002</ALIAS>
+          <PARENT>Groceries</PARENT>
+          <DESCRIPTION>Pure natural honey, 500g bottle</DESCRIPTION>
+          <BASEUNITS>
+            <UNIT>PCS</UNIT>
+            <RATE>185.00</RATE>
+          </BASEUNITS>
+          <OPENINGBALANCE>
+            <QUANTITY>30</QUANTITY>
+            <UNIT>PCS</UNIT>
+            <AMOUNT>5550.00</AMOUNT>
+          </OPENINGBALANCE>
+          <HSNCODE>0409</HSNCODE>
+          <GSTRATEDUTYHEAD>12</GSTRATEDUTYHEAD>
+        </STOCKITEM>
+        
+        <STOCKITEM NAME="MDH Masala 100g">
+          <ALIAS>MAS-003</ALIAS>
+          <PARENT>Spices</PARENT>
+          <DESCRIPTION>Mixed spice blend, 100g packet</DESCRIPTION>
+          <BASEUNITS>
+            <UNIT>PCS</UNIT>
+            <RATE>45.00</RATE>
+          </BASEUNITS>
+          <OPENINGBALANCE>
+            <QUANTITY>100</QUANTITY>
+            <UNIT>PCS</UNIT>
+            <AMOUNT>4500.00</AMOUNT>
+          </OPENINGBALANCE>
+          <HSNCODE>0910</HSNCODE>
+          <GSTRATEDUTYHEAD>5</GSTRATEDUTYHEAD>
+        </STOCKITEM>
+        
+        <STOCKITEM NAME="Amul Butter 500g">
+          <ALIAS>BUT-004</ALIAS>
+          <PARENT>Dairy</PARENT>
+          <DESCRIPTION>Pasteurized butter, 500g pack</DESCRIPTION>
+          <BASEUNITS>
+            <UNIT>PCS</UNIT>
+            <RATE>235.00</RATE>
+          </BASEUNITS>
+          <OPENINGBALANCE>
+            <QUANTITY>25</QUANTITY>
+            <UNIT>PCS</UNIT>
+            <AMOUNT>5875.00</AMOUNT>
+          </OPENINGBALANCE>
+          <HSNCODE>0405</HSNCODE>
+          <GSTRATEDUTYHEAD>12</GSTRATEDUTYHEAD>
+        </STOCKITEM>
+        
+        <STOCKITEM NAME="Tata Salt 1kg">
+          <ALIAS>SAL-005</ALIAS>
+          <PARENT>Groceries</PARENT>
+          <DESCRIPTION>Iodized salt, 1kg packet</DESCRIPTION>
+          <BASEUNITS>
+            <UNIT>PCS</UNIT>
+            <RATE>28.00</RATE>
+          </BASEUNITS>
+          <OPENINGBALANCE>
+            <QUANTITY>200</QUANTITY>
+            <UNIT>PCS</UNIT>
+            <AMOUNT>5600.00</AMOUNT>
+          </OPENINGBALANCE>
+          <HSNCODE>2501</HSNCODE>
+          <GSTRATEDUTYHEAD>5</GSTRATEDUTYHEAD>
+        </STOCKITEM>
+      </REQUESTDATA>
+    </IMPORTDATA>
+  </BODY>
+</ENVELOPE>

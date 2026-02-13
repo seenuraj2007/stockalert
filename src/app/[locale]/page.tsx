@@ -9,7 +9,7 @@ import {
   ChevronRight, Layers, Target, Sparkles, Cpu, Lock,
   Database, Code2, Globe, Server, Receipt, QrCode, FileText,
   IndianRupee, Building2, UserPlus, MessageSquare, Smartphone,
-  Download, Languages, Star, TrendingUp, Check, Clock
+  Download, Languages, Star, TrendingUp, Check, Clock, Github, Heart
 } from 'lucide-react'
 
 const stats = [
@@ -26,6 +26,14 @@ const alerts = [
 ]
 
 const features = [
+  {
+    icon: Github,
+    title: 'Open Source',
+    description: 'Transparent, secure, and community-driven. Fork on GitHub, contribute, or host your own instance. No vendor lock-in.',
+    size: 'wide',
+    glow: 'from-green-500/20 to-emerald-500/20',
+    badge: 'FREE FOREVER'
+  },
   {
     icon: MessageSquare,
     title: 'WhatsApp Alerts',
@@ -192,9 +200,9 @@ export default function HomePage() {
       </div>
 
       {/* Beta Banner */}
-      <div className="fixed top-0 left-0 right-0 z-[60] bg-gradient-to-r from-amber-500 to-orange-500 text-white py-2 px-4 text-center text-sm">
-        <span className="font-bold">🚧 BETA VERSION:</span> We're currently in beta —
-        <Link href="/auth" className="underline font-medium ml-1 hover:text-white">Try it free & give feedback →</Link>
+      <div className="fixed top-0 left-0 right-0 z-[60] bg-gradient-to-r from-green-600 to-emerald-600 text-white py-2 px-4 text-center text-sm">
+        <span className="font-bold">🚀 OPEN SOURCE:</span> This project is open source — 
+        <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="underline font-medium ml-1 hover:text-white">Star on GitHub →</a>
       </div>
 
       <nav className="fixed top-8 left-0 right-0 z-50 backdrop-blur-xl bg-slate-950/70 border-b border-white/5">
@@ -205,7 +213,7 @@ export default function HomePage() {
                 <Package className="w-6 h-6 text-white" />
               </div>
               <span className="text-xl font-bold bg-gradient-to-r from-white to-white/70 bg-clip-text text-transparent">DKS StockAlert</span>
-              <span className="ml-2 px-2 py-0.5 text-xs font-bold bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-full">BETA</span>
+              <span className="ml-2 px-2 py-0.5 text-xs font-bold bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-full">OPEN SOURCE</span>
             </Link>
 
             <div className="hidden md:flex items-center gap-8">
@@ -288,11 +296,12 @@ export default function HomePage() {
             animate="visible"
           >
             <motion.div
-              className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-amber-500/10 to-orange-500/10 backdrop-blur-xl border border-amber-500/20 text-amber-300 rounded-full text-sm font-semibold mb-8"
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-green-500/10 to-emerald-500/10 backdrop-blur-xl border border-green-500/20 text-green-300 rounded-full text-sm font-semibold mb-8"
               variants={itemVariants}
             >
-              <span className="px-2 py-0.5 bg-amber-500 text-white text-xs font-bold rounded">BETA</span>
-              Currently in beta — Help us improve with your feedback
+              <Github className="w-4 h-4" />
+              <span className="px-2 py-0.5 bg-green-500 text-white text-xs font-bold rounded">OPEN SOURCE</span>
+              Free & transparent — Contribute on GitHub
             </motion.div>
 
             <motion.h1
@@ -323,10 +332,11 @@ export default function HomePage() {
               className="text-xl text-white/60 mb-10 max-w-2xl mx-auto leading-relaxed"
               variants={itemVariants}
             >
-              The only inventory software with <span className="text-amber-400 font-semibold">WhatsApp alerts (Coming Soon)</span>,
+              The only <span className="text-green-400 font-semibold">open source</span> inventory software with 
+              <span className="text-amber-400 font-semibold"> WhatsApp alerts (Coming Soon)</span>,
               <span className="text-blue-400 font-semibold"> 1-click Tally import</span>, and
               <span className="text-green-400 font-semibold"> in-app notifications</span>.
-              Stop using Excel, start scaling your business.
+              Built by the community, free forever.
             </motion.p>
 
             <motion.div
@@ -787,11 +797,11 @@ export default function HomePage() {
             viewport={{ once: true, margin: "-100px" }}
             transition={{ duration: 0.6 }}
           >
-            <span className="text-violet-400 font-semibold text-sm uppercase tracking-wider mb-3 block">Special Offer</span>
+            <span className="text-green-400 font-semibold text-sm uppercase tracking-wider mb-3 block">Open Source</span>
             <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4">
-              <span className="bg-gradient-to-r from-white to-white/70 bg-clip-text text-transparent">Free Now. Forever.</span>
+              <span className="bg-gradient-to-r from-white to-white/70 bg-clip-text text-transparent">Free Now. Free Forever.</span>
             </h2>
-            <p className="text-xl text-white/60">Lock in free access before this offer ends.</p>
+            <p className="text-xl text-white/60">Open source means no vendor lock-in. Pay for hosting, not for software.</p>
           </motion.div>
 
           <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
@@ -830,8 +840,8 @@ export default function HomePage() {
                 <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-violet-500 to-fuchsia-600 flex items-center justify-center mb-6 shadow-lg shadow-violet-500/20">
                   <Sparkles className="w-7 h-7 text-white" />
                 </div>
-                <h3 className="text-2xl font-bold text-white mb-2">Free Plan</h3>
-                <p className="text-white/60 mb-4">Perfect for small businesses getting started</p>
+                <h3 className="text-2xl font-bold text-white mb-2">Open Source Plan</h3>
+                <p className="text-white/60 mb-4">Fully free forever — No hidden costs, no vendor lock-in</p>
                 <div className="mb-6">
                   <span className="text-5xl font-bold text-white">₹0</span>
                 </div>
@@ -889,9 +899,9 @@ export default function HomePage() {
               </ul>
 
               <Link href="/auth" className="block w-full py-4 px-6 text-center font-semibold rounded-xl bg-gradient-to-r from-violet-500 to-fuchsia-600 text-white hover:from-violet-600 hover:to-fuchsia-700 transition-all shadow-lg shadow-violet-500/25 hover:shadow-violet-500/40">
-                Lock In Free Access
+                Get Started Free
               </Link>
-              <p className="text-center text-white/50 text-sm mt-3">Offer expires soon - don't miss out</p>
+              <p className="text-center text-white/50 text-sm mt-3">Open source — No credit card required</p>
             </motion.div>
 
             <motion.div
@@ -1016,11 +1026,11 @@ export default function HomePage() {
               <div className="flex flex-wrap items-center justify-center gap-6 mt-8 text-white/60 text-sm">
                 <div className="flex items-center gap-2">
                   <CheckCircle className="w-4 h-4 text-green-400" />
-                  <span>Free access</span>
+                  <span>Open source forever</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <CheckCircle className="w-4 h-4 text-green-400" />
-                  <span>Offer ending soon</span>
+                  <span>No vendor lock-in</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <CheckCircle className="w-4 h-4 text-green-400" />
@@ -1043,16 +1053,19 @@ export default function HomePage() {
                 <span className="text-xl font-bold text-white">DKS StockAlert</span>
               </Link>
               <p className="text-sm leading-relaxed mb-4 max-w-sm">
-                Free inventory management software built for Indian businesses. Track stock, generate GST invoices, and manage multiple locations with ease.
+                Open source inventory management software built for Indian businesses. Track stock, generate GST invoices, and manage multiple locations with ease.
               </p>
               <div className="flex flex-wrap gap-2 mb-4">
-                <span className="px-3 py-1 bg-green-500/20 text-green-400 text-xs rounded-full">WhatsApp Alerts</span>
+                <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="px-3 py-1 bg-green-500/20 text-green-400 text-xs rounded-full hover:bg-green-500/30 transition-colors flex items-center gap-1">
+                  <Github className="w-3 h-3" />
+                  Star on GitHub
+                </a>
                 <span className="px-3 py-1 bg-blue-500/20 text-blue-400 text-xs rounded-full">Tally Import</span>
                 <span className="px-3 py-1 bg-orange-500/20 text-orange-400 text-xs rounded-full">Hindi Support</span>
               </div>
               <div className="flex items-center gap-2 text-sm text-white/50">
                 <MapPin className="w-4 h-4" />
-                <span>Made with ❤️ in India</span>
+                <span>Made with <Heart className="w-3 h-3 text-red-400 inline" /> in India</span>
               </div>
             </div>
 
@@ -1067,22 +1080,22 @@ export default function HomePage() {
             </div>
 
             <div>
-              <h4 className="text-white font-semibold mb-4">Legal</h4>
+              <h4 className="text-white font-semibold mb-4">Community</h4>
               <ul className="space-y-3 text-sm">
-                <li><Link href="/privacy" className="hover:text-white transition-colors cursor-pointer">Privacy Policy</Link></li>
-                <li><Link href="/terms" className="hover:text-white transition-colors cursor-pointer">Terms of Service</Link></li>
-                <li><Link href="/contact" className="hover:text-white transition-colors cursor-pointer">Contact Us</Link></li>
+                <li><a href="https://github.com" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors cursor-pointer flex items-center gap-2"><Github className="w-4 h-4" /> GitHub</a></li>
+                <li><Link href="/about" className="hover:text-white transition-colors cursor-pointer">About</Link></li>
+                <li><Link href="/contact" className="hover:text-white transition-colors cursor-pointer">Contact</Link></li>
               </ul>
             </div>
           </div>
 
           <div className="border-t border-white/5 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex flex-col md:flex-row items-center gap-4 text-sm text-white/50">
-              <p>© {new Date().getFullYear()} DKS StockAlert. All rights reserved.</p>
+              <p>© {new Date().getFullYear()} DKS StockAlert. Open source — MIT License.</p>
               <div className="hidden md:block w-1 h-1 bg-white/30 rounded-full" />
               <div className="flex items-center gap-4">
                 <span className="flex items-center gap-1">
-                  <span className="px-1.5 py-0.5 bg-amber-500 text-white text-xs font-bold rounded">BETA</span>
+                  <span className="px-1.5 py-0.5 bg-green-600 text-white text-xs font-bold rounded">OPEN SOURCE</span>
                 </span>
                 <span className="flex items-center gap-1">
                   <Shield className="w-3 h-3 text-green-400" />

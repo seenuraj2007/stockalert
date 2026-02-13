@@ -1,0 +1,11 @@
+Name,SKU,Category,Description,Unit Cost,Selling Price,Opening Stock,Unit,GST Rate,HSN Code
+Aashirvaad Atta 5kg,ATT-001,Groceries,Premium wheat flour 5kg pack,245.00,294.00,50,PCS,5,1101
+Patanjali Honey 500g,HON-002,Groceries,Pure natural honey 500g bottle,185.00,222.00,30,PCS,12,0409
+MDH Masala 100g,MAS-003,Spices,Mixed spice blend 100g packet,45.00,54.00,100,PCS,5,0910
+Amul Butter 500g,BUT-004,Dairy,Pasteurized butter 500g pack,235.00,282.00,25,PCS,12,0405
+Tata Salt 1kg,SAL-005,Groceries,Iodized salt 1kg packet,28.00,33.60,200,PCS,5,2501
+Fortune Oil 1L,OIL-006,Groceries,Refined sunflower oil 1L bottle,142.00,170.40,75,PCS,5,1508
+Surf Excel 1kg,DET-007,Household,Detergent powder 1kg pack,165.00,198.00,40,PCS,18,3402
+Colgate Toothpaste 200g,ORA-008,Personal Care,Dental cream 200g tube,78.00,93.60,60,PCS,18,3306
+Dove Soap 100g,SOA-009,Personal Care,Beauty bar soap 100g,45.00,54.00,120,PCS,18,3401
+Lays Chips 52g,SNA-010,Snacks,Potato chips 52g packet,20.00,24.00,150,PCS,12,1905
