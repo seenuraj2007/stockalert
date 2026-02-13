@@ -202,7 +202,7 @@ export default function HomePage() {
       {/* Beta Banner */}
       <div className="fixed top-0 left-0 right-0 z-[60] bg-gradient-to-r from-green-600 to-emerald-600 text-white py-2 px-4 text-center text-sm">
         <span className="font-bold">🚀 OPEN SOURCE:</span> This project is open source — 
-        <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="underline font-medium ml-1 hover:text-white">Star on GitHub →</a>
+        <a href="https://github.com/seenuraj2007/stockalert" target="_blank" rel="noopener noreferrer" className="underline font-medium ml-1 hover:text-white">Star on GitHub →</a>
       </div>
 
       <nav className="fixed top-8 left-0 right-0 z-50 backdrop-blur-xl bg-slate-950/70 border-b border-white/5">
@@ -1056,7 +1056,7 @@ export default function HomePage() {
                 Open source inventory management software built for Indian businesses. Track stock, generate GST invoices, and manage multiple locations with ease.
               </p>
               <div className="flex flex-wrap gap-2 mb-4">
-                <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="px-3 py-1 bg-green-500/20 text-green-400 text-xs rounded-full hover:bg-green-500/30 transition-colors flex items-center gap-1">
+                <a href="https://github.com/seenuraj2007/stockalert" target="_blank" rel="noopener noreferrer" className="px-3 py-1 bg-green-500/20 text-green-400 text-xs rounded-full hover:bg-green-500/30 transition-colors flex items-center gap-1">
                   <Github className="w-3 h-3" />
                   Star on GitHub
                 </a>
@@ -1082,7 +1082,7 @@ export default function HomePage() {
             <div>
               <h4 className="text-white font-semibold mb-4">Community</h4>
               <ul className="space-y-3 text-sm">
-                <li><a href="https://github.com" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors cursor-pointer flex items-center gap-2"><Github className="w-4 h-4" /> GitHub</a></li>
+                <li><a href="https://github.com/seenuraj2007/stockalert" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors cursor-pointer flex items-center gap-2"><Github className="w-4 h-4" /> GitHub</a></li>
                 <li><Link href="/about" className="hover:text-white transition-colors cursor-pointer">About</Link></li>
                 <li><Link href="/contact" className="hover:text-white transition-colors cursor-pointer">Contact</Link></li>
               </ul>
