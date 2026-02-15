@@ -36,12 +36,17 @@ export async function GET(req: NextRequest) {
     const tenantId = member.tenantId
 
     // Fetch all required data in parallel for better performance
-    const [products, stockLevels, alerts, revenueEvents, purchaseOrders] = await Promise.all([
+    const [products, stockLevels, alerts, invoices, purchaseOrders] = await Promise.all([
       prisma.product.findMany({ where: { tenantId } }),
       prisma.stockLevel.findMany({ where: { product: { tenantId } }, include: { product: true } }),
       prisma.alert.findMany({ where: { tenantId } }),
-      prisma.inventoryEvent.findMany({
-        where: { tenantId, type: 'STOCK_SOLD', createdAt: { gte: startDate } }
+      prisma.invoice.findMany({ 
+        where: { 
+          tenantId, 
+          status: 'PAID',
+          invoiceDate: { gte: startDate } 
+        },
+        include: { items: true }
       }),
       prisma.purchaseOrder.findMany({ where: { tenantId, createdAt: { gte: startDate } } })
     ])
@@ -80,16 +85,16 @@ export async function GET(req: NextRequest) {
 
     const unreadAlerts = alerts.filter((a: any) => !a.isRead).length
 
-    // Revenue by day (from inventory events)
-    const byDay = revenueEvents.reduce((acc: Record<string, number>, event: any) => {
-      const date = event.createdAt.toISOString().split('T')[0]
-      acc[date] = (acc[date] || 0) + (event.quantityDelta > 0 ? -event.quantityDelta : event.quantityDelta)
+    // Revenue by day (from invoices)
+    const byDay = invoices.reduce((acc: Record<string, number>, invoice: any) => {
+      const date = invoice.invoiceDate.toISOString().split('T')[0]
+      acc[date] = (acc[date] || 0) + parseFloat(invoice.totalAmount.toString())
       return acc
     }, {})
 
     const revenueByDay = Object.entries(byDay).map(([date, amount]) => ({
       date,
-      revenue: Math.round(Math.abs(amount as number) * 100) / 100
+      revenue: Math.round((amount as number) * 100) / 100
     }))
 
     // Top products by stock value
@@ -146,12 +151,10 @@ export async function GET(req: NextRequest) {
       total: Math.round((stats as any).total * 100) / 100
     }))
 
-    // Sales from inventory events
-    const salesEvents = revenueEvents
-    const totalSales = salesEvents.length
-    const salesTotal = salesEvents.reduce((sum: number, e: any) => {
-      const meta = e.metadata as Record<string, any> | null
-      return sum + Math.abs(parseFloat(meta?.amount?.toString() || '0'))
+    // Sales from invoices
+    const totalSales = invoices.length
+    const salesTotal = invoices.reduce((sum: number, invoice: any) => {
+      return sum + parseFloat(invoice.totalAmount.toString())
     }, 0)
 
     return NextResponse.json({
