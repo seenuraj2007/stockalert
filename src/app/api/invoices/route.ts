@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getUserFromRequest } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 
-// GET - List all invoices
+// GET - List all invoices with enhanced filtering and search
 export async function GET(req: NextRequest) {
     try {
         const user = await getUserFromRequest(req)
@@ -12,20 +12,72 @@ export async function GET(req: NextRequest) {
 
         const { searchParams } = new URL(req.url)
         const status = searchParams.get('status')
+        const search = searchParams.get('search')
+        const customerId = searchParams.get('customerId')
+        const startDate = searchParams.get('startDate')
+        const endDate = searchParams.get('endDate')
+        const minAmount = searchParams.get('minAmount')
+        const maxAmount = searchParams.get('maxAmount')
         const page = parseInt(searchParams.get('page') || '1')
         const limit = parseInt(searchParams.get('limit') || '20')
 
         const where: any = { tenantId: user.tenantId }
+        
         if (status && status !== 'all') {
-            where.status = status
+            where.status = status.toUpperCase()
+        }
+        
+        if (customerId) {
+            where.customerId = customerId
+        }
+
+        // Date range filter
+        if (startDate || endDate) {
+            where.invoiceDate = {}
+            if (startDate) {
+                where.invoiceDate.gte = new Date(startDate)
+            }
+            if (endDate) {
+                where.invoiceDate.lte = new Date(endDate + 'T23:59:59.999Z')
+            }
+        }
+
+        // Amount range filter
+        if (minAmount || maxAmount) {
+            where.totalAmount = {}
+            if (minAmount) {
+                where.totalAmount.gte = parseFloat(minAmount)
+            }
+            if (maxAmount) {
+                where.totalAmount.lte = parseFloat(maxAmount)
+            }
+        }
+
+        // Search by invoice number or customer name
+        if (search) {
+            where.OR = [
+                { invoiceNumber: { contains: search, mode: 'insensitive' } },
+                { customerName: { contains: search, mode: 'insensitive' } },
+                { customerGstNumber: { contains: search, mode: 'insensitive' } }
+            ]
         }
 
         const [invoices, total] = await Promise.all([
             prisma.invoice.findMany({
                 where,
                 include: {
-                    customer: true,
-                    items: true
+                    customer: {
+                        select: { id: true, name: true, email: true, phone: true }
+                    },
+                    items: {
+                        select: {
+                            id: true,
+                            description: true,
+                            quantity: true,
+                            unitPrice: true,
+                            totalAmount: true
+                        }
+                    }
                 },
                 orderBy: { createdAt: 'desc' },
                 skip: (page - 1) * limit,
@@ -49,7 +101,7 @@ export async function GET(req: NextRequest) {
     }
 }
 
-// POST - Create new invoice
+// POST - Create new invoice with validation
 export async function POST(req: NextRequest) {
     try {
         const user = await getUserFromRequest(req)
@@ -62,14 +114,9 @@ export async function POST(req: NextRequest) {
             customer_id,
             items,
             payment_method,
-            global_discount,
-            is_inter_state,
-            total_cgst,
-            total_sgst,
-            total_igst,
-            total_gst,
-            subtotal,
-            total_amount,
+            global_discount = 0,
+            global_discount_type = 'percent',
+            is_inter_state = false,
             notes,
             customerName,
             customerAddress,
@@ -79,7 +126,25 @@ export async function POST(req: NextRequest) {
             customerGstNumber
         } = body
 
-        // Get tenant details for business info
+        // Validation
+        if (!items || !Array.isArray(items) || items.length === 0) {
+            return NextResponse.json({ error: 'At least one item is required' }, { status: 400 })
+        }
+
+        if (!payment_method) {
+            return NextResponse.json({ error: 'Payment method is required' }, { status: 400 })
+        }
+
+        // Validate each item
+        for (const item of items) {
+            if (!item.product_id || !item.quantity || item.quantity <= 0) {
+                return NextResponse.json({ 
+                    error: 'Each item must have a valid product and quantity' 
+                }, { status: 400 })
+            }
+        }
+
+        // Get tenant details
         const tenant = await prisma.tenant.findUnique({
             where: { id: user.tenantId }
         })
@@ -88,10 +153,9 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'Organization not found' }, { status: 404 })
         }
 
-        // Get tenant settings for GST number
         const tenantSettings = tenant.settings as any || {}
 
-        // Generate invoice number (format: INV-YYYYMMDD-XXX)
+        // Generate invoice number
         const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '')
         const lastInvoice = await prisma.invoice.findFirst({
             where: {
@@ -111,40 +175,48 @@ export async function POST(req: NextRequest) {
             ? await prisma.customer.findUnique({ where: { id: customer_id } })
             : null
 
-        // Calculate invoice items with GST
+        // Calculate invoice totals
+        let subtotal = 0
+        let totalGST = 0
         const invoiceItems = items.map((item: any) => {
-            const gstRate = item.gst_rate || 0
-            const taxableAmount = item.taxable_amount || ((item.quantity * item.unit_price) - (item.discount || 0))
+            const quantity = Number(item.quantity)
+            const unitPrice = Number(item.unit_price)
+            const itemDiscount = Number(item.discount || 0)
+            const gstRate = Number(item.gst_rate || 0)
             
-            let cgstRate = 0, sgstRate = 0, igstRate = 0
+            const itemSubtotal = quantity * unitPrice
+            const itemDiscountAmount = global_discount_type === 'percent' 
+                ? itemSubtotal * (global_discount / 100)
+                : (global_discount / items.length)
+            const taxableAmount = itemSubtotal - itemDiscountAmount
+            
             let cgstAmount = 0, sgstAmount = 0, igstAmount = 0
             
             if (is_inter_state) {
-                // Inter-state: IGST only
-                igstRate = gstRate
-                igstAmount = item.igst_amount || (taxableAmount * igstRate / 100)
+                igstAmount = taxableAmount * gstRate / 100
             } else {
-                // Intra-state: CGST + SGST (50% each)
-                cgstRate = gstRate / 2
-                sgstRate = gstRate / 2
-                cgstAmount = item.cgst_amount || (taxableAmount * cgstRate / 100)
-                sgstAmount = item.sgst_amount || (taxableAmount * sgstRate / 100)
+                cgstAmount = taxableAmount * (gstRate / 2) / 100
+                sgstAmount = taxableAmount * (gstRate / 2) / 100
             }
-
-            const itemTotal = taxableAmount + cgstAmount + sgstAmount + igstAmount
-
+            
+            const itemGST = cgstAmount + sgstAmount + igstAmount
+            const itemTotal = taxableAmount + itemGST
+            
+            subtotal += taxableAmount
+            totalGST += itemGST
+            
             return {
                 tenantId: user.tenantId!,
-                productId: item.product_id || null,
+                productId: item.product_id,
                 description: item.description || 'Product',
                 hsnCode: item.hsn_code || null,
-                quantity: item.quantity,
-                unitPrice: item.unit_price,
-                discount: item.discount || 0,
+                quantity,
+                unitPrice,
+                discount: itemDiscount,
                 taxableAmount,
-                cgstRate,
-                sgstRate,
-                igstRate,
+                cgstRate: is_inter_state ? 0 : gstRate / 2,
+                sgstRate: is_inter_state ? 0 : gstRate / 2,
+                igstRate: is_inter_state ? gstRate : 0,
                 cgstAmount,
                 sgstAmount,
                 igstAmount,
@@ -152,19 +224,75 @@ export async function POST(req: NextRequest) {
             }
         })
 
-        // Ensure tenantId exists
-        if (!user.tenantId) {
-            return NextResponse.json({ error: 'No organization assigned' }, { status: 400 })
-        }
+        const totalAmount = subtotal + totalGST
 
-        const tenantId = user.tenantId
-
-        // Use transaction to ensure all operations succeed or fail together
+        // Use transaction to ensure all operations succeed
         const result = await prisma.$transaction(async (tx) => {
-            // Create invoice first
+            // Validate and reduce stock for each item
+            for (const item of items) {
+                const location = await tx.location.findFirst({
+                    where: { 
+                        tenantId: user.tenantId!,
+                        isActive: true
+                    }
+                })
+
+                if (!location) {
+                    throw new Error('No active location found')
+                }
+
+                const stockLevel = await tx.stockLevel.findUnique({
+                    where: {
+                        tenantId_productId_locationId: {
+                            tenantId: user.tenantId!,
+                            productId: item.product_id,
+                            locationId: location.id
+                        }
+                    }
+                })
+
+                if (!stockLevel || stockLevel.quantity < item.quantity) {
+                    throw new Error(
+                        `Insufficient stock for product. Available: ${stockLevel?.quantity || 0}, Required: ${item.quantity}`
+                    )
+                }
+
+                // Update stock
+                await tx.stockLevel.update({
+                    where: {
+                        tenantId_productId_locationId: {
+                            tenantId: user.tenantId!,
+                            productId: item.product_id,
+                            locationId: location.id
+                        }
+                    },
+                    data: {
+                        quantity: { decrement: item.quantity },
+                        updatedAt: new Date()
+                    }
+                })
+
+                // Create inventory event
+                await tx.inventoryEvent.create({
+                    data: {
+                        tenantId: user.tenantId!,
+                        productId: item.product_id,
+                        locationId: location.id,
+                        type: 'STOCK_SOLD',
+                        quantityDelta: -item.quantity,
+                        runningBalance: stockLevel.quantity - item.quantity,
+                        referenceId: 'pending',
+                        referenceType: 'INVOICE',
+                        notes: `Sale via invoice ${invoiceNumber}`,
+                        userId: user.id
+                    }
+                })
+            }
+
+            // Create invoice
             const invoice = await tx.invoice.create({
                 data: {
-                    tenantId: tenantId,
+                    tenantId: user.tenantId!,
                     customerId: customer_id || null,
                     invoiceNumber,
                     invoiceDate: new Date(),
@@ -182,12 +310,12 @@ export async function POST(req: NextRequest) {
                     customerState: customerState || customer?.state || null,
                     customerPincode: customerPincode || customer?.pincode || null,
                     customerGstNumber: customerGstNumber || customer?.gstNumber || null,
-                    subtotal: subtotal || invoiceItems.reduce((sum: number, item: any) => sum + item.taxableAmount, 0),
-                    totalCgst: total_cgst || invoiceItems.reduce((sum: number, item: any) => sum + item.cgstAmount, 0),
-                    totalSgst: total_sgst || invoiceItems.reduce((sum: number, item: any) => sum + item.sgstAmount, 0),
-                    totalIgst: total_igst || invoiceItems.reduce((sum: number, item: any) => sum + item.igstAmount, 0),
-                    totalGst: total_gst || invoiceItems.reduce((sum: number, item: any) => sum + item.cgstAmount + item.sgstAmount + item.igstAmount, 0),
-                    totalAmount: total_amount || invoiceItems.reduce((sum: number, item: any) => sum + item.totalAmount, 0),
+                    subtotal,
+                    totalCgst: invoiceItems.reduce((sum: number, item: any) => sum + item.cgstAmount, 0),
+                    totalSgst: invoiceItems.reduce((sum: number, item: any) => sum + item.sgstAmount, 0),
+                    totalIgst: invoiceItems.reduce((sum: number, item: any) => sum + item.igstAmount, 0),
+                    totalGst: totalGST,
+                    totalAmount,
                     notes: notes ? `${notes} | Payment: ${payment_method}` : `Payment: ${payment_method}`,
                     terms: null,
                     items: {
@@ -200,74 +328,17 @@ export async function POST(req: NextRequest) {
                 }
             })
 
-            // Reduce stock for each item
-            for (const item of items) {
-                if (!item.product_id) continue
-
-                // Get the primary location or first available location
-                const location = await tx.location.findFirst({
-                    where: { 
-                        tenantId: tenantId,
-                        isActive: true
-                    }
-                })
-
-                if (!location) {
-                    throw new Error('No active location found for stock reduction')
+            // Update inventory events with actual invoice ID
+            await tx.inventoryEvent.updateMany({
+                where: {
+                    tenantId: user.tenantId!,
+                    referenceId: 'pending',
+                    referenceType: 'INVOICE'
+                },
+                data: {
+                    referenceId: invoice.id
                 }
-
-                // Get current stock level
-                const stockLevel = await tx.stockLevel.findUnique({
-                    where: {
-                        tenantId_productId_locationId: {
-                            tenantId: tenantId,
-                            productId: item.product_id,
-                            locationId: location.id
-                        }
-                    }
-                })
-
-                if (!stockLevel) {
-                    throw new Error(`Stock not found for product ${item.product_id}`)
-                }
-
-                if (stockLevel.quantity < item.quantity) {
-                    throw new Error(`Insufficient stock for product ${item.product_id}. Available: ${stockLevel.quantity}, Required: ${item.quantity}`)
-                }
-
-                // Update stock level
-                await tx.stockLevel.update({
-                    where: {
-                        tenantId_productId_locationId: {
-                            tenantId: tenantId,
-                            productId: item.product_id,
-                            locationId: location.id
-                        }
-                    },
-                    data: {
-                        quantity: {
-                            decrement: item.quantity
-                        },
-                        updatedAt: new Date()
-                    }
-                })
-
-                // Create inventory event
-                await tx.inventoryEvent.create({
-                    data: {
-                        tenantId: tenantId,
-                        productId: item.product_id,
-                        locationId: location.id,
-                        type: 'STOCK_SOLD',
-                        quantityDelta: -item.quantity,
-                        runningBalance: stockLevel.quantity - item.quantity,
-                        referenceId: invoice.id,
-                        referenceType: 'INVOICE',
-                        notes: `Sale via invoice ${invoiceNumber}`,
-                        userId: user.id
-                    }
-                })
-            }
+            })
 
             return invoice
         })

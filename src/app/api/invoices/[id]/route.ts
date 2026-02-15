@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getUserFromRequest } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 
-// GET - Get single invoice
+// GET - Get single invoice with full details
 export async function GET(
     req: NextRequest,
     { params }: { params: Promise<{ id: string }> }
@@ -21,7 +21,18 @@ export async function GET(
             },
             include: {
                 customer: true,
-                items: true
+                items: {
+                    include: {
+                        product: {
+                            select: {
+                                id: true,
+                                name: true,
+                                sku: true,
+                                imageUrl: true
+                            }
+                        }
+                    }
+                }
             }
         })
 
@@ -36,7 +47,7 @@ export async function GET(
     }
 }
 
-// PATCH - Update invoice
+// PATCH - Update invoice with validation
 export async function PATCH(
     req: NextRequest,
     { params }: { params: Promise<{ id: string }> }
@@ -49,9 +60,9 @@ export async function PATCH(
 
         const resolvedParams = await params
         const body = await req.json()
-        const { status, notes, terms, ewayBillNumber, ewayBillDate } = body
+        const { status, notes, terms, ewayBillNumber, ewayBillDate, customerNotes } = body
 
-        // Check if invoice exists and belongs to tenant
+        // Check if invoice exists
         const existingInvoice = await prisma.invoice.findFirst({
             where: {
                 id: resolvedParams.id,
@@ -63,30 +74,49 @@ export async function PATCH(
             return NextResponse.json({ error: 'Invoice not found' }, { status: 404 })
         }
 
+        // Validate status transitions
+        const validStatuses = ['DRAFT', 'SENT', 'PAID', 'OVERDUE', 'CANCELLED', 'REFUNDED']
+        if (status && !validStatuses.includes(status.toUpperCase())) {
+            return NextResponse.json({ error: 'Invalid status' }, { status: 400 })
+        }
+
+        // Prevent modifying paid/cancelled invoices significantly
+        if (existingInvoice.status === 'PAID' && status && status.toUpperCase() !== 'REFUNDED') {
+            return NextResponse.json({ 
+                error: 'Paid invoices can only be marked as refunded' 
+            }, { status: 400 })
+        }
+
         // Update invoice
+        const updateData: any = {}
+        
+        if (status) updateData.status = status.toUpperCase()
+        if (notes !== undefined) updateData.notes = notes
+        if (terms !== undefined) updateData.terms = terms
+        if (ewayBillNumber !== undefined) updateData.ewayBillNumber = ewayBillNumber
+        if (ewayBillDate !== undefined) updateData.ewayBillDate = new Date(ewayBillDate)
+        if (customerNotes !== undefined) updateData.customerNotes = customerNotes
+
         const invoice = await prisma.invoice.update({
             where: { id: resolvedParams.id },
-            data: {
-                status: status || existingInvoice.status,
-                notes: notes !== undefined ? notes : existingInvoice.notes,
-                terms: terms !== undefined ? terms : existingInvoice.terms,
-                ewayBillNumber: ewayBillNumber || existingInvoice.ewayBillNumber,
-                ewayBillDate: ewayBillDate ? new Date(ewayBillDate) : existingInvoice.ewayBillDate
-            },
+            data: updateData,
             include: {
                 customer: true,
                 items: true
             }
         })
 
-        return NextResponse.json({ invoice })
+        return NextResponse.json({ 
+            invoice,
+            message: 'Invoice updated successfully'
+        })
     } catch (error) {
         console.error('Update invoice error:', error)
         return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
     }
 }
 
-// DELETE - Delete invoice
+// DELETE - Delete invoice (with restrictions)
 export async function DELETE(
     req: NextRequest,
     { params }: { params: Promise<{ id: string }> }
@@ -99,7 +129,7 @@ export async function DELETE(
 
         const resolvedParams = await params
 
-        // Check if invoice exists and belongs to tenant
+        // Check if invoice exists
         const existingInvoice = await prisma.invoice.findFirst({
             where: {
                 id: resolvedParams.id,
@@ -111,19 +141,54 @@ export async function DELETE(
             return NextResponse.json({ error: 'Invoice not found' }, { status: 404 })
         }
 
-        // Only allow deleting draft invoices
-        if (existingInvoice.status !== 'DRAFT') {
+        // Only allow deleting draft or cancelled invoices
+        if (!['DRAFT', 'CANCELLED'].includes(existingInvoice.status)) {
             return NextResponse.json({
-                error: 'Only draft invoices can be deleted'
+                error: `Cannot delete ${existingInvoice.status.toLowerCase()} invoice. Only draft or cancelled invoices can be deleted.`
             }, { status: 400 })
         }
 
-        // Delete invoice (items will be deleted due to cascade)
-        await prisma.invoice.delete({
-            where: { id: resolvedParams.id }
+        // Use transaction to delete invoice and restore stock if needed
+        await prisma.$transaction(async (tx) => {
+            // If invoice was paid, restore stock
+            if (existingInvoice.status === 'PAID') {
+                const items = await tx.invoiceItem.findMany({
+                    where: { invoiceId: resolvedParams.id }
+                })
+
+                for (const item of items) {
+                    if (item.productId) {
+                        const location = await tx.location.findFirst({
+                            where: { tenantId: user.tenantId!, isActive: true }
+                        })
+
+                        if (location) {
+                            await tx.stockLevel.update({
+                                where: {
+                                    tenantId_productId_locationId: {
+                                        tenantId: user.tenantId!,
+                                        productId: item.productId,
+                                        locationId: location.id
+                                    }
+                                },
+                                data: {
+                                    quantity: { increment: item.quantity }
+                                }
+                            })
+                        }
+                    }
+                }
+            }
+
+            // Delete invoice (items will be deleted via cascade)
+            await tx.invoice.delete({
+                where: { id: resolvedParams.id }
+            })
         })
 
-        return NextResponse.json({ message: 'Invoice deleted successfully' })
+        return NextResponse.json({ 
+            message: 'Invoice deleted successfully'
+        })
     } catch (error) {
         console.error('Delete invoice error:', error)
         return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
