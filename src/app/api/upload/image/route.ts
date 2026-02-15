@@ -59,13 +59,7 @@ export async function POST(req: NextRequest) {
       folder: `stockalert/${orgFolder}`,
       isPrivateFile: false,
       useUniqueFileName: false,
-      tags: ['product-image', `org:${user.tenantId}`],
-      customMetadata: {
-        uploadedBy: user.id,
-        organizationId: user.tenantId,
-        originalName: file.name,
-        uploadedAt: new Date().toISOString()
-      }
+      tags: ['product-image', `org:${user.tenantId}`]
     })
 
     // Get the optimized URL from ImageKit

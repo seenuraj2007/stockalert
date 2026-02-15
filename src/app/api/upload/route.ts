@@ -57,13 +57,7 @@ export async function POST(req: NextRequest) {
       folder: `stockalert/${user.tenantId.replace(/-/g, '').substring(0, 12)}`,
       isPrivateFile: false,
       useUniqueFileName: false,
-      tags: ['upload', `org:${user.tenantId}`],
-      customMetadata: {
-        uploadedBy: user.id,
-        organizationId: user.tenantId,
-        originalName: file.name,
-        uploadedAt: new Date().toISOString()
-      }
+      tags: ['upload', `org:${user.tenantId}`]
     })
 
     const imageUrl = uploadResponse.url
