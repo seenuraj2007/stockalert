@@ -98,7 +98,8 @@ export async function GET(request: NextRequest) {
         }
 
         // Create response with session cookie
-        const response = NextResponse.redirect(new URL('/dashboard', request.url));
+        // Redirect to localized dashboard to avoid middleware redirect issues
+        const response = NextResponse.redirect(new URL('/en/dashboard', request.url));
 
         response.cookies.set('auth_token', token, {
             httpOnly: true,
