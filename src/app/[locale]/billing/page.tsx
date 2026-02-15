@@ -1440,7 +1440,7 @@ export default function POSPage() {
         <>
           {/* Screen View */}
           <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 print:hidden">
-            <div className="bg-white rounded-2xl w-full max-w-sm">
+            <div className="bg-white rounded-2xl w-full max-w-sm max-h-[90vh] overflow-y-auto">
               <div className="p-6 text-center">
                 <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                   <CheckCircle className="w-8 h-8 text-green-600" />
@@ -1451,6 +1451,19 @@ export default function POSPage() {
                 <div className="bg-gray-50 rounded-xl p-4 mb-4">
                   <p className="text-3xl font-bold text-indigo-600">₹{lastSale.invoice?.totalAmount.toFixed(2)}</p>
                   <p className="text-sm text-gray-500 mt-1">{PAYMENT_METHODS.find(m => m.id === paymentMethod)?.label}</p>
+                </div>
+
+                {/* QR Code Section */}
+                <div className="bg-white border border-gray-200 rounded-xl p-4 mb-4">
+                  <p className="text-sm font-medium text-gray-700 mb-2">Scan to save receipt</p>
+                  <div className="bg-white p-2 inline-block">
+                    <img 
+                      src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(typeof window !== 'undefined' ? `${window.location.origin}/receipt/${lastSale.invoice?.id}` : '')}`}
+                      alt="Receipt QR Code"
+                      className="w-32 h-32"
+                    />
+                  </div>
+                  <p className="text-xs text-gray-400 mt-2">Valid for 1 year</p>
                 </div>
                 
                 <div className="flex gap-2">

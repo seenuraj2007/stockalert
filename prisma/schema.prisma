@@ -504,6 +504,7 @@ model Invoice {
   tenant      Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   customer    Customer?     @relation(fields: [customerId], references: [id])
   items       InvoiceItem[]
+  receiptScans ReceiptScan[]
 
   @@index([tenantId])
   @@index([tenantId, status])
@@ -785,4 +786,27 @@ model AuditLog {
   @@index([tenantId, userId])
   @@index([tenantId, action])
   @@map("audit_logs")
+}
+
+model ReceiptScan {
+  id          String   @id @default(uuid())
+  invoiceId   String   @map("invoice_id")
+  tenantId    String   @map("tenant_id")
+  
+  // Scan metadata
+  ipAddress   String?  @map("ip_address")
+  userAgent   String?  @map("user_agent")
+  referrer    String?  // Where scan came from
+  
+  // Timestamp
+  scannedAt   DateTime @default(now()) @map("scanned_at")
+  
+  // Relations
+  invoice     Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  
+  @@index([invoiceId])
+  @@index([tenantId])
+  @@index([scannedAt])
+  @@map("receipt_scans")
 }
