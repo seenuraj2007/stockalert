@@ -589,6 +589,8 @@ export default function POSPage() {
         setLastSale({ success: true, invoice: data.invoice })
         setShowReceipt(true)
         clearCart()
+        // Refresh products to show updated stock levels
+        fetchProducts()
       } else {
         setError(data.error || 'Sale failed. Please try again.')
       }
@@ -670,6 +672,8 @@ export default function POSPage() {
           setShowUpiQrModal(false)
           setShowReceipt(true)
           clearCart()
+          // Refresh products to show updated stock levels
+          fetchProducts()
         }, 1500)
       } else {
         setUpiPaymentStatus('failed')
