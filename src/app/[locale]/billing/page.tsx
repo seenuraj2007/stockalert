@@ -105,7 +105,6 @@ interface OrganizationSettings {
 const GST_RATES = [0, 5, 12, 18, 28]
 const PAYMENT_METHODS = [
   { id: 'cash', label: 'Cash', icon: '💵', color: 'bg-green-500' },
-  { id: 'card', label: 'Card', icon: '💳', color: 'bg-blue-500' },
   { id: 'upi', label: 'UPI', icon: '📱', color: 'bg-purple-500' },
   { id: 'credit', label: 'Credit', icon: '📋', color: 'bg-orange-500' },
 ]
