@@ -835,7 +835,7 @@ export default function HomePage() {
                   <div className="w-5 h-5 rounded-full bg-violet-500/20 flex items-center justify-center flex-shrink-0">
                     <CheckCircle className="w-3.5 h-3.5 text-violet-400" />
                   </div>
-                  <span className="text-white/80">Up to 500 products</span>
+                  <span className="text-white/80">Up to 100 products</span>
                 </li>
                 <li className="flex items-center gap-3">
                   <div className="w-5 h-5 rounded-full bg-violet-500/20 flex items-center justify-center flex-shrink-0">
