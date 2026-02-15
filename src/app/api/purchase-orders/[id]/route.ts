@@ -5,9 +5,10 @@ import { getUserFromRequest } from '@/lib/auth'
 // GET /api/purchase-orders/[id] - Get purchase order with items
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const user = await getUserFromRequest(req)
     if (!user || !user.tenantId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -15,7 +16,7 @@ export async function GET(
 
     const order = await prisma.purchaseOrder.findFirst({
       where: {
-        id: params.id,
+        id: id,
         tenantId: user.tenantId,
       },
       include: {
@@ -75,9 +76,10 @@ export async function GET(
 // PATCH /api/purchase-orders/[id] - Update purchase order
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const user = await getUserFromRequest(req)
     if (!user || !user.tenantId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -87,7 +89,7 @@ export async function PATCH(
 
     const order = await prisma.purchaseOrder.update({
       where: {
-        id: params.id,
+        id: id,
         tenantId: user.tenantId,
       },
       data: body,
@@ -106,9 +108,10 @@ export async function PATCH(
 // DELETE /api/purchase-orders/[id] - Delete purchase order
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const user = await getUserFromRequest(req)
     if (!user || !user.tenantId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -116,7 +119,7 @@ export async function DELETE(
 
     await prisma.purchaseOrder.delete({
       where: {
-        id: params.id,
+        id: id,
         tenantId: user.tenantId,
       },
     })
