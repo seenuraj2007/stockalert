@@ -3,9 +3,12 @@ import { prisma } from '@/lib/prisma'
 import { getUserFromRequest } from '@/lib/auth'
 
 export async function GET(req: NextRequest) {
+  console.log('[API] Billing products endpoint hit')
   try {
     const user = await getUserFromRequest(req)
+    console.log('[API] User:', user?.id, 'Tenant:', user?.tenantId)
     if (!user || !user.tenantId) {
+      console.log('[API] Unauthorized - no user or tenant')
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 

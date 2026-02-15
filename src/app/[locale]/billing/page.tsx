@@ -220,12 +220,18 @@ export default function POSPage() {
     try {
       setLoading(true)
       setError(null)
-      const res = await fetch('/api/billing/products')
+      console.log('[POS] Fetching products from /api/billing/products')
+      const res = await fetch('/api/billing/products', {
+        credentials: 'include'
+      })
+      console.log('[POS] Response status:', res.status)
       if (res.status === 401) {
         router.push('/auth')
         return
       }
       if (!res.ok) {
+        const errorText = await res.text()
+        console.error('[POS] Error response:', errorText)
         throw new Error(`Failed to fetch products: ${res.status}`)
       }
       const data = await res.json()
