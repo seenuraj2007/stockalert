@@ -65,29 +65,37 @@ export default function AlertsPage() {
 
   const getAlertIcon = (type: string) => {
     return type === 'out_of_stock' ? (
-      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-red-100 to-red-200 flex items-center justify-center shadow-sm">
-        <X className="w-6 h-6 text-red-600" />
+      <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-red-50 flex items-center justify-center">
+        <X className="w-5 h-5 text-red-500" />
       </div>
     ) : (
-      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-100 to-amber-200 flex items-center justify-center shadow-sm">
-        <AlertTriangle className="w-6 h-6 text-amber-600" />
+      <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-amber-50 flex items-center justify-center">
+        <AlertTriangle className="w-5 h-5 text-amber-500" />
       </div>
     )
   }
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="flex flex-col items-center gap-4">
-          <div className="relative">
-            <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-indigo-600"></div>
-            <div className="absolute inset-0 flex items-center justify-center">
-              <Bell className="w-8 h-8 text-indigo-300" />
-            </div>
+      <SidebarLayout>
+        <main className="max-w-4xl mx-auto px-3 sm:px-6 lg:px-8 py-5">
+          <div className="mb-5">
+            <div className="skeleton h-7 w-20 mb-2" />
+            <div className="skeleton h-4 w-28" />
           </div>
-          <p className="text-gray-600 font-medium">Loading alerts...</p>
-        </div>
-      </div>
+          <div className="card-elevated-lg overflow-hidden">
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="p-4 border-b border-gray-50 flex items-center gap-3">
+                <div className="skeleton w-11 h-11 rounded-xl" />
+                <div className="flex-1">
+                  <div className="skeleton h-4 w-48 mb-2" />
+                  <div className="skeleton h-3 w-32" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </main>
+      </SidebarLayout>
     )
   }
 
@@ -107,21 +115,19 @@ export default function AlertsPage() {
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setUnreadOnly(false)}
-                  className={`px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-all cursor-pointer ${
-                    !unreadOnly
+                  className={`px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-all cursor-pointer ${!unreadOnly
                       ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white'
                       : 'bg-white text-gray-700 border border-gray-200 hover:border-gray-300'
-                  }`}
+                    }`}
                 >
                   All
                 </button>
                 <button
                   onClick={() => setUnreadOnly(true)}
-                  className={`px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-all cursor-pointer ${
-                    unreadOnly
+                  className={`px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-all cursor-pointer ${unreadOnly
                       ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white'
                       : 'bg-white text-gray-700 border border-gray-200 hover:border-gray-300'
-                  }`}
+                    }`}
                 >
                   Unread
                 </button>
@@ -129,7 +135,7 @@ export default function AlertsPage() {
             </div>
           </div>
 
-          <div className="bg-white/80 backdrop-blur-xl rounded-xl sm:rounded-2xl shadow-lg border border-gray-100 divide-y divide-gray-100">
+          <div className="card-elevated-lg overflow-hidden divide-y divide-gray-50">
             {alerts.length === 0 ? (
               <div className="text-center py-12 sm:py-20">
                 <div className="w-14 h-14 sm:w-20 sm:h-20 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6">
@@ -144,9 +150,8 @@ export default function AlertsPage() {
               alerts.map((alert) => (
                 <div
                   key={alert.id}
-                  className={`p-4 sm:p-5 sm:p-6 hover:bg-gray-50 transition-all duration-200 cursor-pointer ${
-                    !alert.is_read ? 'bg-indigo-50/50' : ''
-                  }`}
+                  className={`p-4 sm:p-5 sm:p-6 hover:bg-gray-50 transition-all duration-200 cursor-pointer ${!alert.is_read ? 'bg-indigo-50/50' : ''
+                    }`}
                   onClick={() => router.push(`/products/${alert.product_id}`)}
                 >
                   <div className="flex flex-col sm:flex-row sm:items-start gap-3 sm:gap-5">

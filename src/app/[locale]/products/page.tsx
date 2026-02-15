@@ -77,7 +77,7 @@ export default function ProductsPage() {
     const lowerSearch = searchTerm.toLowerCase()
     return products.filter(product => {
       const matchesSearch = product.name.toLowerCase().includes(lowerSearch) ||
-                           product.sku?.toLowerCase().includes(lowerSearch)
+        product.sku?.toLowerCase().includes(lowerSearch)
       const matchesCategory = !categoryFilter || product.category === categoryFilter
       return matchesSearch && matchesCategory
     })
@@ -110,17 +110,32 @@ export default function ProductsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="flex flex-col items-center gap-4">
-          <div className="relative">
-            <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-indigo-600"></div>
-            <div className="absolute inset-0 flex items-center justify-center">
-              <Package className="w-8 h-8 text-indigo-300" />
-            </div>
+      <SidebarLayout>
+        <main className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4">
+          <div className="mb-5">
+            <div className="skeleton h-7 w-24 mb-2" />
+            <div className="skeleton h-4 w-32" />
           </div>
-          <p className="text-gray-600 font-medium">Loading products...</p>
-        </div>
-      </div>
+          <div className="card-elevated p-3.5 mb-4">
+            <div className="skeleton h-11 w-full rounded-xl" />
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="card-elevated p-4">
+                <div className="flex items-start gap-3 mb-3">
+                  <div className="skeleton w-14 h-14 rounded-xl" />
+                  <div className="flex-1">
+                    <div className="skeleton h-4 w-24 mb-2" />
+                    <div className="skeleton h-3 w-16" />
+                  </div>
+                </div>
+                <div className="skeleton h-2 w-full rounded-full mb-3" />
+                <div className="skeleton h-6 w-20 rounded-full" />
+              </div>
+            ))}
+          </div>
+        </main>
+      </SidebarLayout>
     )
   }
 
@@ -148,7 +163,7 @@ export default function ProductsPage() {
           </div>
 
           {/* Search & Filter Bar */}
-          <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-lg border border-gray-100 p-3 sm:p-4 mb-4">
+          <div className="card-elevated p-3 sm:p-4 mb-4">
             <div className="flex flex-col sm:flex-row gap-3">
               {/* Search */}
               <div className="relative flex-1">
@@ -161,7 +176,7 @@ export default function ProductsPage() {
                   className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all bg-white text-gray-900 placeholder-gray-400"
                 />
               </div>
-              
+
               {/* Filter Toggle (Mobile) */}
               <button
                 onClick={() => setShowFilters(!showFilters)}
@@ -243,7 +258,7 @@ export default function ProductsPage() {
                   <div
                     key={product.id}
                     onClick={() => router.push(`/products/${product.id}`)}
-                    className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-lg border border-gray-100 p-4 hover:shadow-xl hover:border-indigo-200 transition-all cursor-pointer active:scale-[0.99]"
+                    className="card-elevated p-3.5 sm:p-4 tap-bounce cursor-pointer active:scale-[0.98] transition-transform"
                   >
                     {/* Product Image & Name */}
                     <div className="flex items-start gap-3 mb-3">
@@ -271,15 +286,14 @@ export default function ProductsPage() {
                     <div className="mb-3">
                       <div className="flex items-center justify-between mb-1.5">
                         <span className="text-sm text-gray-500">Stock</span>
-                        <span className={`text-sm font-bold ${
-                          product.needs_restock ? 'text-amber-600' : 
-                          product.is_out_of_stock ? 'text-red-600' : 'text-gray-900'
-                        }`}>
+                        <span className={`text-sm font-bold ${product.needs_restock ? 'text-amber-600' :
+                            product.is_out_of_stock ? 'text-red-600' : 'text-gray-900'
+                          }`}>
                           {product.current_quantity} / {product.reorder_point}
                         </span>
                       </div>
                       <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                        <div 
+                        <div
                           className={`h-full rounded-full transition-all ${getStockColor(product)}`}
                           style={{ width: `${getStockPercentage(product)}%` }}
                         ></div>

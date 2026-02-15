@@ -39,22 +39,22 @@ const formatCurrency = (value: number) => new Intl.NumberFormat('en-IN', { style
 const formatNumber = (value: number) => new Intl.NumberFormat('en-US').format(value || 0)
 
 const StatCard = ({ title, value, change, trend, icon: Icon, color, subtext }: any) => (
-  <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-lg shadow-gray-200/50 border border-gray-100 p-3 sm:p-4 lg:p-6 hover:shadow-xl transition-shadow">
-    <div className="flex items-center justify-between mb-2 sm:mb-4">
-      <div className={`p-2 sm:p-3 rounded-xl bg-gradient-to-br ${color} shadow-lg`}>
-        <Icon className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 text-white" />
+  <div className="card-elevated p-3.5 sm:p-5 lg:p-6 tap-bounce">
+    <div className="flex items-center justify-between mb-2 sm:mb-3">
+      <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br ${color} flex items-center justify-center shadow-lg`}>
+        <Icon className="w-[1.1rem] h-[1.1rem] sm:w-5 sm:h-5 text-white" />
       </div>
       {change && (
-        <span className={`flex items-center gap-1 text-xs sm:text-sm font-semibold px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full ${trend === 'up' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+        <span className={`flex items-center gap-0.5 text-[0.6875rem] sm:text-xs font-semibold px-1.5 py-0.5 rounded-full ${trend === 'up' ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'
           }`}>
-          {trend === 'up' ? <ArrowUpRight className="w-2.5 h-2.5 sm:w-3 sm:h-3" /> : <ArrowDownRight className="w-2.5 h-2.5 sm:w-3 sm:h-3" />}
-          <span className="hidden sm:inline">{change}</span>
+          {trend === 'up' ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
+          {change}
         </span>
       )}
     </div>
-    <p className="text-xs sm:text-sm text-gray-600 mb-0.5 sm:mb-1">{title}</p>
-    <p className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">{value}</p>
-    {subtext && <p className="text-xs text-gray-500 mt-0.5 sm:mt-1">{subtext}</p>}
+    <p className="text-[0.75rem] sm:text-sm text-gray-500 mb-0.5 font-medium">{title}</p>
+    <p className="text-[1.25rem] sm:text-xl lg:text-2xl font-bold text-gray-900 tracking-tight">{value}</p>
+    {subtext && <p className="text-[0.6875rem] text-gray-400 mt-0.5">{subtext}</p>}
   </div>
 )
 
@@ -158,15 +158,24 @@ export default function AnalyticsPage() {
   if (loading) {
     return (
       <SidebarLayout>
-        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
-          <div className="flex flex-col items-center gap-4">
-            <div className="relative">
-              <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-indigo-600"></div>
-              <div className="absolute inset-0 flex items-center justify-center">
-                <BarChart3 className="w-8 h-8 text-indigo-300" />
+        <div className="max-w-7xl mx-auto">
+          <div className="mb-5">
+            <div className="skeleton h-7 w-28 mb-2" />
+            <div className="skeleton h-4 w-36" />
+          </div>
+          <div className="skeleton h-10 w-full rounded-xl mb-5" />
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="card-elevated p-4">
+                <div className="skeleton w-9 h-9 rounded-xl mb-3" />
+                <div className="skeleton h-3 w-16 mb-2" />
+                <div className="skeleton h-5 w-20" />
               </div>
-            </div>
-            <p className="text-gray-600 font-medium">Loading analytics...</p>
+            ))}
+          </div>
+          <div className="card-elevated p-4">
+            <div className="skeleton h-5 w-32 mb-4" />
+            <div className="skeleton h-48 w-full rounded-xl" />
           </div>
         </div>
       </SidebarLayout>
@@ -176,7 +185,7 @@ export default function AnalyticsPage() {
   return (
     <SidebarLayout>
       <SubscriptionGate>
-        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+        <div className="min-h-screen">
           {error && (
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
               <div className="p-4 bg-red-50/80 backdrop-blur-sm border border-red-200 text-red-700 rounded-2xl flex items-center gap-3">
@@ -245,15 +254,12 @@ export default function AnalyticsPage() {
 
           <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
             <div className="mb-4 sm:mb-6">
-              <div className="flex gap-1.5 bg-gray-100 p-1.5 rounded-xl overflow-x-auto">
+              <div className="segmented-control">
                 {tabs.map((tab) => (
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
-                    className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-2 sm:py-2.5 rounded-lg text-xs sm:text-sm font-medium whitespace-nowrap transition-all ${activeTab === tab.id
-                      ? 'bg-white text-indigo-700 shadow-md'
-                      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                      } cursor-pointer`}
+                    className={`segmented-control-item ${activeTab === tab.id ? 'segmented-control-item-active' : ''}`}
                   >
                     <tab.icon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                     {tab.label}
@@ -265,7 +271,7 @@ export default function AnalyticsPage() {
             <div className="pb-20 sm:pb-8">
               {activeTab === 'overview' && (
                 <>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-5 sm:mb-7">
                     {statCards.map((stat, i) => (
                       <StatCard key={i} {...stat} />
                     ))}
