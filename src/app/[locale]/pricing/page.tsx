@@ -56,7 +56,7 @@ const plans = [
     features: [
       'Basic inventory tracking',
       'Up to 3 team members',
-      'Up to 100 products',
+      'Up to 50 products',
       'Up to 5 locations',
       'Stock transfers',
       'Purchase orders',
@@ -113,7 +113,7 @@ const plans = [
 
 const comparisonFeatures = [
   { feature: 'Team Members', free: '3', starter: '3', pro: '10' },
-  { feature: 'Products', free: '100', starter: '100', pro: '1000' },
+  { feature: 'Products', free: '50', starter: '100', pro: '1000' },
   { feature: 'Locations', free: '5', starter: '5', pro: '20' },
   { feature: 'Inventory Tracking', free: true, starter: true, pro: true },
   { feature: 'Low Stock Alerts', free: true, starter: true, pro: true },
