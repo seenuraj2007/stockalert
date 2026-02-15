@@ -2,7 +2,7 @@
 
 import { useEffect, useState, memo, lazy, Suspense } from 'react'
 import { useRouter } from 'next/navigation'
-import { Package, TrendingDown, AlertTriangle, Bell, LogOut, Plus, Search, ArrowUpRight, ArrowDownRight, MapPin, Truck, FileText, ArrowUpDown, Menu, X, Users, Zap, Settings, User, Calculator, ChevronRight, TrendingUp, Receipt } from 'lucide-react'
+import { Package, TrendingDown, AlertTriangle, Bell, LogOut, Plus, Search, ArrowUpRight, ArrowDownRight, MapPin, Truck, FileText, ArrowUpDown, Menu, X, Users, Zap, Settings, User, Calculator, ChevronRight, TrendingUp, Receipt, Tag } from 'lucide-react'
 import Link from 'next/link'
 import { SubscriptionGate } from '@/components/SubscriptionGate'
 
@@ -262,6 +262,16 @@ export default function DashboardPage() {
                       <Package className="w-5 h-5 text-gray-600" />
                     </div>
                     Products
+                  </Link>
+                  <Link
+                    href="/serial-numbers"
+                    prefetch={true}
+                    className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-xl font-medium transition-all cursor-pointer hover:shadow-md"
+                  >
+                    <div className="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center">
+                      <Tag className="w-5 h-5 text-gray-600" />
+                    </div>
+                    Serial Numbers
                   </Link>
                   <Link
                     href="/locations"
