@@ -1389,40 +1389,186 @@ export default function POSPage() {
 
       {/* Receipt Modal */}
       {showReceipt && lastSale && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl w-full max-w-sm">
-            <div className="p-6 text-center">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <CheckCircle className="w-8 h-8 text-green-600" />
-              </div>
-              <h2 className="text-xl font-bold text-gray-900 mb-1">Sale Complete!</h2>
-              <p className="text-gray-500 text-sm mb-4">Invoice #{lastSale.invoice?.invoiceNumber}</p>
-              
-              <div className="bg-gray-50 rounded-xl p-4 mb-4">
-                <p className="text-3xl font-bold text-indigo-600">₹{lastSale.invoice?.totalAmount.toFixed(2)}</p>
-                <p className="text-sm text-gray-500 mt-1">{PAYMENT_METHODS.find(m => m.id === paymentMethod)?.label}</p>
-              </div>
-              
-              <div className="flex gap-2">
-                <button
-                  onClick={() => {
-                    setShowReceipt(false)
-                    setCashReceived(0)
-                  }}
-                  className="flex-1 py-2 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 transition-colors"
-                >
-                  New Sale
-                </button>
-                <button
-                  onClick={() => window.print()}
-                  className="flex-1 py-2 bg-gray-100 text-gray-700 rounded-xl font-medium hover:bg-gray-200 transition-colors flex items-center justify-center gap-2"
-                >
-                  <Receipt className="w-4 h-4" /> Print
-                </button>
+        <>
+          {/* Screen View */}
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 print:hidden">
+            <div className="bg-white rounded-2xl w-full max-w-sm">
+              <div className="p-6 text-center">
+                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <CheckCircle className="w-8 h-8 text-green-600" />
+                </div>
+                <h2 className="text-xl font-bold text-gray-900 mb-1">Sale Complete!</h2>
+                <p className="text-gray-500 text-sm mb-4">Invoice #{lastSale.invoice?.invoiceNumber}</p>
+                
+                <div className="bg-gray-50 rounded-xl p-4 mb-4">
+                  <p className="text-3xl font-bold text-indigo-600">₹{lastSale.invoice?.totalAmount.toFixed(2)}</p>
+                  <p className="text-sm text-gray-500 mt-1">{PAYMENT_METHODS.find(m => m.id === paymentMethod)?.label}</p>
+                </div>
+                
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => {
+                      setShowReceipt(false)
+                      setCashReceived(0)
+                    }}
+                    className="flex-1 py-2 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 transition-colors"
+                  >
+                    New Sale
+                  </button>
+                  <button
+                    onClick={() => window.print()}
+                    className="flex-1 py-2 bg-gray-100 text-gray-700 rounded-xl font-medium hover:bg-gray-200 transition-colors flex items-center justify-center gap-2"
+                  >
+                    <Receipt className="w-4 h-4" /> Print Receipt
+                  </button>
+                </div>
               </div>
             </div>
           </div>
-        </div>
+
+          {/* Printable Receipt - Hidden on screen, shown on print */}
+          <div className="hidden print:block print:fixed print:inset-0 print:z-50 print:bg-white print:p-0">
+            <div className="print-receipt max-w-[80mm] mx-auto bg-white text-gray-900 font-mono text-xs leading-tight">
+              {/* Organization Header */}
+              <div className="text-center border-b-2 border-gray-900 pb-3 mb-3">
+                <h1 className="text-lg font-bold uppercase tracking-wide">
+                  {organization.name || 'DKS StockAlert'}
+                </h1>
+                {organization.address && (
+                  <p className="text-xs mt-1">{organization.address}</p>
+                )}
+                {(organization.city || organization.state) && (
+                  <p className="text-xs">
+                    {organization.city}{organization.city && organization.state && ', '}{organization.state} {organization.pincode}
+                  </p>
+                )}
+                {organization.gstNumber && (
+                  <p className="text-xs mt-1 font-semibold">GSTIN: {organization.gstNumber}</p>
+                )}
+                {organization.phone && (
+                  <p className="text-xs">Phone: {organization.phone}</p>
+                )}
+              </div>
+
+              {/* Invoice Details */}
+              <div className="border-b border-gray-400 pb-2 mb-2">
+                <div className="flex justify-between">
+                  <span>Invoice #:</span>
+                  <span className="font-semibold">{lastSale.invoice?.invoiceNumber}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Date:</span>
+                  <span>{lastSale.invoice?.invoiceDate ? new Date(lastSale.invoice.invoiceDate).toLocaleDateString('en-IN') : new Date().toLocaleDateString('en-IN')}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Time:</span>
+                  <span>{new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}</span>
+                </div>
+              </div>
+
+              {/* Customer Details */}
+              {selectedCustomer && (
+                <div className="border-b border-gray-400 pb-2 mb-2">
+                  <p className="font-semibold">Customer:</p>
+                  <p>{selectedCustomer.name}</p>
+                  {selectedCustomer.phone && <p>Phone: {selectedCustomer.phone}</p>}
+                  {selectedCustomer.gstNumber && <p>GSTIN: {selectedCustomer.gstNumber}</p>}
+                </div>
+              )}
+
+              {/* Items Table */}
+              <div className="border-b-2 border-gray-900 pb-2 mb-2">
+                <div className="flex font-semibold border-b border-gray-400 pb-1 mb-1">
+                  <span className="w-8">Qty</span>
+                  <span className="flex-1">Item</span>
+                  <span className="w-16 text-right">Price</span>
+                  <span className="w-16 text-right">Amt</span>
+                </div>
+                {cart.map((item, index) => (
+                  <div key={index} className="flex py-1">
+                    <span className="w-8">{item.quantity}</span>
+                    <span className="flex-1 truncate pr-2">{item.product.name}</span>
+                    <span className="w-16 text-right">{item.unitPrice.toFixed(2)}</span>
+                    <span className="w-16 text-right">{item.totalAmount.toFixed(2)}</span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Totals */}
+              <div className="border-b-2 border-gray-900 pb-2 mb-2">
+                <div className="flex justify-between">
+                  <span>Subtotal:</span>
+                  <span>₹{subtotal.toFixed(2)}</span>
+                </div>
+                {totalDiscount > 0 && (
+                  <div className="flex justify-between">
+                    <span>Discount:</span>
+                    <span>-₹{totalDiscount.toFixed(2)}</span>
+                  </div>
+                )}
+                <div className="flex justify-between">
+                  <span>Tax:</span>
+                  <span>₹{totalGST.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between font-bold text-sm pt-1 border-t border-gray-400 mt-1">
+                  <span>TOTAL:</span>
+                  <span>₹{lastSale.invoice?.totalAmount.toFixed(2)}</span>
+                </div>
+              </div>
+
+              {/* Payment Info */}
+              <div className="border-b border-gray-400 pb-2 mb-2">
+                <div className="flex justify-between">
+                  <span>Payment Method:</span>
+                  <span className="font-semibold">{PAYMENT_METHODS.find(m => m.id === paymentMethod)?.label}</span>
+                </div>
+                {paymentMethod === 'cash' && cashReceived > 0 && (
+                  <>
+                    <div className="flex justify-between">
+                      <span>Cash Received:</span>
+                      <span>₹{cashReceived.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Change:</span>
+                      <span>₹{change.toFixed(2)}</span>
+                    </div>
+                  </>
+                )}
+              </div>
+
+              {/* Footer */}
+              <div className="text-center mt-4">
+                <p className="font-semibold text-sm">Thank You!</p>
+                <p className="text-xs mt-1">Visit Again</p>
+                {organization.name && (
+                  <p className="text-xs mt-2">Powered by {organization.name}</p>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Print Styles */}
+          <style jsx global>{`
+            @media print {
+              @page {
+                size: 80mm auto;
+                margin: 0;
+              }
+              body * {
+                visibility: hidden;
+              }
+              .print-receipt, .print-receipt * {
+                visibility: visible;
+              }
+              .print-receipt {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 80mm;
+              }
+            }
+          `}</style>
+        </>
       )}
 
       {/* UPI QR Payment Modal */}
