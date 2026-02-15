@@ -85,6 +85,7 @@ model Tenant {
   serialNumbers  SerialNumber[]
   stockTakes     StockTake[]
   auditLogs      AuditLog[]
+  receiptScans   ReceiptScan[]
 
   @@map("tenants")
 }
