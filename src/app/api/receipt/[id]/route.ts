@@ -67,6 +67,7 @@ export async function GET(
     const receiptData = {
       invoiceNumber: invoice.invoiceNumber,
       invoiceDate: invoice.invoiceDate,
+      businessName: invoice.businessName,
       items: invoice.items.map(item => ({
         description: item.description,
         quantity: item.quantity,

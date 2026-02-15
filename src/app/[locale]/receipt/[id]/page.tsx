@@ -14,6 +14,7 @@ interface ReceiptItem {
 interface ReceiptData {
   invoiceNumber: string
   invoiceDate: string
+  businessName: string
   items: ReceiptItem[]
   subtotal: number
   totalAmount: number
@@ -105,13 +106,12 @@ export default function ReceiptPage() {
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4">
       <div className="max-w-md mx-auto bg-white rounded-xl shadow-lg overflow-hidden print:shadow-none">
-        {/* Header */}
+        {/* Header - Shop Name */}
         <div className="bg-gradient-to-r from-indigo-500 to-purple-600 p-6 text-white">
-          <div className="flex items-center justify-center gap-2 mb-2">
-            <Package className="w-6 h-6" />
-            <span className="font-bold text-lg">Receipt</span>
+          <div className="text-center">
+            <h1 className="text-xl font-bold mb-1">{receipt.businessName || 'Shop Name'}</h1>
+            <p className="text-white/80 text-sm">Receipt #{receipt.invoiceNumber}</p>
           </div>
-          <p className="text-center text-white/80 text-sm">{receipt.invoiceNumber}</p>
         </div>
 
         {/* Content */}
@@ -201,10 +201,16 @@ export default function ReceiptPage() {
         </div>
       </div>
 
-      {/* Footer */}
-      <p className="text-center text-gray-400 text-xs mt-6">
-        Powered by DKS StockAlert
-      </p>
+      {/* Watermark Footer */}
+      <div className="relative mt-6">
+        <p className="text-center text-gray-300 text-xs opacity-50">
+          Powered by DKS StockAlert
+        </p>
+        {/* Watermark */}
+        <div className="fixed bottom-4 right-4 opacity-10 pointer-events-none print:hidden">
+          <span className="text-4xl font-bold text-gray-400 rotate-45">DKS</span>
+        </div>
+      </div>
     </div>
   )
 }
