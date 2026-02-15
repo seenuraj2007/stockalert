@@ -5,9 +5,10 @@ import { getUserFromRequest } from '@/lib/auth'
 // POST /api/purchase-orders/[id]/items/[itemId]/receive - Receive items with serial numbers
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string; itemId: string } }
+  { params }: { params: Promise<{ id: string; itemId: string }> }
 ) {
   try {
+    const { id, itemId } = await params
     const user = await getUserFromRequest(req)
     if (!user || !user.tenantId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -26,8 +27,8 @@ export async function POST(
     // Get the purchase order item
     const orderItem = await prisma.purchaseOrderItem.findFirst({
       where: {
-        id: params.itemId,
-        orderId: params.id,
+        id: itemId,
+        orderId: id,
       },
       include: {
         order: true,
@@ -145,7 +146,7 @@ export async function POST(
           warrantyMonths,
           warrantyExpiry,
           unitCost: orderItem.unitCost.toNumber(),
-          createdBy: user.userId,
+          createdBy: user.id,
         })),
       })
     }
@@ -161,7 +162,7 @@ export async function POST(
     // Update order item received quantity
     const newReceivedQty = orderItem.receivedQty + quantity
     await prisma.purchaseOrderItem.update({
-      where: { id: params.itemId },
+      where: { id: itemId },
       data: {
         receivedQty: newReceivedQty,
       },
@@ -177,8 +178,8 @@ export async function POST(
         quantityDelta: quantity,
         runningBalance: stockLevel.quantity + quantity,
         referenceType: 'PURCHASE_ORDER',
-        referenceId: params.id,
-        userId: user.userId,
+        referenceId: id,
+        userId: user.id,
         notes: serial_numbers
           ? `Received ${quantity} items with serial numbers`
           : `Received ${quantity} items`,
@@ -187,7 +188,7 @@ export async function POST(
 
     // Update purchase order status
     const allItems = await prisma.purchaseOrderItem.findMany({
-      where: { orderId: params.id },
+      where: { orderId: id },
     })
 
     const allReceived = allItems.every(
@@ -195,7 +196,7 @@ export async function POST(
     )
     const anyReceived = allItems.some((item) => item.receivedQty > 0)
 
-    let newStatus = orderItem.order.status
+    let newStatus: 'DRAFT' | 'ORDERED' | 'PARTIAL' | 'RECEIVED' = orderItem.order.status
     if (allReceived) {
       newStatus = 'RECEIVED'
     } else if (anyReceived) {
@@ -204,7 +205,7 @@ export async function POST(
 
     if (newStatus !== orderItem.order.status) {
       await prisma.purchaseOrder.update({
-        where: { id: params.id },
+        where: { id: id },
         data: { status: newStatus },
       })
     }
