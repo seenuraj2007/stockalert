@@ -247,7 +247,7 @@ export default function AnalyticsPage() {
 
           <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
             <div className="mb-4 sm:mb-6">
-              <div className="flex gap-1.5 bg-gray-100 p-1.5 rounded-xl overflow-x-auto scrollbar-hide -mx-3 px-3 sm:mx-0 sm:px-0 sm:overflow-visible">
+              <div className="flex gap-1.5 bg-gray-100 p-1.5 rounded-xl overflow-x-auto">
                 {tabs.map((tab) => (
                   <button
                     key={tab.id}
