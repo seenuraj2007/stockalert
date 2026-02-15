@@ -225,6 +225,15 @@ export default function POSPage() {
         credentials: 'include'
       })
       console.log('[POS] Response status:', res.status)
+      
+      // Check if response is HTML (redirect to login)
+      const contentType = res.headers.get('content-type')
+      if (!contentType || !contentType.includes('application/json')) {
+        console.log('[POS] Received HTML response, redirecting to auth')
+        router.push('/auth')
+        return
+      }
+      
       if (res.status === 401) {
         router.push('/auth')
         return
@@ -247,17 +256,20 @@ export default function POSPage() {
   const fetchCustomers = useCallback(async () => {
     try {
       setCustomersLoading(true)
-      const res = await fetch('/api/customers')
+      const res = await fetch('/api/customers', { credentials: 'include' })
+      const contentType = res.headers.get('content-type')
+      if (!contentType || !contentType.includes('application/json')) {
+        setCustomers([])
+        return
+      }
       if (res.ok) {
         const data = await res.json()
         setCustomers(data.customers || [])
       } else if (res.status === 404) {
-        // API endpoint might not exist yet
         setCustomers([])
       }
     } catch (error) {
       console.error('Error fetching customers:', error)
-      // Don't show error for customers - they're optional
       setCustomers([])
     } finally {
       setCustomersLoading(false)
@@ -267,12 +279,16 @@ export default function POSPage() {
   const fetchOrganization = useCallback(async () => {
     try {
       setOrgLoading(true)
-      const res = await fetch('/api/settings/organization')
+      const res = await fetch('/api/settings/organization', { credentials: 'include' })
+      const contentType = res.headers.get('content-type')
+      if (!contentType || !contentType.includes('application/json')) {
+        setOrganization({})
+        return
+      }
       if (res.ok) {
         const data = await res.json()
         setOrganization(data.organization || {})
       } else if (res.status === 404) {
-        // API endpoint might not exist yet
         setOrganization({})
       }
     } catch (error) {
