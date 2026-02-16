@@ -2,7 +2,6 @@
 
 import { useEffect, useState, useCallback, useMemo, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import Image from 'next/image'
 import { 
   Plus, Minus, Trash2, Search, X, 
   Package, Barcode, User, CheckCircle, ShoppingCart, 
@@ -55,14 +54,12 @@ const ProductCard = memo(({
         <div className="flex flex-col h-full w-full">
           <div className="w-full aspect-square max-h-28 bg-gray-100 rounded-lg mb-2 flex items-center justify-center overflow-hidden relative">
             {product.image_url ? (
-              <Image 
-                src={product.image_url} 
-                alt={product.name} 
-                fill
-                className="object-cover" 
-                loading="lazy"
-                sizes="(max-width: 640px) 50vw, 25vw"
-              />
+<img 
+                              src={product.image_url} 
+                              alt={product.name} 
+                              className="object-cover w-full h-full"
+                              loading="lazy"
+                            />
             ) : (
               <Package className="w-10 h-10 text-gray-500" />
             )}
@@ -87,13 +84,11 @@ const ProductCard = memo(({
         <>
           <div className="w-14 h-14 sm:w-16 sm:h-16 bg-gray-100 rounded-xl flex items-center justify-center flex-shrink-0 relative">
             {product.image_url ? (
-              <Image 
+              <img 
                 src={product.image_url} 
                 alt={product.name} 
-                fill
-                className="object-cover rounded-xl" 
+                className="object-cover w-full h-full rounded-xl"
                 loading="lazy"
-                sizes="64px"
               />
             ) : (
               <Package className="w-8 h-8 text-gray-500" />
@@ -1158,12 +1153,11 @@ export default function POSPage() {
                         {/* Product Image */}
                         <div className="w-16 h-16 bg-gray-100 rounded-xl flex-shrink-0 flex items-center justify-center overflow-hidden">
                           {item.product.image_url ? (
-                            <Image 
+                            <img 
                               src={item.product.image_url} 
                               alt={item.product.name}
-                              width={64}
-                              height={64}
                               className="object-cover w-full h-full"
+                              loading="lazy"
                             />
                           ) : (
                             <Package className="w-8 h-8 text-gray-400" />
@@ -1929,12 +1923,10 @@ export default function POSPage() {
                   <p className="text-2xl font-bold text-indigo-600 mb-4">₹{total.toFixed(2)}</p>
                   <div className="bg-white border-2 border-gray-200 rounded-xl p-4 mb-4 inline-block relative w-48 h-48">
                     {upiQrDataUrl ? (
-                      <Image 
+                      <img 
                         src={upiQrDataUrl} 
                         alt="UPI QR Code" 
-                        fill
-                        className="object-contain p-2"
-                        sizes="192px"
+                        className="object-contain w-full h-full p-2"
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
