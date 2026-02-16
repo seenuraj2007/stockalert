@@ -820,8 +820,30 @@ export default function POSPage() {
     }
   }
 
-  // Quick amount buttons for cash
-  const quickCashAmounts = [100, 200, 500, 1000, 2000]
+  // Dynamic quick amount buttons based on total
+  const quickCashAmounts = useMemo(() => {
+    const rounded = Math.ceil(total / 10) * 10
+    const amounts = new Set<number>()
+    amounts.add(rounded)
+    amounts.add(Math.ceil(total / 5) * 5)
+    amounts.add(Math.ceil(total / 2) * 2)
+    if (total < 100) {
+      amounts.add(50)
+      amounts.add(100)
+    } else if (total < 500) {
+      amounts.add(100)
+      amounts.add(200)
+      amounts.add(500)
+    } else if (total < 1000) {
+      amounts.add(500)
+      amounts.add(1000)
+    } else {
+      amounts.add(1000)
+      amounts.add(2000)
+      amounts.add(5000)
+    }
+    return Array.from(amounts).sort((a, b) => a - b).slice(0, 4)
+  }, [total])
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -1448,15 +1470,21 @@ export default function POSPage() {
                   />
                 </div>
                 {cashReceived > 0 && cashReceived >= total && (
-                  <div className="flex justify-between mt-2 p-2 bg-green-50 rounded-lg">
-                    <span className="text-sm text-green-700">Change Due</span>
-                    <span className="font-bold text-green-700">₹{change.toFixed(2)}</span>
+                  <div className="flex justify-between mt-2 p-3 bg-green-100 border border-green-200 rounded-xl">
+                    <span className="text-green-800 font-medium">Change Due</span>
+                    <span className="font-bold text-green-700 text-lg">₹{change.toFixed(0)}</span>
                   </div>
                 )}
                 {cashReceived > 0 && cashReceived < total && (
-                  <div className="flex justify-between mt-2 p-2 bg-red-50 rounded-lg">
-                    <span className="text-sm text-red-700">Balance Due</span>
-                    <span className="font-bold text-red-700">₹{(total - cashReceived).toFixed(2)}</span>
+                  <div className="flex justify-between mt-2 p-3 bg-red-100 border border-red-200 rounded-xl">
+                    <span className="text-red-800 font-medium">Balance Due</span>
+                    <span className="font-bold text-red-700 text-lg">₹{(total - cashReceived).toFixed(0)}</span>
+                  </div>
+                )}
+                {paymentMethod === 'cash' && cashReceived === 0 && (
+                  <div className="flex justify-between mt-2 p-3 bg-amber-100 border border-amber-200 rounded-xl">
+                    <span className="text-amber-800 font-medium">Amount to Pay</span>
+                    <span className="font-bold text-amber-700 text-lg">₹{total.toFixed(0)}</span>
                   </div>
                 )}
               </div>
