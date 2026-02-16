@@ -438,12 +438,6 @@ export default function POSPage() {
     }
   }, [selectedCustomer, organization])
 
-  useEffect(() => {
-    if (cart.length > 0 && paymentMethod === 'cash' && cashReceived === 0 && total > 0) {
-      setCashReceived(Math.round(total))
-    }
-  }, [cart.length, paymentMethod, total, cashReceived])
-
   // Calculations
   const calculateItemPrice = (product: Product, qty: number = 1, discount: number = 0) => {
     const taxableAmount = product.selling_price * qty * (1 - discount / 100)
@@ -1441,9 +1435,18 @@ export default function POSPage() {
                 <div className="relative">
                   <IndianRupee className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
                   <input
-                    type="number"
-                    value={cashReceived || ''}
-                    onChange={(e) => setCashReceived(parseFloat(e.target.value) || 0)}
+                    type="text"
+                    inputMode="decimal"
+                    value={cashReceived === 0 ? '' : String(cashReceived)}
+                    onChange={(e) => {
+                      const val = e.target.value
+                      if (val === '') {
+                        setCashReceived(0)
+                      } else {
+                        setCashReceived(Number(val) || 0)
+                      }
+                    }}
+                    onFocus={(e) => e.target.select()}
                     placeholder="Cash received"
                     className="w-full pl-9 pr-4 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-900"
                   />
