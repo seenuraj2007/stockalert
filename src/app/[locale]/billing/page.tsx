@@ -13,6 +13,116 @@ import {
   Loader2, Info, Scale
 } from 'lucide-react'
 import QRCode from 'qrcode'
+import { memo, useState } from 'react'
+
+// Memoized Product Card Component to prevent unnecessary re-renders
+const ProductCard = memo(({
+  product,
+  viewMode,
+  onClick
+}: {
+  product: Product
+  viewMode: 'grid' | 'list'
+  onClick: (product: Product) => void
+}) => {
+  const [isClicked, setIsClicked] = useState(false)
+
+  const handleClick = () => {
+    if (product.current_quantity === 0) return
+    setIsClicked(true)
+    setTimeout(() => setIsClicked(false), 300)
+    onClick(product)
+  }
+
+  return (
+    <button
+      onClick={handleClick}
+      disabled={product.current_quantity === 0}
+      className={`product-card relative bg-white rounded-xl border-2 hover:border-indigo-400 hover:shadow-lg active:scale-95 active:bg-indigo-50 transition-all text-left touch-manipulation select-none ${
+        viewMode === 'grid'
+          ? 'h-full min-h-[140px] p-3 sm:p-4 flex flex-col'
+          : 'w-full p-3 sm:p-4 flex items-center gap-3'
+      } ${
+        product.current_quantity === 0
+          ? 'border-gray-200 opacity-50 cursor-not-allowed'
+          : product.current_quantity <= product.reorder_point
+          ? 'border-orange-300 ring-2 ring-orange-100'
+          : 'border-gray-200'
+      } ${isClicked ? 'selected' : ''}`}
+      style={{ WebkitTapHighlightColor: 'transparent' }}
+    >
+      {viewMode === 'grid' ? (
+        <div className="flex flex-col h-full w-full">
+          <div className="w-full aspect-square max-h-28 bg-gray-100 rounded-lg mb-2 flex items-center justify-center overflow-hidden relative">
+            {product.image_url ? (
+              <Image 
+                src={product.image_url} 
+                alt={product.name} 
+                fill
+                className="object-cover" 
+                loading="lazy"
+                sizes="(max-width: 640px) 50vw, 25vw"
+              />
+            ) : (
+              <Package className="w-10 h-10 text-gray-500" />
+            )}
+          </div>
+          <div className="flex-1 flex flex-col min-h-0">
+            <p className="font-semibold text-gray-900 text-sm sm:text-base leading-tight line-clamp-2 mb-1">{product.name}</p>
+            <p className="text-xs text-gray-500 mb-2">{product.sku || 'No SKU'}</p>
+            <div className="flex items-center justify-between mt-auto pt-1 gap-1">
+              <p className="font-bold text-indigo-600 text-base sm:text-lg">₹{product.selling_price.toFixed(0)}</p>
+              <span className={`text-xs font-bold px-2 py-1 rounded-full whitespace-nowrap ${product.current_quantity === 0 ? 'bg-red-100 text-red-700' : product.current_quantity <= product.reorder_point ? 'bg-orange-100 text-orange-700' : 'bg-green-100 text-green-700'}`}>
+                {product.current_quantity}
+              </span>
+            </div>
+          </div>
+          {product.current_quantity === 0 && (
+            <div className="absolute inset-0 bg-gray-100/80 rounded-xl flex items-center justify-center">
+              <span className="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">OUT OF STOCK</span>
+            </div>
+          )}
+        </div>
+      ) : (
+        <>
+          <div className="w-14 h-14 sm:w-16 sm:h-16 bg-gray-100 rounded-xl flex items-center justify-center flex-shrink-0 relative">
+            {product.image_url ? (
+              <Image 
+                src={product.image_url} 
+                alt={product.name} 
+                fill
+                className="object-cover rounded-xl" 
+                loading="lazy"
+                sizes="64px"
+              />
+            ) : (
+              <Package className="w-8 h-8 text-gray-500" />
+            )}
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="font-semibold text-gray-900 text-base sm:text-lg truncate">{product.name}</p>
+            <p className="text-sm text-gray-500">{product.sku || 'No SKU'}</p>
+            <div className="flex items-center gap-2 mt-1">
+              <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${product.current_quantity === 0 ? 'bg-red-100 text-red-700' : product.current_quantity <= product.reorder_point ? 'bg-orange-100 text-orange-700' : 'bg-green-100 text-green-700'}`}>
+                Stock: {product.current_quantity}
+              </span>
+            </div>
+          </div>
+          <div className="text-right flex flex-col items-end gap-1">
+            <p className="font-bold text-indigo-600 text-lg sm:text-xl">₹{product.selling_price.toFixed(0)}</p>
+            {product.current_quantity > 0 && (
+              <div className="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center">
+                <Plus className="w-5 h-5 text-indigo-600" />
+              </div>
+            )}
+          </div>
+        </>
+      )}
+    </button>
+  )
+})
+
+ProductCard.displayName = 'ProductCard'
 
 // Types
 interface Product {
@@ -981,84 +1091,12 @@ export default function POSPage() {
                 : "space-y-2"
               }>
                 {filteredProducts.map(product => (
-                  <button
+                  <ProductCard
                     key={product.id}
-                    onClick={() => addToCart(product)}
-                    disabled={product.current_quantity === 0}
-                    className={viewMode === 'grid'
-                      ? `product-card relative h-full min-h-[140px] p-3 sm:p-4 bg-white rounded-xl border-2 ${product.current_quantity === 0 ? 'border-gray-200 opacity-50 cursor-not-allowed' : product.current_quantity <= product.reorder_point ? 'border-orange-300 ring-2 ring-orange-100' : 'border-gray-200'} hover:border-indigo-400 hover:shadow-lg active:scale-95 active:bg-indigo-50 transition-all text-left touch-manipulation select-none ${clickedProduct === product.id ? 'selected' : ''}`
-                      : `product-card relative w-full p-3 sm:p-4 bg-white rounded-xl border-2 ${product.current_quantity === 0 ? 'border-gray-200 opacity-50 cursor-not-allowed' : 'border-gray-200'} hover:border-indigo-400 hover:shadow-lg active:scale-95 active:bg-indigo-50 transition-all flex items-center gap-3 touch-manipulation select-none ${clickedProduct === product.id ? 'selected' : ''}`
-                    }
-                    style={{ WebkitTapHighlightColor: 'transparent' }}
-                  >
-                    {viewMode === 'grid' ? (
-                      <div className="flex flex-col h-full w-full">
-                        <div className="w-full aspect-square max-h-28 bg-gray-100 rounded-lg mb-2 flex items-center justify-center overflow-hidden relative">
-                          {product.image_url ? (
-                            <Image 
-                              src={product.image_url} 
-                              alt={product.name} 
-                              fill
-                              className="object-cover" 
-                              loading="lazy"
-                              sizes="(max-width: 640px) 50vw, 25vw"
-                            />
-                          ) : (
-                            <Package className="w-10 h-10 text-gray-500" />
-                          )}
-                        </div>
-                        <div className="flex-1 flex flex-col min-h-0">
-                          <p className="font-semibold text-gray-900 text-sm sm:text-base leading-tight line-clamp-2 mb-1">{product.name}</p>
-                          <p className="text-xs text-gray-500 mb-2">{product.sku || 'No SKU'}</p>
-                          <div className="flex items-center justify-between mt-auto pt-1 gap-1">
-                            <p className="font-bold text-indigo-600 text-base sm:text-lg">₹{product.selling_price.toFixed(0)}</p>
-                            <span className={`text-xs font-bold px-2 py-1 rounded-full whitespace-nowrap ${product.current_quantity === 0 ? 'bg-red-100 text-red-700' : product.current_quantity <= product.reorder_point ? 'bg-orange-100 text-orange-700' : 'bg-green-100 text-green-700'}`}>
-                              {product.current_quantity}
-                            </span>
-                          </div>
-                        </div>
-                        {product.current_quantity === 0 && (
-                          <div className="absolute inset-0 bg-gray-100/80 rounded-xl flex items-center justify-center">
-                            <span className="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">OUT OF STOCK</span>
-                          </div>
-                        )}
-                      </div>
-                    ) : (
-                      <>
-                        <div className="w-14 h-14 sm:w-16 sm:h-16 bg-gray-100 rounded-xl flex items-center justify-center flex-shrink-0 relative">
-                          {product.image_url ? (
-                            <Image 
-                              src={product.image_url} 
-                              alt={product.name} 
-                              fill
-                              className="object-cover rounded-xl" 
-                              loading="lazy"
-                              sizes="64px"
-                            />
-                          ) : (
-                            <Package className="w-8 h-8 text-gray-500" />
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-semibold text-gray-900 text-base sm:text-lg truncate">{product.name}</p>
-                          <p className="text-sm text-gray-500">{product.sku || 'No SKU'}</p>
-                          <div className="flex items-center gap-2 mt-1">
-                            <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${product.current_quantity === 0 ? 'bg-red-100 text-red-700' : product.current_quantity <= product.reorder_point ? 'bg-orange-100 text-orange-700' : 'bg-green-100 text-green-700'}`}>
-                              Stock: {product.current_quantity}
-                            </span>
-                          </div>
-                        </div>
-                        <div className="text-right flex flex-col items-end gap-1">
-                          <p className="font-bold text-indigo-600 text-lg sm:text-xl">₹{product.selling_price.toFixed(0)}</p>
-                          {product.current_quantity > 0 && (
-                            <div className="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center">
-                              <Plus className="w-5 h-5 text-indigo-600" />
-                            </div>
-                          )}
-                        </div>
-                      </>
-                    )}
-                  </button>
+                    product={product}
+                    viewMode={viewMode}
+                    onClick={addToCart}
+                  />
                 ))}
               </div>
             )}
