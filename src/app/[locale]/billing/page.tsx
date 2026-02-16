@@ -1135,8 +1135,8 @@ export default function POSPage() {
             </button>
           </div>
 
-          {/* Cart Items */}
-          <div className="flex-1 p-3 sm:p-4 overflow-y-auto lg:overflow-visible" suppressHydrationWarning>
+          {/* Cart Items - Fixed on mobile, scrollable on desktop */}
+          <div className="flex-1 p-3 sm:p-4 overflow-hidden lg:overflow-auto" suppressHydrationWarning>
             {cart.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-gray-500 py-8">
                 <ShoppingCart className="w-16 h-16 mb-3 opacity-30" />
@@ -1144,7 +1144,7 @@ export default function POSPage() {
                 <p className="text-sm text-gray-500">Tap products to add them</p>
               </div>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-3 overflow-hidden lg:overflow-auto">
                 {cart.map(item => (
                   <div key={item.product.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                     {/* Product Header with Image */}
