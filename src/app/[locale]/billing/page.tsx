@@ -602,6 +602,50 @@ export default function POSPage() {
     setCart(updatedCart)
   }
 
+  const updateWeight = (productId: string, weightKg: number) => {
+    if (weightKg < 0) {
+      return
+    }
+    if (weightKg === 0) {
+      const updatedCart = cart.map(item => {
+        if (item.product.id === productId) {
+          const pricePerKg = item.product.selling_price
+          return {
+            ...item,
+            weightKg: 0,
+            quantity: 1,
+            taxableAmount: 0,
+            cgstAmount: 0,
+            sgstAmount: 0,
+            igstAmount: 0,
+            totalAmount: 0
+          }
+        }
+        return item
+      })
+      setCart(updatedCart)
+      return
+    }
+    const updatedCart = cart.map(item => {
+      if (item.product.id === productId) {
+        const pricePerKg = item.product.selling_price
+        const totalPrice = weightKg * pricePerKg
+        return {
+          ...item,
+          weightKg,
+          quantity: 1,
+          taxableAmount: totalPrice,
+          cgstAmount: 0,
+          sgstAmount: 0,
+          igstAmount: 0,
+          totalAmount: totalPrice
+        }
+      }
+      return item
+    })
+    setCart(updatedCart)
+  }
+
   const removeFromCart = (productId: string) => {
     setCart(cart.filter(item => item.product.id !== productId))
   }
@@ -613,6 +657,7 @@ export default function POSPage() {
     setSelectedCustomer(null)
     setItemNotes({})
     setCashReceived(0)
+    setShowMobileCart(false)
   }
 
   const holdSale = () => {
@@ -1195,29 +1240,51 @@ export default function POSPage() {
                     {/* Quantity Controls */}
                     <div className="px-4 pb-4">
                       <div className="flex items-center justify-between bg-gray-50 rounded-xl p-2">
-                        <div className="flex items-center gap-2">
-                          <button
-                            onClick={() => updateQuantity(item.product.id, -1)}
-                            disabled={!!item.weightKg || item.quantity <= 1}
-                            className="w-10 h-10 bg-white rounded-lg border border-gray-200 flex items-center justify-center hover:bg-gray-100 active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-sm"
-                            aria-label="Decrease quantity"
-                          >
-                            <Minus className="w-5 h-5 text-gray-700" />
-                          </button>
-                          
-                          <span className="w-12 text-center font-bold text-gray-900 text-lg">
-                            {item.quantity}
-                          </span>
-                          
-                          <button
-                            onClick={() => updateQuantity(item.product.id, 1)}
-                            disabled={!!item.weightKg}
-                            className="w-10 h-10 bg-white rounded-lg border border-gray-200 flex items-center justify-center hover:bg-gray-100 active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-sm"
-                            aria-label="Increase quantity"
-                          >
-                            <Plus className="w-5 h-5 text-gray-700" />
-                          </button>
-                        </div>
+                        {(item.product.unit === 'kg' || item.weightKg) ? (
+                          <div className="flex items-center gap-2 flex-1">
+                            <span className="text-sm text-gray-600 font-medium">Weight:</span>
+                            <input
+                              type="text"
+                              inputMode="decimal"
+                              value={(item.weightKg || 0) * 1000 === 0 ? '' : Math.round((item.weightKg || 0) * 1000)}
+                              onChange={(e) => {
+                                const grams = parseFloat(e.target.value) || 0
+                                updateWeight(item.product.id, grams / 1000)
+                              }}
+                              className="w-20 px-2 py-1.5 bg-white border border-gray-200 rounded-lg text-center text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                              placeholder="g"
+                            />
+                            <span className="text-sm text-gray-500">g</span>
+                            <span className="text-xs text-gray-400">
+                              (₹{item.product.selling_price}/kg)
+                            </span>
+                          </div>
+                        ) : (
+                          <>
+                            <div className="flex items-center gap-2">
+                              <button
+                                onClick={() => updateQuantity(item.product.id, -1)}
+                                disabled={item.quantity <= 1}
+                                className="w-10 h-10 bg-white rounded-lg border border-gray-200 flex items-center justify-center hover:bg-gray-100 active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-sm"
+                                aria-label="Decrease quantity"
+                              >
+                                <Minus className="w-5 h-5 text-gray-700" />
+                              </button>
+                              
+                              <span className="w-12 text-center font-bold text-gray-900 text-lg">
+                                {item.quantity}
+                              </span>
+                              
+                              <button
+                                onClick={() => updateQuantity(item.product.id, 1)}
+                                className="w-10 h-10 bg-white rounded-lg border border-gray-200 flex items-center justify-center hover:bg-gray-100 active:scale-95 transition-all shadow-sm"
+                                aria-label="Increase quantity"
+                              >
+                                <Plus className="w-5 h-5 text-gray-700" />
+                              </button>
+                            </div>
+                          </>
+                        )}
                         
                         {/* Remove Button */}
                         <button
