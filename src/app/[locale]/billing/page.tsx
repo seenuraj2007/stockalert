@@ -900,7 +900,7 @@ export default function POSPage() {
 
       {/* Mobile Sticky Bottom Bar - Shows when cart has items */}
       {cart.length > 0 && (
-        <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg shadow-gray-200/50  px-4 py-3 pb-safe">
+        <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg shadow-gray-200/50 z-30 px-4 py-3 pb-safe">
           <div className="flex items-center justify-between gap-3">
             <button
               onClick={() => setShowMobileCart(true)}
@@ -1100,7 +1100,7 @@ export default function POSPage() {
         </div>
 
         {/* Cart Section */}
-        <div className={`w-full lg:w-[420px] bg-white border-l border-gray-200 flex flex-col ${showMobileCart ? 'fixed inset-0  overflow-y-auto' : 'hidden lg:flex overflow-hidden lg:overflow-auto'}`} suppressHydrationWarning>
+        <div className={`w-full lg:w-[420px] bg-white border-l border-gray-200 flex z-40 flex-col ${showMobileCart ? 'fixed inset-0  overflow-y-auto' : 'hidden lg:flex overflow-hidden lg:overflow-auto'}`} suppressHydrationWarning>
           {/* Mobile Cart Header */}
           <div className="lg:hidden flex items-center justify-between p-5 border-b border-gray-200 bg-gray-50">
             <h2 className="text-xl font-bold text-gray-900">Cart ({cart.length} items)</h2>
