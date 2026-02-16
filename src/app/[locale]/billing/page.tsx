@@ -13,7 +13,7 @@ import {
   Loader2, Info, Scale
 } from 'lucide-react'
 import QRCode from 'qrcode'
-import { memo, useState } from 'react'
+import { memo } from 'react'
 
 // Memoized Product Card Component to prevent unnecessary re-renders
 const ProductCard = memo(({
