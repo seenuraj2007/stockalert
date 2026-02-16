@@ -823,9 +823,9 @@ export default function POSPage() {
         </div>
       )}
 
-      <div className="flex-1 flex flex-col lg:flex-row overflow-auto lg:overflow-hidden pb-20 lg:pb-0">
+      <div className="flex-1 flex flex-col lg:flex-row overflow-auto lg:overflow-hidden">
         {/* Products Section */}
-        <div className={`flex-1 flex flex-col overflow-auto lg:overflow-hidden ${showMobileCart ? 'hidden lg:flex' : 'flex'}`}>
+        <div className={`flex-1 flex flex-col overflow-auto lg:overflow-hidden pb-24 lg:pb-0 ${showMobileCart ? 'hidden lg:flex' : 'flex'}`}>
           {/* Search & Filters */}
           <div className="p-4 bg-white border-b border-gray-200">
             <div className="flex gap-3 mb-3">
@@ -1056,7 +1056,7 @@ export default function POSPage() {
         </div>
 
         {/* Cart Section */}
-        <div className={`w-full lg:w-96 bg-white border-l border-gray-200 flex flex-col ${showMobileCart ? 'fixed inset-0 z-50 lg:static lg:z-auto' : 'hidden lg:flex'}`}>
+        <div className={`w-full lg:w-96 bg-white border-l border-gray-200 flex flex-col overflow-auto lg:overflow-hidden ${showMobileCart ? 'fixed inset-0 z-50 lg:static lg:z-auto' : 'hidden lg:flex'}`}>
           {/* Mobile Cart Header */}
           <div className="lg:hidden flex items-center justify-between p-4 border-b border-gray-200 bg-gray-50">
             <h2 className="text-lg font-bold text-gray-900">Shopping Cart ({cart.length} items)</h2>
