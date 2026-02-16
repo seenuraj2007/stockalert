@@ -1141,7 +1141,7 @@ export default function POSPage() {
           </div>
 
           {/* Cart Items */}
-          <div className="flex-1 overflow-y-auto p-3 sm:p-4 pb-32 lg:pb-0">
+          <div className="flex-1 overflow-y-auto p-3 sm:p-4 pb-32">
             {cart.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-gray-500 py-8">
                 <ShoppingCart className="w-16 h-16 mb-3 opacity-30" />
