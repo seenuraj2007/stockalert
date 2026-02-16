@@ -820,30 +820,8 @@ export default function POSPage() {
     }
   }
 
-  // Dynamic quick amount buttons based on total
-  const quickCashAmounts = useMemo(() => {
-    const rounded = Math.ceil(total / 10) * 10
-    const amounts = new Set<number>()
-    amounts.add(rounded)
-    amounts.add(Math.ceil(total / 5) * 5)
-    amounts.add(Math.ceil(total / 2) * 2)
-    if (total < 100) {
-      amounts.add(50)
-      amounts.add(100)
-    } else if (total < 500) {
-      amounts.add(100)
-      amounts.add(200)
-      amounts.add(500)
-    } else if (total < 1000) {
-      amounts.add(500)
-      amounts.add(1000)
-    } else {
-      amounts.add(1000)
-      amounts.add(2000)
-      amounts.add(5000)
-    }
-    return Array.from(amounts).sort((a, b) => a - b).slice(0, 4)
-  }, [total])
+  // Static quick amount buttons
+  const quickCashAmounts = [50, 100, 200, 500]
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -1157,8 +1135,8 @@ export default function POSPage() {
             </button>
           </div>
 
-          {/* Cart Items - Fixed, non-scrollable on mobile */}
-          <div className="flex-1 p-3 sm:p-4 lg:flex-1 lg:overflow-auto">
+          {/* Cart Items */}
+          <div className="flex-1 p-3 sm:p-4 overflow-y-auto lg:overflow-visible">
             {cart.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-gray-500 py-8">
                 <ShoppingCart className="w-16 h-16 mb-3 opacity-30" />
