@@ -1135,8 +1135,8 @@ export default function POSPage() {
             </button>
           </div>
 
-          {/* Cart Items - Fixed height, scrollable on desktop but fixed on mobile */}
-          <div className="flex-1 overflow-y-auto p-3 sm:p-4 lg:overflow-visible lg:flex-1">
+          {/* Cart Items - Fixed, non-scrollable on mobile */}
+          <div className="flex-1 p-3 sm:p-4 lg:flex-1 lg:overflow-auto">
             {cart.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-gray-500 py-8">
                 <ShoppingCart className="w-16 h-16 mb-3 opacity-30" />
@@ -1144,7 +1144,7 @@ export default function POSPage() {
                 <p className="text-sm text-gray-500">Tap products to add them</p>
               </div>
             ) : (
-              <div className="space-y-3 max-h-[50vh] lg:max-h-none overflow-y-auto lg:overflow-visible">
+              <div className="space-y-3">
                 {cart.map(item => (
                   <div key={item.product.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                     {/* Product Header with Image */}
