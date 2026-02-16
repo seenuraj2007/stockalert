@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import { Plus, Search, Package, Edit, Trash2, AlertTriangle, X, SlidersHorizontal } from 'lucide-react'
 import Link from 'next/link'
 import { SubscriptionGate } from '@/components/SubscriptionGate'
@@ -262,9 +263,15 @@ export default function ProductsPage() {
                   >
                     {/* Product Image & Name */}
                     <div className="flex items-start gap-3 mb-3">
-                      <div className="w-14 h-14 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl flex items-center justify-center shadow-sm flex-shrink-0">
+                      <div className="w-14 h-14 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl flex items-center justify-center shadow-sm flex-shrink-0 relative">
                         {product.image_url ? (
-                          <img src={product.image_url} alt={product.name} className="w-14 h-14 rounded-xl object-cover" />
+                          <Image 
+                            src={product.image_url} 
+                            alt={product.name} 
+                            fill
+                            className="rounded-xl object-cover" 
+                            sizes="56px"
+                          />
                         ) : (
                           <Package className="w-7 h-7 text-gray-500" />
                         )}

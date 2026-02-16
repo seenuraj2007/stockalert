@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback, useMemo, useRef } from 'react'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import { 
   Plus, Minus, Trash2, Search, X, 
   Package, Barcode, User, CheckCircle, ShoppingCart, 
@@ -258,8 +259,6 @@ export default function POSPage() {
         return
       }
       if (!res.ok) {
-        const errorText = await res.text()
-        console.error('[POS] Error response:', errorText)
         throw new Error(`Failed to fetch products: ${res.status}`)
       }
       const data = await res.json()
@@ -994,9 +993,16 @@ export default function POSPage() {
                   >
                     {viewMode === 'grid' ? (
                       <div className="flex flex-col h-full w-full">
-                        <div className="w-full aspect-square max-h-28 bg-gray-100 rounded-lg mb-2 flex items-center justify-center overflow-hidden">
+                        <div className="w-full aspect-square max-h-28 bg-gray-100 rounded-lg mb-2 flex items-center justify-center overflow-hidden relative">
                           {product.image_url ? (
-                            <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" loading="lazy" />
+                            <Image 
+                              src={product.image_url} 
+                              alt={product.name} 
+                              fill
+                              className="object-cover" 
+                              loading="lazy"
+                              sizes="(max-width: 640px) 50vw, 25vw"
+                            />
                           ) : (
                             <Package className="w-10 h-10 text-gray-500" />
                           )}
@@ -1019,9 +1025,16 @@ export default function POSPage() {
                       </div>
                     ) : (
                       <>
-                        <div className="w-14 h-14 sm:w-16 sm:h-16 bg-gray-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                        <div className="w-14 h-14 sm:w-16 sm:h-16 bg-gray-100 rounded-xl flex items-center justify-center flex-shrink-0 relative">
                           {product.image_url ? (
-                            <img src={product.image_url} alt={product.name} className="w-full h-full object-cover rounded-xl" loading="lazy" />
+                            <Image 
+                              src={product.image_url} 
+                              alt={product.name} 
+                              fill
+                              className="object-cover rounded-xl" 
+                              loading="lazy"
+                              sizes="64px"
+                            />
                           ) : (
                             <Package className="w-8 h-8 text-gray-500" />
                           )}
@@ -1832,11 +1845,17 @@ export default function POSPage() {
               {upiPaymentStatus === 'pending' && (
                 <>
                   <p className="text-2xl font-bold text-indigo-600 mb-4">₹{total.toFixed(2)}</p>
-                  <div className="bg-white border-2 border-gray-200 rounded-xl p-4 mb-4 inline-block">
+                  <div className="bg-white border-2 border-gray-200 rounded-xl p-4 mb-4 inline-block relative w-48 h-48">
                     {upiQrDataUrl ? (
-                      <img src={upiQrDataUrl} alt="UPI QR Code" className="w-48 h-48" />
+                      <Image 
+                        src={upiQrDataUrl} 
+                        alt="UPI QR Code" 
+                        fill
+                        className="object-contain p-2"
+                        sizes="192px"
+                      />
                     ) : (
-                      <div className="w-48 h-48 flex items-center justify-center">
+                      <div className="w-full h-full flex items-center justify-center">
                         <Loader2 className="w-8 h-8 animate-spin text-gray-500" />
                       </div>
                     )}

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef, useCallback } from 'react'
+import Image from 'next/image'
 import { Upload, X, Image as ImageIcon, Loader2, Camera } from 'lucide-react'
 
 interface ImageUploadProps {
@@ -98,10 +99,12 @@ export default function ImageUpload({
         )}
         <div className="relative inline-block">
           <div className="relative w-40 h-40 rounded-xl overflow-hidden border border-gray-200 bg-gray-50">
-            <img
+            <Image
               src={value}
               alt="Product"
-              className="w-full h-full object-cover"
+              fill
+              className="object-cover"
+              sizes="160px"
             />
           </div>
           <button

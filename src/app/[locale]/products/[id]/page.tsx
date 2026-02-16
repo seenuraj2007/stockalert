@@ -2,6 +2,7 @@
 
 import { useState, useEffect, use, useMemo, memo } from 'react'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import { ArrowLeft, Plus, Minus, RotateCcw, Package, TrendingUp, AlertTriangle, History, Edit, Trash2, ArrowUpRight } from 'lucide-react'
 import Link from 'next/link'
 
@@ -256,11 +257,13 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
         </div>
 
         {product.image_url && (
-          <div className="mb-8">
-            <img
+          <div className="mb-8 relative w-80 h-60">
+            <Image
               src={product.image_url}
               alt={product.name}
-              className="max-w-xs rounded-2xl shadow-lg shadow-gray-200/50 border border-gray-100"
+              fill
+              className="rounded-2xl shadow-lg shadow-gray-200/50 border border-gray-100 object-contain"
+              sizes="320px"
             />
           </div>
         )}
