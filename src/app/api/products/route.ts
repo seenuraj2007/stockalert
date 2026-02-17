@@ -177,34 +177,60 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Failed to create product' }, { status: 500 })
     }
 
-    const primaryLocation = await prisma.location.findFirst({
+    // Get or create a location for stock levels
+    let location = await prisma.location.findFirst({
       where: {
         tenantId: user.tenantId,
         isPrimary: true, isActive: true, deletedAt: null
       }
     })
 
-    if (primaryLocation && current_quantity > 0) {
-      await prisma.stockLevel.upsert({
+    if (!location) {
+      // Try any active location
+      location = await prisma.location.findFirst({
         where: {
-          tenantId_productId_locationId: {
-            tenantId: user.tenantId,
-            productId: product.id,
-            locationId: primaryLocation.id
-          }
-        },
-        create: {
           tenantId: user.tenantId,
-          productId: product.id,
-          locationId: primaryLocation.id,
-          quantity: current_quantity,
-          reservedQuantity: 0,
-          reorderPoint: reorder_point ?? 0,
-          version: 0
-        },
-        update: { quantity: current_quantity }
+          isActive: true, deletedAt: null
+        }
       })
     }
+
+    if (!location) {
+      // Create default location
+      location = await prisma.location.create({
+        data: {
+          tenantId: user.tenantId,
+          name: 'Main Warehouse',
+          type: 'WAREHOUSE',
+          isPrimary: true,
+          isActive: true
+        }
+      })
+    }
+
+    // Always create stock level for new products
+    await prisma.stockLevel.upsert({
+      where: {
+        tenantId_productId_locationId: {
+          tenantId: user.tenantId,
+          productId: product.id,
+          locationId: location.id
+        }
+      },
+      create: {
+        tenantId: user.tenantId,
+        productId: product.id,
+        locationId: location.id,
+        quantity: current_quantity ?? 0,
+        reservedQuantity: 0,
+        reorderPoint: reorder_point ?? 0,
+        version: 0
+      },
+      update: { 
+        quantity: current_quantity ?? 0,
+        reorderPoint: reorder_point ?? 0
+      }
+    })
 
     const responseData = {
       id: product.id,
