@@ -149,10 +149,10 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
 
     return (
         <SidebarLayout>
-            <div className="max-w-5xl mx-auto print:max-w-none">
+            <div className="max-w-5xl mx-auto px-4 sm:px-0 print:max-w-none print:px-0">
                 {/* Header Actions */}
-                <div className="flex items-center justify-between mb-8 print:hidden">
-                    <div className="flex items-center gap-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8 print:hidden">
+                    <div className="flex items-center gap-3 sm:gap-4">
                         <Link
                             href="/invoices"
                             className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
@@ -160,36 +160,37 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
                             <ArrowLeft className="w-5 h-5 text-gray-600" />
                         </Link>
                         <div>
-                            <h1 className="text-2xl font-bold text-gray-900">Invoice {invoice.invoiceNumber}</h1>
-                            <span className={`inline-block mt-1 px-3 py-1 text-sm font-medium rounded-full ${getStatusColor(invoice.status)}`}>
+                            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Invoice {invoice.invoiceNumber}</h1>
+                            <span className={`inline-block mt-1 px-2 sm:px-3 py-0.5 sm:py-1 text-xs sm:text-sm font-medium rounded-full ${getStatusColor(invoice.status)}`}>
                                 {invoice.status}
                             </span>
                         </div>
                     </div>
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2 sm:gap-3 ml-11 sm:ml-0 flex-wrap">
                         <button
                             onClick={handlePrint}
-                            className="inline-flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-lg font-medium hover:bg-gray-50 transition-colors"
+                            className="inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 border border-gray-200 rounded-lg font-medium hover:bg-gray-50 transition-colors text-sm"
                         >
                             <Printer className="w-4 h-4" />
-                            Print
+                            <span className="hidden sm:inline">Print</span>
                         </button>
                         {invoice.status === 'DRAFT' && (
                             <>
                                 <Link
                                     href={`/invoices/${invoice.id}/edit`}
-                                    className="inline-flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-lg font-medium hover:bg-gray-50 transition-colors"
+                                    className="inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 border border-gray-200 rounded-lg font-medium hover:bg-gray-50 transition-colors text-sm"
                                 >
                                     <Edit className="w-4 h-4" />
-                                    Edit
+                                    <span className="hidden sm:inline">Edit</span>
                                 </Link>
                                 <button
                                     onClick={() => updateStatus('ISSUED')}
                                     disabled={updating}
-                                    className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors disabled:opacity-50"
+                                    className="inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors disabled:opacity-50 text-sm"
                                 >
                                     <CheckCircle className="w-4 h-4" />
-                                    Mark as Issued
+                                    <span className="hidden sm:inline">Mark as Issued</span>
+                                    <span className="sm:hidden">Issue</span>
                                 </button>
                             </>
                         )}
@@ -197,74 +198,75 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
                             <button
                                 onClick={() => updateStatus('PAID')}
                                 disabled={updating}
-                                className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors disabled:opacity-50"
+                                className="inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors disabled:opacity-50 text-sm"
                             >
                                 <CheckCircle className="w-4 h-4" />
-                                Mark as Paid
+                                <span className="hidden sm:inline">Mark as Paid</span>
+                                <span className="sm:hidden">Paid</span>
                             </button>
                         )}
                     </div>
                 </div>
 
                 {/* Invoice Content */}
-                <div className="bg-white rounded-xl border border-gray-200 p-8 print:border-none print:p-0">
+                <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-8 print:border-none print:p-0">
                     {/* Invoice Header */}
-                    <div className="flex justify-between items-start mb-8">
+                    <div className="flex flex-col sm:flex-row justify-between items-start gap-4 sm:gap-0 mb-6 sm:mb-8">
                         <div>
-                            <h2 className="text-3xl font-bold text-gray-900 mb-2">TAX INVOICE</h2>
-                            <p className="text-gray-600">{invoice.invoiceNumber}</p>
+                            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1 sm:mb-2">TAX INVOICE</h2>
+                            <p className="text-sm sm:text-base text-gray-600">{invoice.invoiceNumber}</p>
                         </div>
-                        <div className="text-right">
+                        <div className="text-left sm:text-right w-full sm:w-auto">
                             <div className="mb-2">
-                                <span className="text-gray-600">Invoice Date:</span>
-                                <p className="font-medium">{new Date(invoice.invoiceDate).toLocaleDateString('en-IN')}</p>
+                                <span className="text-xs sm:text-sm text-gray-600">Invoice Date:</span>
+                                <p className="font-medium text-sm sm:text-base">{new Date(invoice.invoiceDate).toLocaleDateString('en-IN')}</p>
                             </div>
                             {invoice.dueDate && (
                                 <div>
-                                    <span className="text-gray-600">Due Date:</span>
-                                    <p className="font-medium">{new Date(invoice.dueDate).toLocaleDateString('en-IN')}</p>
+                                    <span className="text-xs sm:text-sm text-gray-600">Due Date:</span>
+                                    <p className="font-medium text-sm sm:text-base">{new Date(invoice.dueDate).toLocaleDateString('en-IN')}</p>
                                 </div>
                             )}
                         </div>
                     </div>
 
                     {/* Business & Customer Details */}
-                    <div className="grid grid-cols-2 gap-8 mb-8">
-                        <div className="bg-gray-50 p-4 rounded-lg">
-                            <h3 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-8 mb-6 sm:mb-8">
+                        <div className="bg-gray-50 p-3 sm:p-4 rounded-lg">
+                            <h3 className="font-semibold text-gray-900 mb-2 flex items-center gap-2 text-sm sm:text-base">
                                 <Building2 className="w-4 h-4" />
                                 From
                             </h3>
-                            <p className="font-bold text-lg">{invoice.businessName}</p>
-                            {invoice.businessAddress && <p className="text-gray-600">{invoice.businessAddress}</p>}
+                            <p className="font-bold text-base sm:text-lg">{invoice.businessName}</p>
+                            {invoice.businessAddress && <p className="text-gray-600 text-sm">{invoice.businessAddress}</p>}
                             {(invoice.businessCity || invoice.businessState) && (
-                                <p className="text-gray-600">
+                                <p className="text-gray-600 text-sm">
                                     {invoice.businessCity}{invoice.businessCity && invoice.businessState && ', '}{invoice.businessState}
                                     {invoice.businessPincode && ` - ${invoice.businessPincode}`}
                                 </p>
                             )}
                             {invoice.businessGstNumber && (
-                                <p className="mt-2 text-sm">
+                                <p className="mt-2 text-xs sm:text-sm">
                                     <span className="font-medium">GSTIN:</span> {invoice.businessGstNumber}
                                 </p>
                             )}
                         </div>
 
-                        <div className="bg-gray-50 p-4 rounded-lg">
-                            <h3 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
+                        <div className="bg-gray-50 p-3 sm:p-4 rounded-lg">
+                            <h3 className="font-semibold text-gray-900 mb-2 flex items-center gap-2 text-sm sm:text-base">
                                 <User className="w-4 h-4" />
                                 Bill To
                             </h3>
-                            <p className="font-bold text-lg">{invoice.customerName}</p>
-                            {invoice.customerAddress && <p className="text-gray-600">{invoice.customerAddress}</p>}
+                            <p className="font-bold text-base sm:text-lg">{invoice.customerName}</p>
+                            {invoice.customerAddress && <p className="text-gray-600 text-sm">{invoice.customerAddress}</p>}
                             {(invoice.customerCity || invoice.customerState) && (
-                                <p className="text-gray-600">
+                                <p className="text-gray-600 text-sm">
                                     {invoice.customerCity}{invoice.customerCity && invoice.customerState && ', '}{invoice.customerState}
                                     {invoice.customerPincode && ` - ${invoice.customerPincode}`}
                                 </p>
                             )}
                             {invoice.customerGstNumber && (
-                                <p className="mt-2 text-sm">
+                                <p className="mt-2 text-xs sm:text-sm">
                                     <span className="font-medium">GSTIN:</span> {invoice.customerGstNumber}
                                 </p>
                             )}
@@ -272,24 +274,24 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
                     </div>
 
                     {/* Items Table */}
-                    <div className="mb-8">
-                        <table className="w-full">
+                    <div className="mb-6 sm:mb-8 -mx-4 sm:mx-0 overflow-x-auto">
+                        <table className="w-full min-w-[600px]">
                             <thead>
                                 <tr className="bg-gray-100 border-b-2 border-gray-200">
-                                    <th className="px-4 py-3 text-left text-sm font-semibold">#</th>
-                                    <th className="px-4 py-3 text-left text-sm font-semibold">Description</th>
-                                    <th className="px-4 py-3 text-center text-sm font-semibold">HSN</th>
-                                    <th className="px-4 py-3 text-center text-sm font-semibold">Qty</th>
-                                    <th className="px-4 py-3 text-right text-sm font-semibold">Price</th>
-                                    <th className="px-4 py-3 text-right text-sm font-semibold">Amount</th>
+                                    <th className="px-2 sm:px-4 py-2 sm:py-3 text-left text-xs sm:text-sm font-semibold">#</th>
+                                    <th className="px-2 sm:px-4 py-2 sm:py-3 text-left text-xs sm:text-sm font-semibold">Description</th>
+                                    <th className="px-2 sm:px-4 py-2 sm:py-3 text-center text-xs sm:text-sm font-semibold">HSN</th>
+                                    <th className="px-2 sm:px-4 py-2 sm:py-3 text-center text-xs sm:text-sm font-semibold">Qty</th>
+                                    <th className="px-2 sm:px-4 py-2 sm:py-3 text-right text-xs sm:text-sm font-semibold">Price</th>
+                                    <th className="px-2 sm:px-4 py-2 sm:py-3 text-right text-xs sm:text-sm font-semibold">Amount</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-200">
                                 {invoice.items.map((item, index) => (
                                     <tr key={item.id}>
-                                        <td className="px-4 py-3 text-gray-600">{index + 1}</td>
-                                        <td className="px-4 py-3">
-                                            <p className="font-medium">{item.description}</p>
+                                        <td className="px-2 sm:px-4 py-2 sm:py-3 text-gray-600 text-sm">{index + 1}</td>
+                                        <td className="px-2 sm:px-4 py-2 sm:py-3">
+                                            <p className="font-medium text-sm">{item.description}</p>
                                             {(Number(item.cgstAmount) > 0 || Number(item.sgstAmount) > 0) && (
                                                 <p className="text-xs text-gray-500 mt-1">
                                                     CGST @ {item.cgstRate}% = ₹{Number(item.cgstAmount).toFixed(2)}, 
@@ -302,10 +304,10 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
                                                 </p>
                                             )}
                                         </td>
-                                        <td className="px-4 py-3 text-center text-gray-600">{item.hsnCode || '-'}</td>
-                                        <td className="px-4 py-3 text-center">{item.quantity}</td>
-                                        <td className="px-4 py-3 text-right">₹{Number(item.unitPrice).toFixed(2)}</td>
-                                        <td className="px-4 py-3 text-right font-medium">₹{Number(item.totalAmount).toFixed(2)}</td>
+                                        <td className="px-2 sm:px-4 py-2 sm:py-3 text-center text-gray-600 text-sm">{item.hsnCode || '-'}</td>
+                                        <td className="px-2 sm:px-4 py-2 sm:py-3 text-center text-sm">{item.quantity}</td>
+                                        <td className="px-2 sm:px-4 py-2 sm:py-3 text-right text-sm">₹{Number(item.unitPrice).toFixed(2)}</td>
+                                        <td className="px-2 sm:px-4 py-2 sm:py-3 text-right font-medium text-sm">₹{Number(item.totalAmount).toFixed(2)}</td>
                                     </tr>
                                 ))}
                             </tbody>
@@ -313,39 +315,39 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
                     </div>
 
                     {/* Totals */}
-                    <div className="flex justify-end mb-8">
-                        <div className="w-80 space-y-2">
-                            <div className="flex justify-between text-gray-600">
+                    <div className="flex justify-end mb-6 sm:mb-8">
+                        <div className="w-full sm:w-80 space-y-1.5 sm:space-y-2">
+                            <div className="flex justify-between text-gray-600 text-sm">
                                 <span>Subtotal</span>
                                 <span>₹{Number(invoice.subtotal).toFixed(2)}</span>
                             </div>
                             {Number(invoice.totalCgst) > 0 && (
-                                <div className="flex justify-between text-gray-600">
+                                <div className="flex justify-between text-gray-600 text-sm">
                                     <span>CGST</span>
                                     <span>₹{Number(invoice.totalCgst).toFixed(2)}</span>
                                 </div>
                             )}
                             {Number(invoice.totalSgst) > 0 && (
-                                <div className="flex justify-between text-gray-600">
+                                <div className="flex justify-between text-gray-600 text-sm">
                                     <span>SGST</span>
                                     <span>₹{Number(invoice.totalSgst).toFixed(2)}</span>
                                 </div>
                             )}
                             {Number(invoice.totalIgst) > 0 && (
-                                <div className="flex justify-between text-gray-600">
+                                <div className="flex justify-between text-gray-600 text-sm">
                                     <span>IGST</span>
                                     <span>₹{Number(invoice.totalIgst).toFixed(2)}</span>
                                 </div>
                             )}
-                            <div className="flex justify-between text-gray-600 border-t border-gray-200 pt-2">
+                            <div className="flex justify-between text-gray-600 border-t border-gray-200 pt-2 text-sm">
                                 <span>Total GST</span>
                                 <span>₹{Number(invoice.totalGst).toFixed(2)}</span>
                             </div>
-                            <div className="flex justify-between text-xl font-bold text-gray-900 border-t-2 border-gray-900 pt-3">
+                            <div className="flex justify-between text-lg sm:text-xl font-bold text-gray-900 border-t-2 border-gray-900 pt-3">
                                 <span>Total Amount</span>
                                 <span>₹{Number(invoice.totalAmount).toFixed(2)}</span>
                             </div>
-                            <div className="text-right text-sm text-gray-600 mt-2">
+                            <div className="text-right text-xs sm:text-sm text-gray-600 mt-2">
                                 (Rupees {numberToWords(Number(invoice.totalAmount))} Only)
                             </div>
                         </div>
