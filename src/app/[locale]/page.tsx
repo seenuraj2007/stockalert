@@ -244,18 +244,18 @@ export default function HomePage() {
               {/* Mobile Menu Button */}
               <button 
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="md:hidden w-10 h-10 rounded-xl bg-white/10 hover:bg-white/20 transition-all border border-white/20 flex items-center justify-center"
+                className="md:hidden w-10 h-10 rounded-xl bg-white hover:bg-white/90 transition-all border border-white/30 flex items-center justify-center shadow-lg"
                 aria-label="Toggle menu"
               >
                 <div className="w-5 h-4 flex flex-col justify-between items-center py-0.5">
                   <span 
-                    className={`w-5 h-0.5 bg-white rounded-full transition-all duration-300 origin-center ${mobileMenuOpen ? 'rotate-45 translate-y-[7px]' : ''}`}
+                    className={`w-5 h-0.5 bg-slate-950 rounded-full transition-all duration-300 origin-center ${mobileMenuOpen ? 'rotate-45 translate-y-[7px]' : ''}`}
                   />
                   <span 
-                    className={`w-5 h-0.5 bg-white rounded-full transition-all duration-300 ${mobileMenuOpen ? 'opacity-0 scale-0' : ''}`}
+                    className={`w-5 h-0.5 bg-slate-950 rounded-full transition-all duration-300 ${mobileMenuOpen ? 'opacity-0 scale-0' : ''}`}
                   />
                   <span 
-                    className={`w-5 h-0.5 bg-white rounded-full transition-all duration-300 origin-center ${mobileMenuOpen ? '-rotate-45 -translate-y-[7px]' : ''}`}
+                    className={`w-5 h-0.5 bg-slate-950 rounded-full transition-all duration-300 origin-center ${mobileMenuOpen ? '-rotate-45 -translate-y-[7px]' : ''}`}
                   />
                 </div>
               </button>
