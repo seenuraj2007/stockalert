@@ -289,7 +289,7 @@ export default function HomePage() {
             {[
               { href: '#features', label: 'Features', icon: Package },
               { href: '#comparison', label: 'Why Us', icon: Star },
-              { href: '#pricing', label: 'Pricing', icon: IndianRupee },
+              { href: '/en/invoices', label: 'Invoices', icon: Receipt },
               { href: '#how-it-works', label: 'How It Works', icon: Clock },
             ].map((item) => (
               <a 
