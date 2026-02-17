@@ -354,49 +354,52 @@ export default function InvoicesPage() {
                             </div>
 
                             {filteredInvoices.map((invoice) => (
-                                <Link
+                                <div
                                     key={invoice.id}
-                                    href={`/invoices/${invoice.id}`}
-                                    className="block bg-white rounded-2xl p-4 shadow-sm border border-gray-100 active:scale-[0.98] transition-transform"
+                                    className="block bg-white rounded-2xl p-4 shadow-sm border border-gray-100"
                                 >
-                                    <div className="flex items-start justify-between mb-3">
-                                        <div className="flex-1 min-w-0">
-                                            <div className="flex items-center gap-2 mb-1">
-                                                <span className="text-lg font-bold text-gray-900">
-                                                    {invoice.invoiceNumber}
+                                    <Link
+                                        href={`/invoices/${invoice.id}`}
+                                        className="block active:scale-[0.98] transition-transform"
+                                    >
+                                        <div className="flex items-start justify-between mb-3">
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex items-center gap-2 mb-1">
+                                                    <span className="text-lg font-bold text-gray-900">
+                                                        {invoice.invoiceNumber}
+                                                    </span>
+                                                </div>
+                                                <p className="text-sm text-gray-500 truncate">
+                                                    {invoice.customerName}
+                                                </p>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <span className={`px-3 py-1.5 text-xs font-bold rounded-full ${getStatusColorMobile(invoice.status)}`}>
+                                                    {getStatusIcon(invoice.status)} {invoice.status}
+                                                </span>
+                                                <ArrowRight className="w-5 h-5 text-gray-300" />
+                                            </div>
+                                        </div>
+                                        
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-4 text-sm text-gray-500">
+                                                <span className="flex items-center gap-1">
+                                                    <Calendar className="w-4 h-4" />
+                                                    {getRelativeTime(invoice.invoiceDate)}
                                                 </span>
                                             </div>
-                                            <p className="text-sm text-gray-500 truncate">
-                                                {invoice.customerName}
-                                            </p>
+                                            <div className="text-right">
+                                                <p className="text-xl font-bold text-gray-900">
+                                                    ₹{Number(invoice.totalAmount).toLocaleString('en-IN', { minimumFractionDigits: 0 })}
+                                                </p>
+                                            </div>
                                         </div>
-                                        <div className="flex items-center gap-2">
-                                            <span className={`px-3 py-1.5 text-xs font-bold rounded-full ${getStatusColorMobile(invoice.status)}`}>
-                                                {getStatusIcon(invoice.status)} {invoice.status}
-                                            </span>
-                                            <ArrowRight className="w-5 h-5 text-gray-300" />
-                                        </div>
-                                    </div>
-                                    
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-4 text-sm text-gray-500">
-                                            <span className="flex items-center gap-1">
-                                                <Calendar className="w-4 h-4" />
-                                                {getRelativeTime(invoice.invoiceDate)}
-                                            </span>
-                                        </div>
-                                        <div className="text-right">
-                                            <p className="text-xl font-bold text-gray-900">
-                                                ₹{Number(invoice.totalAmount).toLocaleString('en-IN', { minimumFractionDigits: 0 })}
-                                            </p>
-                                        </div>
-                                    </div>
+                                    </Link>
 
                                     {/* Mobile Actions */}
                                     <div className="flex items-center gap-3 mt-4 pt-4 border-t border-gray-100">
                                         <Link
                                             href={`/invoices/${invoice.id}/edit`}
-                                            onClick={(e) => e.stopPropagation()}
                                             className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-gray-50 text-gray-700 rounded-xl font-medium text-sm active:bg-gray-100 transition-colors"
                                         >
                                             <Edit className="w-4 h-4" />
@@ -404,7 +407,6 @@ export default function InvoicesPage() {
                                         </Link>
                                         <Link
                                             href={`/invoices/${invoice.id}`}
-                                            onClick={(e) => e.stopPropagation()}
                                             className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-indigo-50 text-indigo-700 rounded-xl font-medium text-sm active:bg-indigo-100 transition-colors"
                                         >
                                             <Eye className="w-4 h-4" />
@@ -412,11 +414,7 @@ export default function InvoicesPage() {
                                         </Link>
                                         {invoice.status === 'DRAFT' && (
                                             <button
-                                                onClick={(e) => {
-                                                    e.preventDefault()
-                                                    e.stopPropagation()
-                                                    deleteInvoice(invoice.id)
-                                                }}
+                                                onClick={() => deleteInvoice(invoice.id)}
                                                 className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-red-50 text-red-700 rounded-xl font-medium text-sm active:bg-red-100 transition-colors"
                                             >
                                                 <Trash2 className="w-4 h-4" />
@@ -424,7 +422,7 @@ export default function InvoicesPage() {
                                             </button>
                                         )}
                                     </div>
-                                </Link>
+                                </div>
                             ))}
 
                             {/* Mobile Pagination */}
