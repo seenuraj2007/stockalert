@@ -201,9 +201,10 @@ export default function HomePage() {
       </div>
 
       {/* Beta Banner */}
-      <div className="fixed top-0 left-0 right-0 z-[60] bg-gradient-to-r from-green-600 to-emerald-600 text-white py-2 px-4 text-center text-sm">
-        <span className="font-bold">🚀 OPEN SOURCE:</span> This project is open source —
-        <a href="https://github.com/seenuraj2007/stockalert" target="_blank" rel="noopener noreferrer" className="underline font-medium ml-1 hover:text-white">Star on GitHub →</a>
+      <div className="fixed top-0 left-0 right-0 z-[60] bg-gradient-to-r from-green-600 to-emerald-600 text-white py-2 px-2 sm:px-4 text-center text-xs sm:text-sm">
+        <span className="font-bold">🚀 OPEN SOURCE:</span>
+        <span className="hidden sm:inline"> This project is open source —</span>
+        <a href="https://github.com/seenuraj2007/stockalert" target="_blank" rel="noopener noreferrer" className="underline font-medium ml-1 hover:text-white whitespace-nowrap">Star on GitHub →</a>
       </div>
 
       <nav className="fixed top-8 left-0 right-0 z-50 backdrop-blur-xl bg-slate-950/70 border-b border-white/5">
