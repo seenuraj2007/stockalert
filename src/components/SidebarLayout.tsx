@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation'
 import { Package, Bell, Menu, X, LogOut } from 'lucide-react'
 import SidebarMenu from '@/components/SidebarMenu'
 import MobileBottomNav from '@/components/MobileBottomNav'
+import MobileMoreMenu from '@/components/MobileMoreMenu'
 
 interface SidebarProps {
   children: React.ReactNode
@@ -15,6 +16,7 @@ const MemoizedSidebarMenu = memo(SidebarMenu)
 
 export default function SidebarLayout({ children }: SidebarProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [moreMenuOpen, setMoreMenuOpen] = useState(false)
   const pathname = usePathname()
 
   const locale = pathname.split('/')[1] === 'en' || pathname.split('/')[1] === 'hi'
@@ -36,6 +38,14 @@ export default function SidebarLayout({ children }: SidebarProps) {
 
   const closeSidebar = useCallback(() => {
     setSidebarOpen(false)
+  }, [])
+
+  const openMoreMenu = useCallback(() => {
+    setMoreMenuOpen(true)
+  }, [])
+
+  const closeMoreMenu = useCallback(() => {
+    setMoreMenuOpen(false)
   }, [])
 
   return (
@@ -77,14 +87,6 @@ export default function SidebarLayout({ children }: SidebarProps) {
             >
               <Bell className="w-5 h-5" />
             </Link>
-            {/* Mobile Logout Button */}
-            <button
-              onClick={handleLogout}
-              className="sm:hidden p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors cursor-pointer"
-              aria-label="Logout"
-            >
-              <LogOut className="w-5 h-5" />
-            </button>
           </div>
         </div>
       </header>
@@ -153,7 +155,15 @@ export default function SidebarLayout({ children }: SidebarProps) {
       </main>
 
       {/* ── Mobile Bottom Nav ── */}
-      <MobileBottomNav onMenuClick={toggleSidebar} locale={locale} />
+      <MobileBottomNav onMenuClick={openMoreMenu} locale={locale} />
+
+      {/* ── Mobile More Menu (Bottom Sheet) ── */}
+      <MobileMoreMenu 
+        isOpen={moreMenuOpen} 
+        onClose={closeMoreMenu} 
+        locale={locale}
+        onLogout={handleLogout}
+      />
     </div>
   )
 }

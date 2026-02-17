@@ -287,6 +287,14 @@ body {
   animation: fadeIn 0.2s ease-out;
 }
 
+.animate-slide-up {
+  animation: slideUp 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.2s ease-out;
+}
+
 /* ═══════════════════════════════════════════════════
    MOBILE-FIRST RESPONSIVE
    ═══════════════════════════════════════════════════ */
