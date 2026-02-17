@@ -77,6 +77,14 @@ export default function SidebarLayout({ children }: SidebarProps) {
             >
               <Bell className="w-5 h-5" />
             </Link>
+            {/* Mobile Logout Button */}
+            <button
+              onClick={handleLogout}
+              className="sm:hidden p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors cursor-pointer"
+              aria-label="Logout"
+            >
+              <LogOut className="w-5 h-5" />
+            </button>
           </div>
         </div>
       </header>
