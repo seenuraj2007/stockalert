@@ -820,7 +820,8 @@ export default function POSPage() {
         igst_amount: item.igstAmount,
         total_amount: item.totalAmount,
         hsn_code: item.product.hsn_code,
-        gst_rate: item.product.gst_rate
+        gst_rate: item.product.gst_rate,
+        description: item.product.name
       }))
 
       const res = await fetch('/api/invoices', {
