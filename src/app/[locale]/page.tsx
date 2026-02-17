@@ -2,14 +2,15 @@
 
 import Link from 'next/link'
 import { motion, useScroll, useTransform, useSpring } from 'framer-motion'
-import { useRef, useState } from 'react'
+import { useRef, useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import {
   Package, TrendingDown, AlertTriangle, Bell, Users, MapPin,
   Truck, BarChart3, Shield, Zap, ArrowRight, CheckCircle,
   ChevronRight, Layers, Target, Sparkles, Cpu, Lock,
   Database, Code2, Globe, Server, Receipt, QrCode, FileText,
   IndianRupee, Building2, UserPlus, MessageSquare, Smartphone,
-  Download, Languages, Star, TrendingUp, Check, Clock, Github, Heart
+  Download, Languages, Star, TrendingUp, Check, Clock, Github, Heart, LogOut
 } from 'lucide-react'
 
 const stats = [
@@ -165,6 +166,26 @@ export default function HomePage() {
 
   const [activeStep, setActiveStep] = useState(0)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const router = useRouter()
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const res = await fetch('/api/auth/me')
+        setIsLoggedIn(res.ok)
+      } catch {
+        setIsLoggedIn(false)
+      }
+    }
+    checkAuth()
+  }, [])
+
+  const handleLogout = async () => {
+    await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' })
+    setIsLoggedIn(false)
+    router.push('/')
+  }
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -231,15 +252,27 @@ export default function HomePage() {
 
             {/* Right Side Actions */}
             <div className="flex items-center gap-2 sm:gap-3">
-              <Link href="/auth" className="hidden md:block text-white/70 hover:text-white font-medium transition-colors px-3 py-2 rounded-lg hover:bg-white/5 cursor-pointer text-sm">
-                Sign In
-              </Link>
-              <Link 
-                href="/auth" 
-                className="bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white px-3 sm:px-4 py-2 rounded-xl font-semibold hover:from-violet-500 hover:to-fuchsia-500 transition-all shadow-lg shadow-violet-500/30 hover:shadow-violet-500/50 text-xs sm:text-sm whitespace-nowrap border border-white/20"
-              >
-                Get Started
-              </Link>
+              {isLoggedIn ? (
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center gap-2 text-white/70 hover:text-white font-medium transition-colors px-3 py-2 rounded-lg hover:bg-white/5 cursor-pointer text-sm border border-white/20 bg-white/5"
+                >
+                  <LogOut className="w-4 h-4" />
+                  <span className="hidden sm:inline">Logout</span>
+                </button>
+              ) : (
+                <>
+                  <Link href="/auth" className="hidden md:block text-white/70 hover:text-white font-medium transition-colors px-3 py-2 rounded-lg hover:bg-white/5 cursor-pointer text-sm">
+                    Sign In
+                  </Link>
+                  <Link 
+                    href="/auth" 
+                    className="bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white px-3 sm:px-4 py-2 rounded-xl font-semibold hover:from-violet-500 hover:to-fuchsia-500 transition-all shadow-lg shadow-violet-500/30 hover:shadow-violet-500/50 text-xs sm:text-sm whitespace-nowrap border border-white/20"
+                  >
+                    Get Started
+                  </Link>
+                </>
+              )}
               
               {/* Mobile Menu Button */}
               <button 
