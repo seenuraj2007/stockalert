@@ -207,64 +207,113 @@ export default function HomePage() {
         <a href="https://github.com/seenuraj2007/stockalert" target="_blank" rel="noopener noreferrer" className="underline font-medium ml-1 hover:text-white whitespace-nowrap">Star on GitHub →</a>
       </div>
 
-      <nav className="fixed top-8 left-0 right-0 z-50 backdrop-blur-xl bg-slate-950/70 border-b border-white/5">
+      <nav className="fixed top-8 left-0 right-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
+          <div className="flex items-center justify-between h-14 sm:h-16 bg-slate-950/80 backdrop-blur-xl rounded-2xl border border-white/10 px-4 sm:px-6 mt-2">
+            {/* Logo */}
             <Link href="/" className="flex items-center gap-2 group cursor-pointer">
-              <div className="w-10 h-10 bg-gradient-to-br from-violet-500 to-fuchsia-600 rounded-xl flex items-center justify-center shadow-lg shadow-violet-500/25 group-hover:shadow-violet-500/40 transition-all group-hover:scale-110">
-                <Package className="w-6 h-6 text-white" />
+              <div className="w-9 h-9 sm:w-10 sm:h-10 bg-gradient-to-br from-violet-500 to-fuchsia-600 rounded-xl flex items-center justify-center shadow-lg shadow-violet-500/25 group-hover:shadow-violet-500/40 transition-all group-hover:scale-110">
+                <Package className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
               </div>
-              <span className="text-xl font-bold bg-gradient-to-r from-white to-white/70 bg-clip-text text-transparent">DKS StockAlert</span>
-              <span className="ml-2 px-2 py-0.5 text-xs font-bold bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-full">OPEN SOURCE</span>
+              <div className="flex flex-col">
+                <span className="text-lg sm:text-xl font-bold bg-gradient-to-r from-white to-white/70 bg-clip-text text-transparent leading-tight">DKS StockAlert</span>
+                <span className="text-[10px] text-emerald-400 font-medium hidden sm:block">Free & Open Source</span>
+              </div>
             </Link>
 
-            <div className="hidden md:flex items-center gap-8">
-              <a href="#features" className="text-white/60 hover:text-white transition-colors cursor-pointer font-medium">Features</a>
-              <a href="#comparison" className="text-white/60 hover:text-white transition-colors cursor-pointer font-medium">Why Us</a>
-              <a href="#pricing" className="text-white/60 hover:text-white transition-colors cursor-pointer font-medium">Pricing</a>
-              <a href="#how-it-works" className="text-white/60 hover:text-white transition-colors cursor-pointer font-medium">How It Works</a>
+            {/* Desktop Nav Links */}
+            <div className="hidden md:flex items-center gap-6 lg:gap-8">
+              <a href="#features" className="text-white/60 hover:text-white transition-colors cursor-pointer font-medium text-sm">Features</a>
+              <a href="#comparison" className="text-white/60 hover:text-white transition-colors cursor-pointer font-medium text-sm">Why Us</a>
+              <a href="#pricing" className="text-white/60 hover:text-white transition-colors cursor-pointer font-medium text-sm">Pricing</a>
+              <a href="#how-it-works" className="text-white/60 hover:text-white transition-colors cursor-pointer font-medium text-sm">How It Works</a>
             </div>
 
-            <div className="flex items-center gap-3">
-              <Link href="/auth" className="hidden sm:block text-white/70 hover:text-white font-medium transition-colors px-4 py-2 rounded-lg hover:bg-white/5 cursor-pointer">
+            {/* Right Side Actions */}
+            <div className="flex items-center gap-2 sm:gap-3">
+              <Link href="/auth" className="hidden md:block text-white/70 hover:text-white font-medium transition-colors px-3 py-2 rounded-lg hover:bg-white/5 cursor-pointer text-sm">
                 Sign In
               </Link>
-              <Link href="/auth" className="bg-gradient-to-r from-violet-500 to-fuchsia-600 text-white px-4 sm:px-5 py-2.5 rounded-xl font-medium hover:from-violet-600 hover:to-fuchsia-700 transition-all shadow-lg shadow-violet-500/25 hover:shadow-violet-500/40 hover:-translate-y-0.5 flex items-center gap-2 cursor-pointer text-sm sm:text-base">
-                <span className="hidden sm:inline">Get Started Free</span>
-                <span className="sm:hidden">Get Started</span>
-                <ArrowRight className="w-4 h-4" />
+              <Link href="/auth" className="bg-white text-slate-950 px-3 sm:px-4 py-2 rounded-xl font-semibold hover:bg-white/90 transition-all shadow-lg hover:shadow-xl text-xs sm:text-sm whitespace-nowrap">
+                Get Started
               </Link>
+              
+              {/* Mobile Menu Button */}
               <button 
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="md:hidden p-2 rounded-lg bg-white/5 hover:bg-white/10 transition-colors"
+                className="md:hidden p-2 rounded-xl bg-white/5 hover:bg-white/10 transition-colors border border-white/10"
+                aria-label="Toggle menu"
               >
-                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  {mobileMenuOpen ? (
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  ) : (
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                  )}
-                </svg>
+                <div className="w-5 h-5 flex flex-col justify-center items-center gap-1.5">
+                  <motion.span 
+                    animate={{ rotate: mobileMenuOpen ? 45 : 0, y: mobileMenuOpen ? 6 : 0 }}
+                    className="w-5 h-0.5 bg-white block origin-center"
+                  />
+                  <motion.span 
+                    animate={{ opacity: mobileMenuOpen ? 0 : 1 }}
+                    className="w-5 h-0.5 bg-white block"
+                  />
+                  <motion.span 
+                    animate={{ rotate: mobileMenuOpen ? -45 : 0, y: mobileMenuOpen ? -6 : 0 }}
+                    className="w-5 h-0.5 bg-white block origin-center"
+                  />
+                </div>
               </button>
             </div>
           </div>
         </div>
-        {/* Mobile Menu */}
+
+        {/* Mobile Menu Overlay */}
         {mobileMenuOpen && (
-          <motion.div 
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="md:hidden absolute top-full left-0 right-0 bg-slate-950/95 backdrop-blur-xl border-b border-white/10"
-          >
-            <div className="px-4 py-4 space-y-3">
-              <a href="#features" onClick={() => setMobileMenuOpen(false)} className="block py-3 text-white/70 hover:text-white transition-colors font-medium border-b border-white/5">Features</a>
-              <a href="#comparison" onClick={() => setMobileMenuOpen(false)} className="block py-3 text-white/70 hover:text-white transition-colors font-medium border-b border-white/5">Why Us</a>
-              <a href="#pricing" onClick={() => setMobileMenuOpen(false)} className="block py-3 text-white/70 hover:text-white transition-colors font-medium border-b border-white/5">Pricing</a>
-              <a href="#how-it-works" onClick={() => setMobileMenuOpen(false)} className="block py-3 text-white/70 hover:text-white transition-colors font-medium">How It Works</a>
-            </div>
-          </motion.div>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setMobileMenuOpen(false)}
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm md:hidden z-40"
+            style={{ top: '80px' }}
+          />
         )}
+
+        {/* Mobile Menu */}
+        <motion.div 
+          initial={false}
+          animate={{ 
+            opacity: mobileMenuOpen ? 1 : 0,
+            y: mobileMenuOpen ? 0 : -20,
+            pointerEvents: mobileMenuOpen ? 'auto' : 'none'
+          }}
+          className="md:hidden absolute top-full left-4 right-4 mt-2 bg-slate-900/95 backdrop-blur-xl rounded-2xl border border-white/10 shadow-2xl overflow-hidden z-50"
+        >
+          <div className="p-2">
+            {[
+              { href: '#features', label: 'Features', icon: Package },
+              { href: '#comparison', label: 'Why Us', icon: Star },
+              { href: '#pricing', label: 'Pricing', icon: IndianRupee },
+              { href: '#how-it-works', label: 'How It Works', icon: Clock },
+            ].map((item) => (
+              <a 
+                key={item.href}
+                href={item.href} 
+                onClick={() => setMobileMenuOpen(false)} 
+                className="flex items-center gap-3 px-4 py-3 text-white/80 hover:text-white hover:bg-white/5 transition-all rounded-xl font-medium"
+              >
+                <item.icon className="w-5 h-5 text-violet-400" />
+                {item.label}
+              </a>
+            ))}
+            <div className="border-t border-white/10 mt-2 pt-2 px-4 pb-2">
+              <Link 
+                href="/auth" 
+                className="flex items-center gap-2 text-white/70 hover:text-white py-2 transition-colors"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                <span>Already have an account?</span>
+                <span className="text-violet-400 font-medium">Sign In</span>
+              </Link>
+            </div>
+          </div>
+        </motion.div>
       </nav>
 
       <section ref={ref} className="pt-40 pb-24 px-4 relative overflow-hidden">
