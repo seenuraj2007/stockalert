@@ -225,6 +225,11 @@ export async function POST(req: NextRequest) {
         })
 
         const totalAmount = subtotal + totalGST
+        
+        // Determine invoice status and due date based on payment method
+        const isCredit = payment_method === 'credit'
+        const invoiceStatus = isCredit ? 'ISSUED' : 'PAID'
+        const dueDate = isCredit ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) : null
 
         // Use transaction to ensure all operations succeed
         const result = await prisma.$transaction(async (tx) => {
@@ -289,6 +294,16 @@ export async function POST(req: NextRequest) {
                 })
             }
 
+            // Update customer balance for credit payments
+            if (isCredit && customer_id) {
+                await tx.customer.update({
+                    where: { id: customer_id },
+                    data: {
+                        balance: { increment: totalAmount }
+                    }
+                })
+            }
+
             // Create invoice
             const invoice = await tx.invoice.create({
                 data: {
@@ -296,8 +311,8 @@ export async function POST(req: NextRequest) {
                     customerId: customer_id || null,
                     invoiceNumber,
                     invoiceDate: new Date(),
-                    dueDate: null,
-                    status: 'PAID',
+                    dueDate,
+                    status: invoiceStatus,
                     businessName: tenant.name,
                     businessAddress: tenantSettings.address || null,
                     businessCity: tenantSettings.city || null,
