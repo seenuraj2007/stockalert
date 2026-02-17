@@ -94,9 +94,10 @@ export async function POST(request: NextRequest) {
     const importedProducts = []
     const importErrors: string[] = []
 
-    // Get primary location if no location selected
+    // Get or create a location for stock levels
     let targetLocationId = locationId
     if (!targetLocationId) {
+      // Try to find primary location
       const primaryLocation = await prisma.location.findFirst({
         where: {
           tenantId,
@@ -105,8 +106,34 @@ export async function POST(request: NextRequest) {
           deletedAt: null
         }
       })
+      
       if (primaryLocation) {
         targetLocationId = primaryLocation.id
+      } else {
+        // Try to find any active location
+        const anyLocation = await prisma.location.findFirst({
+          where: {
+            tenantId,
+            isActive: true,
+            deletedAt: null
+          }
+        })
+        
+        if (anyLocation) {
+          targetLocationId = anyLocation.id
+        } else {
+          // Create a default location if none exists
+          const defaultLocation = await prisma.location.create({
+            data: {
+              tenantId,
+              name: 'Main Warehouse',
+              type: 'WAREHOUSE',
+              isPrimary: true,
+              isActive: true
+            }
+          })
+          targetLocationId = defaultLocation.id
+        }
       }
     }
 
@@ -155,8 +182,8 @@ export async function POST(request: NextRequest) {
           importedProducts.push({ ...product, action: 'created' })
         }
 
-        // Create or update stock level if we have a location and stock quantity
-        if (targetLocationId && tallyProduct.openingStock > 0) {
+        // Always create or update stock level if we have a location
+        if (targetLocationId) {
           const existingStockLevel = await prisma.stockLevel.findUnique({
             where: {
               tenantId_productId_locationId: {
@@ -168,41 +195,45 @@ export async function POST(request: NextRequest) {
           })
 
           if (existingStockLevel) {
-            // Update existing stock level
-            await prisma.stockLevel.update({
-              where: { id: existingStockLevel.id },
-              data: {
-                quantity: tallyProduct.openingStock,
-                reorderPoint: tallyProduct.reorderPoint || existingStockLevel.reorderPoint,
-              },
-            })
+            // Update existing stock level only if we have opening stock
+            if (tallyProduct.openingStock > 0) {
+              await prisma.stockLevel.update({
+                where: { id: existingStockLevel.id },
+                data: {
+                  quantity: tallyProduct.openingStock,
+                  reorderPoint: tallyProduct.reorderPoint || existingStockLevel.reorderPoint,
+                },
+              })
+            }
           } else {
-            // Create new stock level
+            // Create new stock level for ALL products
             await prisma.stockLevel.create({
               data: {
                 tenantId,
                 productId: product.id,
                 locationId: targetLocationId,
-                quantity: tallyProduct.openingStock,
+                quantity: tallyProduct.openingStock || 0,
                 reorderPoint: tallyProduct.reorderPoint || 0,
                 reservedQuantity: 0,
                 version: 0,
               },
             })
 
-            // Create inventory event for new stock
-            await prisma.inventoryEvent.create({
-              data: {
-                tenantId,
-                productId: product.id,
-                locationId: targetLocationId,
-                type: 'STOCK_RECEIVED',
-                quantityDelta: tallyProduct.openingStock,
-                runningBalance: tallyProduct.openingStock,
-                userId: user.id,
-                notes: 'Imported from Tally - Opening Stock',
-              },
-            })
+            // Create inventory event only if there's actual stock
+            if (tallyProduct.openingStock > 0) {
+              await prisma.inventoryEvent.create({
+                data: {
+                  tenantId,
+                  productId: product.id,
+                  locationId: targetLocationId,
+                  type: 'STOCK_RECEIVED',
+                  quantityDelta: tallyProduct.openingStock,
+                  runningBalance: tallyProduct.openingStock,
+                  userId: user.id,
+                  notes: 'Imported from Tally - Opening Stock',
+                },
+              })
+            }
           }
         }
       } catch (error) {
