@@ -1,6 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getUserFromRequest } from '@/lib/auth'
+import { z } from 'zod'
+
+const supplierSchema = z.object({
+  name: z.string().min(1, 'Supplier name is required'),
+  contact_person: z.string().optional(),
+  email: z.string().email('Invalid email').optional().or(z.literal('')),
+  phone: z.string().optional(),
+  address: z.string().optional(),
+  city: z.string().optional(),
+  state: z.string().optional(),
+  zip: z.string().optional(),
+  country: z.string().optional(),
+  notes: z.string().optional()
+})
 
 export async function GET(req: NextRequest) {
   try {
@@ -9,28 +23,30 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Get unique suppliers from products (since Product has supplierName, supplierEmail, supplierPhone fields)
-    const products = await prisma.product.findMany({
-      where: { tenantId: user.tenantId },
-      select: {
-        supplierName: true,
-        supplierEmail: true,
-        supplierPhone: true
+    const suppliers = await prisma.supplier.findMany({
+      where: { 
+        tenantId: user.tenantId,
+        isActive: true 
       },
-      distinct: ['supplierName']
+      orderBy: { name: 'asc' },
+      include: {
+        _count: {
+          select: { purchaseOrders: true }
+        }
+      }
     })
 
-    const suppliers = products
-      .filter((p: any) => p.supplierName)
-      .map((p: any) => ({
-        id: p.supplierName?.toLowerCase().replace(/\s+/g, '-'),
-        name: p.supplierName,
-        email: p.supplierEmail,
-        phone: p.supplierPhone,
-        total_products: 0 // Would need another query to count
-      }))
+    // Transform to include product count
+    const suppliersWithCount = suppliers.map(s => ({
+      id: s.id,
+      name: s.name,
+      contact_person: s.contactPerson,
+      email: s.email,
+      phone: s.phone,
+      total_products: s._count.purchaseOrders
+    }))
 
-    return NextResponse.json({ suppliers }, {
+    return NextResponse.json({ suppliers: suppliersWithCount }, {
       headers: {
         'Cache-Control': 'private, max-age=10, stale-while-revalidate=60'
       }
@@ -44,16 +60,51 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const user = await getUserFromRequest(req)
-    if (!user) {
+    if (!user || !user.tenantId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // For now, just return success - suppliers are stored in Product records
-    // A proper Supplier model would need to be added to the schema
+    const body = await req.json()
+    
+    // Validate input
+    const result = supplierSchema.safeParse(body)
+    if (!result.success) {
+      return NextResponse.json({ 
+        error: 'Validation failed',
+        details: result.error.errors 
+      }, { status: 400 })
+    }
+
+    const data = result.data
+
+    // Create supplier
+    const supplier = await prisma.supplier.create({
+      data: {
+        tenantId: user.tenantId,
+        name: data.name,
+        contactPerson: data.contact_person || null,
+        email: data.email || null,
+        phone: data.phone || null,
+        address: data.address || null,
+        city: data.city || null,
+        state: data.state || null,
+        zip: data.zip || null,
+        country: data.country || null,
+        notes: data.notes || null
+      }
+    })
+
     return NextResponse.json({ 
-      message: 'Supplier management requires schema update. Suppliers are currently stored as fields on Products.',
-      supplier: null
-    }, { status: 501 })
+      message: 'Supplier created successfully',
+      supplier: {
+        id: supplier.id,
+        name: supplier.name,
+        contact_person: supplier.contactPerson,
+        email: supplier.email,
+        phone: supplier.phone
+      }
+    }, { status: 201 })
+
   } catch (error) {
     console.error('Create supplier error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

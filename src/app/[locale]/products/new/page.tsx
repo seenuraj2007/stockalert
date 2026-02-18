@@ -2,7 +2,7 @@
 
 import { useState, useEffect, use } from 'react'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, Save, Package, Tag, Hash, AlertTriangle, Mail, Phone, DollarSign, Box, Scan, Clock, Scale, Info } from 'lucide-react'
+import { ArrowLeft, Save, Package, Tag, Hash, AlertTriangle, Mail, Phone, DollarSign, Box, Scan, Clock, Scale, Info, Search, CheckCircle, XCircle, Loader2 } from 'lucide-react'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
 import ImageUpload from '@/components/ImageUpload'
@@ -66,6 +66,8 @@ function ProductFormContent({ params }: { params?: Promise<{ id?: string }> }) {
   const [fetching, setFetching] = useState(isEdit)
   const [error, setError] = useState('')
   const [showScanner, setShowScanner] = useState(false)
+  const [barcodeLookupLoading, setBarcodeLookupLoading] = useState(false)
+  const [barcodeLookupResult, setBarcodeLookupResult] = useState<{found: boolean, message?: string, source?: string | null} | null>(null)
 
   const [formData, setFormData] = useState({
     name: '',
@@ -128,6 +130,95 @@ function ProductFormContent({ params }: { params?: Promise<{ id?: string }> }) {
 
   const handleBarcodeDetected = (code: string) => {
     setFormData({ ...formData, barcode: code })
+    // Auto-lookup after scanning
+    setTimeout(() => lookupBarcode(code), 500)
+  }
+
+  const lookupBarcode = async (barcode: string) => {
+    if (!barcode || barcode.length < 8) return
+    
+    setBarcodeLookupLoading(true)
+    setBarcodeLookupResult(null)
+    
+    try {
+      const res = await fetch('/api/products/lookup-barcode', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ barcode })
+      })
+      
+      const data = await res.json()
+      
+      if (data.found) {
+        if (data.source === 'local') {
+          // Product already exists
+          setBarcodeLookupResult({
+            found: true,
+            message: 'This product already exists in your inventory!',
+            source: 'local'
+          })
+          // Still fill the form with existing data
+          setFormData(prev => ({
+            ...prev,
+            name: data.product.name || prev.name,
+            category: data.product.category || prev.category,
+            unit: data.product.unit || prev.unit,
+            selling_price: data.product.sellingPrice?.toString() || prev.selling_price,
+            unit_cost: data.product.unitCost?.toString() || prev.unit_cost,
+            image_url: data.product.imageUrl || prev.image_url,
+            is_perishable: data.product.isPerishable || prev.is_perishable,
+            weight_per_unit: data.product.weightPerUnit?.toString() || prev.weight_per_unit,
+            min_weight: data.product.minWeight?.toString() || prev.min_weight
+          }))
+        } else if (data.source === 'openfoodfacts') {
+          // Auto-fill from Open Food Facts
+          setBarcodeLookupResult({
+            found: true,
+            message: `Found: ${data.product.name}`,
+            source: 'openfoodfacts'
+          })
+          
+          setFormData(prev => ({
+            ...prev,
+            name: data.product.name || prev.name,
+            category: data.product.category || prev.category,
+            unit: data.product.unit || prev.unit,
+            image_url: data.product.imageUrl || prev.image_url,
+            is_perishable: data.product.isPerishable || prev.is_perishable,
+            weight_per_unit: data.product.weightPerUnit?.toString() || prev.weight_per_unit,
+            min_weight: data.product.minWeight?.toString() || prev.min_weight
+          }))
+        }
+      } else {
+        setBarcodeLookupResult({
+          found: false,
+          message: 'Product not found. Please enter details manually.',
+          source: null
+        })
+      }
+    } catch (err) {
+      console.error('Barcode lookup error:', err)
+      setBarcodeLookupResult({
+        found: false,
+        message: 'Failed to lookup barcode. Please enter details manually.',
+        source: null
+      })
+    } finally {
+      setBarcodeLookupLoading(false)
+    }
+  }
+
+  const handleBarcodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const barcode = e.target.value
+    setFormData({ ...formData, barcode })
+    
+    // Auto-lookup when barcode is 8+ characters (only in create mode)
+    if (barcode.length >= 8 && !isEdit) {
+      setBarcodeLookupLoading(true)
+      setBarcodeLookupResult(null)
+      // Debounce the lookup
+      setTimeout(() => lookupBarcode(barcode), 800)
+    }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -275,6 +366,15 @@ function ProductFormContent({ params }: { params?: Promise<{ id?: string }> }) {
                   <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
                     <span className="w-1 h-4 bg-indigo-500 rounded-full"></span>
                     Barcode
+                    {barcodeLookupLoading && (
+                      <Loader2 className="w-4 h-4 text-indigo-500 animate-spin" />
+                    )}
+                    {barcodeLookupResult?.found && (
+                      <CheckCircle className="w-4 h-4 text-green-500" />
+                    )}
+                    {barcodeLookupResult && !barcodeLookupResult.found && (
+                      <XCircle className="w-4 h-4 text-orange-500" />
+                    )}
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
@@ -284,18 +384,60 @@ function ProductFormContent({ params }: { params?: Promise<{ id?: string }> }) {
                       type="text"
                       name="barcode"
                       value={formData.barcode}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, barcode: e.target.value })}
+                      onChange={handleBarcodeChange}
                       placeholder="1234567890123"
-                      className="w-full pl-11 pr-12 py-3.5 border border-gray-200 rounded-xl focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all bg-gray-50/50 hover:bg-white hover:shadow-md focus:bg-white text-gray-900 cursor-text"
+                      className={`w-full pl-11 pr-24 py-3.5 border rounded-xl focus:ring-4 outline-none transition-all bg-gray-50/50 hover:bg-white hover:shadow-md focus:bg-white text-gray-900 cursor-text ${
+                        barcodeLookupResult?.found 
+                          ? 'border-green-500 focus:border-green-500 focus:ring-green-500/10' 
+                          : barcodeLookupResult && !barcodeLookupResult.found
+                          ? 'border-orange-500 focus:border-orange-500 focus:ring-orange-500/10'
+                          : 'border-gray-200 focus:border-indigo-500 focus:ring-indigo-500/10'
+                      }`}
                     />
-                    <button
-                      type="button"
-                      onClick={() => setShowScanner(true)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-indigo-600 hover:text-indigo-700 transition-colors cursor-pointer"
-                    >
-                      <Scan className="w-5 h-5" />
-                    </button>
+                    <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={() => formData.barcode && lookupBarcode(formData.barcode)}
+                        disabled={!formData.barcode || formData.barcode.length < 8 || barcodeLookupLoading}
+                        className="p-1.5 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                        title="Lookup barcode"
+                      >
+                        <Search className="w-4 h-4" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setShowScanner(true)}
+                        className="p-1.5 text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 rounded-lg transition-colors"
+                        title="Scan barcode"
+                      >
+                        <Scan className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
+                  
+                  {/* Lookup Result Message */}
+                  {barcodeLookupResult && (
+                    <div className={`mt-2 text-sm flex items-center gap-2 ${
+                      barcodeLookupResult.found ? 'text-green-600' : 'text-orange-600'
+                    }`}>
+                      {barcodeLookupResult.found ? (
+                        <CheckCircle className="w-4 h-4" />
+                      ) : (
+                        <Info className="w-4 h-4" />
+                      )}
+                      <span>{barcodeLookupResult.message}</span>
+                      {barcodeLookupResult.source === 'openfoodfacts' && (
+                        <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">
+                          Auto-filled
+                        </span>
+                      )}
+                      {barcodeLookupResult.source === 'local' && (
+                        <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">
+                          In Inventory
+                        </span>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 <InputField
