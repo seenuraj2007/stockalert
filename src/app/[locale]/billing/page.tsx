@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback, useMemo, useRef } from 'react'
 import { useRouter } from 'next/navigation'
+import dynamic from 'next/dynamic'
 import { 
   Plus, Minus, Trash2, Search, X, 
   Package, Barcode, User, CheckCircle, ShoppingCart, 
@@ -9,10 +10,16 @@ import {
   Wallet, IndianRupee, QrCode, Calculator, RefreshCw,
   ArrowLeft, Save, FolderOpen, Tag, Grid, List,
   ChevronDown, Move, Edit3, Star, AlertCircle,
-  Loader2, Info, Scale
+  Loader2, Info, Scale, Camera
 } from 'lucide-react'
 import QRCode from 'qrcode'
 import { memo } from 'react'
+
+// Dynamic import for barcode scanner to avoid SSR issues
+const BarcodeScanner = dynamic(() => import('@/components/BarcodeScanner'), {
+  ssr: false,
+  loading: () => <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+})
 
 // Memoized Product Card Component to prevent unnecessary re-renders
 const ProductCard = memo(({
@@ -248,6 +255,7 @@ export default function POSPage() {
     change: number
   } | null>(null)
   const [showScanner, setShowScanner] = useState(false)
+  const [showCameraScanner, setShowCameraScanner] = useState(false)
   const [scannedBarcode, setScannedBarcode] = useState('')
   const [globalDiscount, setGlobalDiscount] = useState(0)
   const [globalDiscountType, setGlobalDiscountType] = useState<'percent' | 'amount'>('percent')
@@ -741,6 +749,19 @@ export default function POSPage() {
     setSearchTerm(barcode)
   }
 
+  // Camera barcode scanner handler
+  const handleCameraBarcodeDetected = (code: string) => {
+    setShowCameraScanner(false)
+    const product = products.find(p => p.barcode === code || p.sku === code)
+    if (product) {
+      addToCart(product)
+    } else {
+      // Product not found, search for it
+      setSearchTerm(code)
+      setScannedBarcode(code)
+    }
+  }
+
   // Payment handling
   const handleCompleteSale = async () => {
     if (cart.length === 0) {
@@ -1035,9 +1056,17 @@ export default function POSPage() {
               <button
                 onClick={() => setShowScanner(!showScanner)}
                 className={`p-2.5 rounded-xl transition-colors ${showScanner ? 'bg-indigo-100 text-indigo-600' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
-                title="Barcode Scanner"
+                title="Barcode Input"
               >
                 <Barcode className="w-5 h-5" />
+              </button>
+
+              <button
+                onClick={() => setShowCameraScanner(true)}
+                className="p-2.5 bg-indigo-100 rounded-xl text-indigo-600 hover:bg-indigo-200 transition-colors"
+                title="Camera Scanner"
+              >
+                <Camera className="w-5 h-5" />
               </button>
               
               <button
@@ -2166,6 +2195,14 @@ export default function POSPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Camera Barcode Scanner Modal */}
+      {showCameraScanner && (
+        <BarcodeScanner
+          onDetected={handleCameraBarcodeDetected}
+          onClose={() => setShowCameraScanner(false)}
+        />
       )}
 
       {/* Serial Number Selection Modal */}
