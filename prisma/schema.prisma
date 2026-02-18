@@ -183,6 +183,37 @@ enum LocationType {
   VIRTUAL
 }
 
+// Drug Schedules for Pharmaceutical products (India)
+enum DrugSchedule {
+  SCHEDULE_H   // Antibiotics, habit-forming drugs
+  SCHEDULE_H1  // Narcotics, psychotropic substances
+  SCHEDULE_X   // High-risk medicines
+  SCHEDULE_G   // Ayurvedic/Unani medicines
+  SCHEDULE_C   // Biological products
+  SCHEDULE_J   // Diabetes medicines
+  SCHEDULE_K   // Statins, etc.
+  OTC          // Over the counter (no prescription)
+}
+
+// Storage Temperature for Pharmaceuticals
+enum StorageTemp {
+  ROOM_TEMP    // 15-25°C
+  COOL         // 8-15°C
+  REFRIGERATED // 2-8°C
+  FROZEN       // -15 to -25°C
+  PROTECTED    // Protect from light/heat
+}
+
+// Industry Types for Product Categorization
+enum IndustryType {
+  ELECTRONICS
+  PHARMA
+  FMCG
+  AUTO_PARTS
+  HARDWARE
+  GENERAL
+}
+
 model Product {
   id            String           @id @default(uuid())
   tenantId      String           @map("tenant_id")
@@ -209,6 +240,27 @@ model Product {
   expiryDate    DateTime?        @map("expiry_date")
   weightPerUnit Decimal?         @default(1) @map("weight_per_unit") @db.Decimal(10, 3) // weight in kg per unit
   minWeight     Decimal?         @map("min_weight") @db.Decimal(10, 3) // minimum weight for sale
+  
+  // Electronics & Mobile Accessories Fields
+  requiresSerialNumber Boolean   @default(false) @map("requires_serial_number") // Track individual items by serial number
+  requiresIMEI  Boolean          @default(false) @map("requires_imei") // Mobile phones need IMEI tracking
+  warrantyMonths Int?            @map("warranty_months") // Default warranty period
+  
+  // Product Variations (Color, Storage, Model, etc.)
+  hasVariations Boolean          @default(false) @map("has_variations") // Does this product have variations?
+  variationAttributes Json?      @map("variation_attributes") // Store color, size, storage options as JSON
+  parentProductId String?        @map("parent_product_id") // Link to parent product (for variations)
+  
+  // Pharmaceutical & Healthcare Fields
+  drugSchedule  DrugSchedule?    @map("drug_schedule") // H, H1, X, etc.
+  storageTemp   StorageTemp?     @map("storage_temp") // Storage temperature requirements
+  requiresPrescription Boolean   @default(false) @map("requires_prescription") // Prescription required
+  maxRetailPrice Decimal?        @map("max_retail_price") @db.Decimal(12, 2) // MRP (mandatory for medicines)
+  composition   String?          @db.Text // Active ingredients/composition
+  manufacturer  String?          // Manufacturer name
+  
+  // Industry Type for UI/UX optimization
+  industryType  IndustryType?    @map("industry_type") // ELECTRONICS, PHARMA, GENERAL
   
   isActive      Boolean          @default(true) @map("is_active")
   deletedAt     DateTime?        @map("deleted_at")
