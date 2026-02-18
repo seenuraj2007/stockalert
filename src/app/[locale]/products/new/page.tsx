@@ -129,6 +129,7 @@ function ProductFormContent({ params }: { params?: Promise<{ id?: string }> }) {
   }
 
   const handleBarcodeDetected = (code: string) => {
+    setShowScanner(false) // Close scanner first
     setFormData({ ...formData, barcode: code })
     // Auto-lookup after scanning
     setTimeout(() => lookupBarcode(code), 500)
