@@ -4,6 +4,12 @@ import { prisma } from '@/lib/prisma'
 
 interface OpenFoodFactsProduct {
   product_name?: string
+  product_name_en?: string
+  product_name_fr?: string
+  product_name_es?: string
+  product_name_de?: string
+  product_name_it?: string
+  product_name_pt?: string
   brands?: string
   categories?: string
   image_url?: string
@@ -121,12 +127,21 @@ export async function POST(req: NextRequest) {
                           product.quantity?.toLowerCase().includes('ml') ||
                           product.quantity?.toLowerCase().includes('l')
 
+          // Get product name from any available language
+          const productName = product.product_name || 
+                             product.product_name_en || 
+                             product.product_name_fr || 
+                             product.product_name_es || 
+                             product.product_name_de || 
+                             product.product_name_it || 
+                             product.product_name_pt || ''
+
           productData = {
             barcode,
             found: true,
             source: 'openfoodfacts',
             product: {
-              name: product.product_name || '',
+              name: productName,
               category: product.categories?.split(',')[0]?.trim() || 'Groceries',
               brand: product.brands?.split(',')[0]?.trim() || '',
               unit: isLiquid ? 'liter' : 'kg',
