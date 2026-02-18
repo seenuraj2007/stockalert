@@ -92,8 +92,18 @@ export async function POST(req: NextRequest) {
       )
       clearTimeout(timeoutId)
 
+      console.log('[Barcode Lookup] Open Food Facts response status:', response.status)
+
       if (response.ok) {
         const data: OpenFoodFactsResponse = await response.json()
+        
+        console.log('[Barcode Lookup] Open Food Facts data:', {
+          status: data.status,
+          hasProduct: !!data.product,
+          productName: data.product?.product_name,
+          productNameEn: data.product?.product_name_en,
+          productNameFr: data.product?.product_name_fr
+        })
         
         if (data.status === 1 && data.product) {
           const product = data.product
