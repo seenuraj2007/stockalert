@@ -125,10 +125,14 @@ docker run -p 3000:3000 --env-file .env.local dks-stockalert
 
 ## 📖 Documentation
 
+- [Marketing Strategy](./MARKETING_STRATEGY.md) - Complete guide to promote your app
+  - [Quick Start Guide](./docs/MARKETING_QUICK_START.md) - Get your first 100 users in 30 days
 - [Contributing Guide](./CONTRIBUTING.md) - How to contribute
 - [Security Policy](./SECURITY.md) - Security guidelines
 - [Changelog](./CHANGELOG.md) - Version history
 - [Deployment Guide](./docs/DEPLOYMENT_GUIDE.md) - Production deployment
+- [SEO Guide](./SEO_GUIDE.md) - SEO optimization guide
+- [Target Audience Strategy](./plans/target-audience-strategy.md) - User personas and roadmap
 
 ## 🤝 Contributing
 
