@@ -1,6 +1,8 @@
 # DKS StockAlert Marketing Strategy
 ## Comprehensive Guide to Promote Your Inventory Management App
 
+> **⚡ Want to start immediately?** Check out the [Quick Start Guide](./docs/MARKETING_QUICK_START.md) - Get your first 100 users in 30 days!
+
 ---
 
 ## Executive Summary
