@@ -12,17 +12,11 @@ import {
   Download, Languages, Star, TrendingUp, Check, Clock, Github, Heart
 } from 'lucide-react'
 
-const stats = [
-  { label: 'Products Tracked', value: '156', change: '+12 this week', color: 'from-blue-500 to-blue-600', Icon: Package },
-  { label: 'Low Stock Items', value: '8', change: 'Action needed', color: 'from-yellow-500 to-orange-500', Icon: TrendingDown },
-  { label: 'Out of Stock', value: '2', change: 'Restock ASAP', color: 'from-red-500 to-red-600', Icon: AlertTriangle },
-  { label: 'Stock Value (₹)', value: '₹2.4L', change: '+₹45K', color: 'from-green-500 to-green-600', Icon: IndianRupee },
-]
-
-const alerts = [
-  { name: 'Aashirvaad Atta (5kg)', stock: 4, reorder: 20, status: 'critical' },
-  { name: 'Patanjali Honey (500g)', stock: 6, reorder: 50, status: 'warning' },
-  { name: 'MDH Masala (100g)', stock: 15, reorder: 100, status: 'warning' },
+const featuresPreview = [
+  { label: 'Products', value: 'Live', color: 'from-blue-500 to-blue-600', Icon: Package },
+  { label: 'Stock Alerts', value: 'Real-time', color: 'from-yellow-500 to-orange-500', Icon: TrendingDown },
+  { label: 'Locations', value: 'Multi', color: 'from-red-500 to-red-600', Icon: MapPin },
+  { label: 'Invoices', value: 'GST', color: 'from-green-500 to-green-600', Icon: Receipt },
 ]
 
 const features = [
@@ -33,14 +27,6 @@ const features = [
     size: 'wide',
     glow: 'from-green-500/20 to-emerald-500/20',
     badge: 'FREE FOREVER'
-  },
-  {
-    icon: MessageSquare,
-    title: 'WhatsApp Alerts',
-    description: 'Coming Soon: Get instant low stock alerts on WhatsApp. Stay tuned for this feature!',
-    size: 'wide',
-    glow: 'from-green-500/20 to-emerald-500/20',
-    badge: 'COMING SOON'
   },
   {
     icon: Download,
@@ -400,10 +386,10 @@ export default function HomePage() {
               variants={itemVariants}
             >
               The only <span className="text-green-400 font-semibold">open source</span> inventory software with
-              <span className="text-amber-400 font-semibold"> WhatsApp alerts</span>,
-              <span className="text-blue-400 font-semibold"> 1-click Tally import</span>, and
-              <span className="text-green-400 font-semibold"> in-app notifications</span>.
-              <span className="hidden sm:inline"> Built by the community, free tier limited.</span>
+              <span className="text-blue-400 font-semibold"> 1-click Tally import</span>,
+              <span className="text-amber-400 font-semibold"> GST invoicing</span>, and
+              <span className="text-purple-400 font-semibold"> real-time alerts</span>.
+              <span className="hidden sm:inline"> Built by the community, free forever.</span>
             </motion.p>
 
             <motion.div
@@ -444,8 +430,8 @@ export default function HomePage() {
                 GST Compliant
               </div>
               <div className="flex items-center gap-2">
-                <MessageSquare className="w-4 h-4 text-green-400" />
-                WhatsApp Alerts
+                <Download className="w-4 h-4 text-blue-400" />
+                Tally Import
               </div>
             </motion.div>
           </motion.div>
@@ -488,9 +474,8 @@ export default function HomePage() {
             </div>
             <div className="p-3 sm:p-6 bg-gradient-to-br from-slate-900/50 to-slate-800/50">
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4 mb-4 sm:mb-6">
-                {stats.map((stat, i) => {
-                  const IconComponent = stat.Icon
-                  const gradientClass = 'w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-gradient-to-br ' + stat.color + ' flex items-center justify-center mb-2 sm:mb-3 shadow-lg'
+                {featuresPreview.map((item, i) => {
+                  const IconComponent = item.Icon
                   return (
                     <motion.div
                       key={i}
@@ -503,14 +488,11 @@ export default function HomePage() {
                         ease: [0.4, 0, 0.2, 1],
                       }}
                     >
-                      <div className={gradientClass}>
+                      <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-gradient-to-br ${item.color} flex items-center justify-center mb-2 sm:mb-3 shadow-lg`}>
                         <IconComponent className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                       </div>
-                      <div className="flex items-baseline gap-2">
-                        <p className="text-lg sm:text-2xl font-bold text-white">{stat.value}</p>
-                      </div>
-                      <p className="text-xs sm:text-sm text-white/60">{stat.label}</p>
-                      <span className="text-[10px] sm:text-xs text-green-400 font-medium mt-1 block truncate">{stat.change}</span>
+                      <p className="text-lg sm:text-2xl font-bold text-white">{item.value}</p>
+                      <p className="text-xs sm:text-sm text-white/60">{item.label}</p>
                     </motion.div>
                   )
                 })}
@@ -518,38 +500,51 @@ export default function HomePage() {
               <div className="bg-white/5 backdrop-blur-sm rounded-lg sm:rounded-xl p-3 sm:p-4 border border-white/10">
                 <div className="flex items-center justify-between mb-3 sm:mb-4">
                   <h3 className="font-semibold text-white text-sm sm:text-base flex items-center gap-2">
-                    <AlertTriangle className="w-4 h-4 text-yellow-400" />
-                    Low Stock Alerts
+                    <Package className="w-4 h-4 text-violet-400" />
+                    Dashboard Preview
                   </h3>
-                  <span className="text-xs sm:text-sm text-violet-400 font-medium cursor-pointer hover:text-violet-300">View All</span>
+                  <span className="text-xs sm:text-sm text-green-400 font-medium">Live Demo</span>
                 </div>
-                {alerts.map((item, i) => (
+                <div className="space-y-2">
                   <motion.div
-                    key={i}
-                    className="flex items-center justify-between py-2 sm:py-3 border-b border-white/5 last:border-0 hover:bg-white/5 transition-colors rounded-lg px-2 -mx-2"
+                    className="flex items-center justify-between py-2 sm:py-3 border-b border-white/5 hover:bg-white/5 transition-colors rounded-lg px-2"
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
-                    transition={{
-                      delay: 0.7 + i * 0.1,
-                      duration: 0.7,
-                      ease: [0.4, 0, 0.2, 1],
-                    }}
+                    transition={{ delay: 0.7, duration: 0.7 }}
                   >
                     <div className="flex items-center gap-2 sm:gap-3">
-                      <div className="w-8 h-8 sm:w-10 sm:h-10 bg-white/5 rounded-lg flex items-center justify-center border border-white/10 flex-shrink-0">
+                      <div className="w-8 h-8 sm:w-10 sm:h-10 bg-white/5 rounded-lg flex items-center justify-center border border-white/10">
                         <Package className="w-4 h-4 sm:w-5 sm:h-5 text-white/60" />
                       </div>
                       <div className="min-w-0">
-                        <p className="font-medium text-white text-sm sm:text-base truncate">{item.name}</p>
-                        <p className="text-xs sm:text-sm text-white/60">{item.stock} left (reorder: {item.reorder})</p>
+                        <p className="font-medium text-white text-sm sm:text-base truncate">Product Inventory</p>
+                        <p className="text-xs sm:text-sm text-white/60">Track stock across locations</p>
                       </div>
                     </div>
-                    <span className={`px-2 sm:px-3 py-1 rounded-full text-[10px] sm:text-xs font-semibold flex-shrink-0 ${item.status === 'critical' ? 'bg-red-500/20 text-red-400 border border-red-500/30' : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
-                      }`}>
-                      {item.status === 'critical' ? 'Critical' : 'Low'}
+                    <span className="px-2 sm:px-3 py-1 rounded-full text-[10px] sm:text-xs font-semibold bg-green-500/20 text-green-400 border border-green-500/30">
+                      Active
                     </span>
                   </motion.div>
-                ))}
+                  <motion.div
+                    className="flex items-center justify-between py-2 sm:py-3 border-b border-white/5 hover:bg-white/5 transition-colors rounded-lg px-2"
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.8, duration: 0.7 }}
+                  >
+                    <div className="flex items-center gap-2 sm:gap-3">
+                      <div className="w-8 h-8 sm:w-10 sm:h-10 bg-white/5 rounded-lg flex items-center justify-center border border-white/10">
+                        <Receipt className="w-4 h-4 sm:w-5 sm:h-5 text-white/60" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="font-medium text-white text-sm sm:text-base truncate">GST Invoicing</p>
+                        <p className="text-xs sm:text-sm text-white/60">Generate compliant invoices</p>
+                      </div>
+                    </div>
+                    <span className="px-2 sm:px-3 py-1 rounded-full text-[10px] sm:text-xs font-semibold bg-green-500/20 text-green-400 border border-green-500/30">
+                      Active
+                    </span>
+                  </motion.div>
+                </div>
               </div>
             </div>
           </motion.div>
