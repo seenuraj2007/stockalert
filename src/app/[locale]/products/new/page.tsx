@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation'
 import { ArrowLeft, Save, Package, Tag, Hash, AlertTriangle, Mail, Phone, DollarSign, Box, Scan, Clock, Scale, Info, Search, CheckCircle, XCircle, Loader2 } from 'lucide-react'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
-import ImageUpload from '@/components/ImageUpload'
 import { SubscriptionGate } from '@/components/SubscriptionGate'
 import { useUpgradeToast, ToastProvider } from '@/components/UpgradeNotification'
 
@@ -573,23 +572,6 @@ function ProductFormContent({ params }: { params?: Promise<{ id?: string }> }) {
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, selling_price: e.target.value })}
                   placeholder="0.00"
                   min="0"
-                />
-              </div>
-
-              <div className="pt-6 border-t border-gray-100">
-                <div className="flex items-center gap-3 pb-4 border-b border-gray-100 mb-6">
-                  <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
-                    <Box className="w-5 h-5 text-purple-600" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-gray-900">Product Image</h3>
-                    <p className="text-sm text-gray-500">Upload a product image</p>
-                  </div>
-                </div>
-                <ImageUpload
-                  value={formData.image_url}
-                  onChange={(url) => setFormData({ ...formData, image_url: url })}
-                  onRemove={() => setFormData({ ...formData, image_url: '' })}
                 />
               </div>
 

@@ -51,6 +51,39 @@ export async function POST(req: NextRequest) {
       source: null
     }
 
+    // 0. First check barcode registry (manually saved barcodes)
+    const barcodeRegistry = await prisma.barcodeRegistry.findUnique({
+      where: {
+        tenantId_barcode: {
+          tenantId: user.tenantId,
+          barcode: barcode
+        }
+      }
+    })
+
+    if (barcodeRegistry) {
+      return NextResponse.json({
+        barcode,
+        found: true,
+        source: 'registry',
+        product: {
+          name: barcodeRegistry.name,
+          category: barcodeRegistry.category || '',
+          brand: barcodeRegistry.brand || '',
+          unit: barcodeRegistry.unit,
+          sellingPrice: barcodeRegistry.sellingPrice ? Number(barcodeRegistry.sellingPrice) : null,
+          unitCost: barcodeRegistry.unitCost ? Number(barcodeRegistry.unitCost) : null,
+          imageUrl: barcodeRegistry.imageUrl,
+          hsnCode: barcodeRegistry.hsnCode,
+          gstRate: barcodeRegistry.gstRate ? Number(barcodeRegistry.gstRate) : 0,
+          isPerishable: barcodeRegistry.isPerishable,
+          weightPerUnit: barcodeRegistry.weightPerUnit ? Number(barcodeRegistry.weightPerUnit) : null,
+          minWeight: barcodeRegistry.minWeight ? Number(barcodeRegistry.minWeight) : null
+        },
+        message: 'Found in your barcode registry'
+      })
+    }
+
     // 1. First check local database (products already entered by this tenant)
     const existingProduct = await prisma.product.findFirst({
       where: {

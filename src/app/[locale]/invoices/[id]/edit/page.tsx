@@ -84,14 +84,7 @@ export default function EditInvoicePage({ params }: { params: Promise<{ id: stri
             const invoiceData = await invoiceRes.json()
             const invoice = invoiceData.invoice
 
-            // Check if invoice can be edited
-            if (invoice.status !== 'DRAFT') {
-                setError('Only draft invoices can be edited')
-                setTimeout(() => {
-                    router.push(`/invoices/${resolvedParams.id}`)
-                }, 2000)
-                return
-            }
+
 
             // Populate form data
             setFormData({
@@ -234,6 +227,13 @@ export default function EditInvoicePage({ params }: { params: Promise<{ id: stri
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     customerName: formData.customerName,
+                    customerEmail: formData.customerEmail,
+                    customerPhone: formData.customerPhone,
+                    customerAddress: formData.customerAddress,
+                    customerCity: formData.customerCity,
+                    customerState: formData.customerState,
+                    customerPincode: formData.customerPincode,
+                    customerGstNumber: formData.customerGstNumber,
                     invoiceDate: formData.invoiceDate,
                     dueDate: formData.dueDate || null,
                     notes: formData.notes,

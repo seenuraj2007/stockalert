@@ -177,6 +177,48 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Failed to create product' }, { status: 500 })
     }
 
+    // Save or update barcode registry
+    if (barcode) {
+      await prisma.barcodeRegistry.upsert({
+        where: {
+          tenantId_barcode: {
+            tenantId: user.tenantId,
+            barcode: barcode
+          }
+        },
+        create: {
+          tenantId: user.tenantId,
+          barcode: barcode,
+          name: name,
+          category: category || null,
+          unit: unit || 'unit',
+          sellingPrice: selling_price ? BigInt(Math.round(selling_price * 100)) : null,
+          unitCost: unit_cost ? BigInt(Math.round(unit_cost * 100)) : null,
+          gstRate: gst_rate ? BigInt(Math.round(gst_rate * 100)) : null,
+          hsnCode: hsn_code || null,
+          weightPerUnit: weight_per_unit ? BigInt(Math.round(parseFloat(weight_per_unit) * 1000)) : null,
+          minWeight: min_weight ? BigInt(Math.round(parseFloat(min_weight) * 1000)) : null,
+          imageUrl: image_url || null,
+          isPerishable: is_perishable || false,
+          source: 'manual'
+        },
+        update: {
+          name: name,
+          category: category || null,
+          unit: unit || 'unit',
+          sellingPrice: selling_price ? BigInt(Math.round(selling_price * 100)) : null,
+          unitCost: unit_cost ? BigInt(Math.round(unit_cost * 100)) : null,
+          gstRate: gst_rate ? BigInt(Math.round(gst_rate * 100)) : null,
+          hsnCode: hsn_code || null,
+          weightPerUnit: weight_per_unit ? BigInt(Math.round(parseFloat(weight_per_unit) * 1000)) : null,
+          minWeight: min_weight ? BigInt(Math.round(parseFloat(min_weight) * 1000)) : null,
+          imageUrl: image_url || null,
+          isPerishable: is_perishable || false,
+          source: 'manual'
+        }
+      })
+    }
+
     // Get or create a location for stock levels
     let location = await prisma.location.findFirst({
       where: {

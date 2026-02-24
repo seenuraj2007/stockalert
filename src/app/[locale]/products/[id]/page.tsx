@@ -256,17 +256,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
           </div>
         </div>
 
-        {product.image_url && (
-          <div className="mb-8 relative w-80 h-60">
-            <Image
-              src={product.image_url}
-              alt={product.name}
-              fill
-              className="rounded-2xl shadow-lg shadow-gray-200/50 border border-gray-100 object-contain"
-              sizes="320px"
-            />
-          </div>
-        )}
+
 
         {error && (
           <div className="mb-6 p-4 bg-red-50/80 backdrop-blur-sm border border-red-200 text-red-700 rounded-2xl flex items-center gap-3 animate-pulse">

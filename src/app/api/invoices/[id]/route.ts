@@ -60,7 +60,12 @@ export async function PATCH(
 
         const resolvedParams = await params
         const body = await req.json()
-        const { status, notes, terms, ewayBillNumber, ewayBillDate, customerNotes } = body
+        const { 
+            status, notes, terms, ewayBillNumber, ewayBillDate, customerNotes,
+            customerName, customerEmail, customerPhone, customerAddress,
+            customerCity, customerState, customerPincode, customerGstNumber,
+            invoiceDate, dueDate
+        } = body
 
         // Check if invoice exists
         const existingInvoice = await prisma.invoice.findFirst({
@@ -80,12 +85,7 @@ export async function PATCH(
             return NextResponse.json({ error: 'Invalid status' }, { status: 400 })
         }
 
-        // Prevent modifying paid/cancelled invoices significantly
-        if (existingInvoice.status === 'PAID' && status && status.toUpperCase() !== 'REFUNDED') {
-            return NextResponse.json({ 
-                error: 'Paid invoices can only be marked as refunded' 
-            }, { status: 400 })
-        }
+
 
         // Update invoice
         const updateData: any = {}
@@ -96,6 +96,16 @@ export async function PATCH(
         if (ewayBillNumber !== undefined) updateData.ewayBillNumber = ewayBillNumber
         if (ewayBillDate !== undefined) updateData.ewayBillDate = new Date(ewayBillDate)
         if (customerNotes !== undefined) updateData.customerNotes = customerNotes
+        if (customerName !== undefined) updateData.customerName = customerName
+        if (customerEmail !== undefined) updateData.customerEmail = customerEmail || null
+        if (customerPhone !== undefined) updateData.customerPhone = customerPhone || null
+        if (customerAddress !== undefined) updateData.customerAddress = customerAddress || null
+        if (customerCity !== undefined) updateData.customerCity = customerCity || null
+        if (customerState !== undefined) updateData.customerState = customerState || null
+        if (customerPincode !== undefined) updateData.customerPincode = customerPincode || null
+        if (customerGstNumber !== undefined) updateData.customerGstNumber = customerGstNumber || null
+        if (invoiceDate !== undefined) updateData.invoiceDate = new Date(invoiceDate)
+        if (dueDate !== undefined) updateData.dueDate = dueDate ? new Date(dueDate) : null
 
         const invoice = await prisma.invoice.update({
             where: { id: resolvedParams.id },

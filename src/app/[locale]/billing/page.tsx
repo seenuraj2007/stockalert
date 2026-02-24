@@ -59,17 +59,8 @@ const ProductCard = memo(({
     >
       {viewMode === 'grid' ? (
         <div className="flex flex-col h-full w-full">
-          <div className="w-full aspect-square max-h-28 bg-gray-100 rounded-lg mb-2 flex items-center justify-center overflow-hidden relative">
-            {product.image_url ? (
-<img 
-                              src={product.image_url} 
-                              alt={product.name} 
-                              className="object-cover w-full h-full"
-                              loading="lazy"
-                            />
-            ) : (
-              <Package className="w-10 h-10 text-gray-500" />
-            )}
+          <div className="w-full aspect-square max-h-28 bg-gray-100 rounded-lg mb-2 flex items-center justify-center overflow-hidden">
+            <Package className="w-10 h-10 text-gray-500" />
           </div>
           <div className="flex-1 flex flex-col min-h-0">
             <p className="font-semibold text-gray-900 text-sm sm:text-base leading-tight line-clamp-2 mb-1">{product.name}</p>
@@ -89,17 +80,8 @@ const ProductCard = memo(({
         </div>
       ) : (
         <>
-          <div className="w-14 h-14 sm:w-16 sm:h-16 bg-gray-100 rounded-xl flex items-center justify-center flex-shrink-0 relative">
-            {product.image_url ? (
-              <img 
-                src={product.image_url} 
-                alt={product.name} 
-                className="object-cover w-full h-full rounded-xl"
-                loading="lazy"
-              />
-            ) : (
-              <Package className="w-8 h-8 text-gray-500" />
-            )}
+          <div className="w-14 h-14 sm:w-16 sm:h-16 bg-gray-100 rounded-xl flex items-center justify-center flex-shrink-0">
+            <Package className="w-8 h-8 text-gray-500" />
           </div>
           <div className="flex-1 min-w-0">
             <p className="font-semibold text-gray-900 text-base sm:text-lg truncate">{product.name}</p>
@@ -1262,17 +1244,8 @@ export default function POSPage() {
                     <div className="p-4 pb-3">
                       <div className="flex gap-3">
                         {/* Product Image */}
-                        <div className="w-16 h-16 bg-gray-100 rounded-xl flex-shrink-0 flex items-center justify-center overflow-hidden">
-                          {item.product.image_url ? (
-                            <img 
-                              src={item.product.image_url} 
-                              alt={item.product.name}
-                              className="object-cover w-full h-full"
-                              loading="lazy"
-                            />
-                          ) : (
-                            <Package className="w-8 h-8 text-gray-400" />
-                          )}
+                        <div className="w-16 h-16 bg-gray-100 rounded-xl flex-shrink-0 flex items-center justify-center">
+                          <Package className="w-8 h-8 text-gray-400" />
                         </div>
                         
                         {/* Product Info */}

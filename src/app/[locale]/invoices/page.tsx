@@ -470,41 +470,66 @@ export default function InvoicesPage() {
                         {/* Mobile App Card Layout */}
                         <div className="sm:hidden space-y-3 pb-24">
                             {filteredInvoices.map((invoice, index) => (
-                                <Link
+                                <div
                                     key={invoice.id}
-                                    href={`/invoices/${invoice.id}`}
                                     className="block bg-white rounded-2xl p-4 shadow-sm border border-gray-100 active:scale-[0.98] transition-all"
                                     style={{ animationDelay: `${index * 50}ms` }}
                                 >
-                                    <div className="flex items-start justify-between">
-                                        <div className="flex-1 min-w-0">
-                                            <div className="flex items-center gap-2 mb-1">
-                                                <div className={`w-2 h-2 rounded-full ${getStatusDotColor(invoice.status)}`} />
-                                                <span className="text-sm font-bold text-gray-900">
-                                                    {invoice.invoiceNumber}
-                                                </span>
+                                    <Link href={`/invoices/${invoice.id}`}>
+                                        <div className="flex items-start justify-between">
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex items-center gap-2 mb-1">
+                                                    <div className={`w-2 h-2 rounded-full ${getStatusDotColor(invoice.status)}`} />
+                                                    <span className="text-sm font-bold text-gray-900">
+                                                        {invoice.invoiceNumber}
+                                                    </span>
+                                                </div>
+                                                <p className="text-sm text-gray-500 truncate mb-2">
+                                                    {invoice.customerName}
+                                                </p>
+                                                <div className="flex items-center gap-3">
+                                                    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${getStatusBgColor(invoice.status)} ${getStatusTextColor(invoice.status)}`}>
+                                                        {getStatusIcon(invoice.status)}
+                                                        {invoice.status}
+                                                    </span>
+                                                    <span className="text-xs text-gray-400">
+                                                        {getRelativeTime(invoice.invoiceDate)}
+                                                    </span>
+                                                </div>
                                             </div>
-                                            <p className="text-sm text-gray-500 truncate mb-2">
-                                                {invoice.customerName}
-                                            </p>
-                                            <div className="flex items-center gap-3">
-                                                <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${getStatusBgColor(invoice.status)} ${getStatusTextColor(invoice.status)}`}>
-                                                    {getStatusIcon(invoice.status)}
-                                                    {invoice.status}
-                                                </span>
-                                                <span className="text-xs text-gray-400">
-                                                    {getRelativeTime(invoice.invoiceDate)}
-                                                </span>
+                                            <div className="text-right">
+                                                <p className="text-lg font-bold text-gray-900">
+                                                    ₹{Number(invoice.totalAmount).toLocaleString('en-IN', { minimumFractionDigits: 0 })}
+                                                </p>
+                                                <ArrowRight className="w-4 h-4 text-gray-300 mt-2 ml-auto" />
                                             </div>
                                         </div>
-                                        <div className="text-right">
-                                            <p className="text-lg font-bold text-gray-900">
-                                                ₹{Number(invoice.totalAmount).toLocaleString('en-IN', { minimumFractionDigits: 0 })}
-                                            </p>
-                                            <ArrowRight className="w-4 h-4 text-gray-300 mt-2 ml-auto" />
-                                        </div>
+                                    </Link>
+                                    <div className="flex items-center gap-2 mt-3 pt-3 border-t border-gray-100">
+                                        <Link
+                                            href={`/invoices/${invoice.id}`}
+                                            className="flex-1 flex items-center justify-center gap-2 py-2 bg-gray-100 hover:bg-gray-200 rounded-xl text-sm font-medium text-gray-700 transition-colors cursor-pointer"
+                                        >
+                                            <Eye className="w-4 h-4" />
+                                            View
+                                        </Link>
+                                        <Link
+                                            href={`/invoices/${invoice.id}/edit`}
+                                            className="flex-1 flex items-center justify-center gap-2 py-2 bg-gray-100 hover:bg-indigo-50 rounded-xl text-sm font-medium text-gray-700 hover:text-indigo-600 transition-colors cursor-pointer"
+                                        >
+                                            <Edit className="w-4 h-4" />
+                                            Edit
+                                        </Link>
+                                        {invoice.status === 'DRAFT' && (
+                                            <button
+                                                onClick={() => deleteInvoice(invoice.id)}
+                                                className="flex items-center justify-center gap-2 px-4 py-2 bg-gray-100 hover:bg-red-50 rounded-xl text-sm font-medium text-gray-700 hover:text-red-600 transition-colors cursor-pointer"
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                            </button>
+                                        )}
                                     </div>
-                                </Link>
+                                </div>
                             ))}
 
                             {/* Mobile Load More / Pagination */}
