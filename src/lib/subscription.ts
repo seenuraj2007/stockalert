@@ -39,9 +39,9 @@ const DEFAULT_PLAN: SubscriptionPlan = {
   monthly_price: 0,
   yearly_price: 0,
   max_team_members: 3,
-  max_products: 50,
+  max_products: 500,
   max_locations: 5,
-  features: ['Unlimited inventory management', 'Up to 50 products', 'Up to 5 locations', 'Up to 3 team members', 'Email support'],
+  features: ['Unlimited inventory management', 'Up to 500 products', 'Up to 5 locations', 'Up to 3 team members', 'Email support'],
   is_active: true
 }
 

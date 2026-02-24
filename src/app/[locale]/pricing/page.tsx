@@ -56,7 +56,7 @@ const plans = [
     features: [
       'Basic inventory tracking',
       'Up to 3 team members',
-      'Up to 50 products',
+      'Up to 500 products',
       'Up to 5 locations',
       'Stock transfers',
       'Purchase orders',
