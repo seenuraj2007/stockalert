@@ -661,7 +661,7 @@ export default function HomePage() {
         </div>
       </section>
       
-      {/* Comparison Section
+      {/* Comparison Section */}
       <section id="comparison" className="py-24 px-4 bg-gradient-to-b from-transparent via-white/[0.02] to-transparent">
         <div className="max-w-6xl mx-auto">
           <motion.div
@@ -686,7 +686,7 @@ export default function HomePage() {
             className="overflow-x-auto"
           >
             <div className="min-w-[600px]">
-              Header
+              {/* Header */}
               <div className="grid grid-cols-5 gap-4 mb-4">
                 <div />
                 <div className="text-center p-4 bg-gradient-to-br from-cyan-500/20 to-blue-500/10 border border-cyan-500/30 rounded-2xl">
@@ -707,7 +707,7 @@ export default function HomePage() {
                 </div>
               </div>
               
-              Rows
+              {/* Rows */}
               {comparisonData.map((row, i) => (
                 <motion.div
                   key={i}
@@ -753,7 +753,7 @@ export default function HomePage() {
         </div>
       </section>
       
-      Testimonials
+      {/* Testimonials */}
       <section className="py-24 px-4">
         <div className="max-w-6xl mx-auto">
           <motion.div
@@ -792,7 +792,7 @@ export default function HomePage() {
             ))}
           </div>
         </div>
-      </section> */}
+      </section>
       
       {/* Pricing Section */}
       <section id="pricing" className="py-24 px-4">
@@ -939,7 +939,7 @@ export default function HomePage() {
       <footer className="border-t border-white/5 py-16 px-4">
         <div className="max-w-7xl mx-auto">
           <div className="grid md:grid-cols-4 gap-12 mb-12">
-            Brand
+            {/* Brand */}
             <div className="md:col-span-2">
               <Link href="/" className="flex items-center gap-3 mb-4">
                 <div className="w-10 h-10 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-xl flex items-center justify-center">
@@ -962,7 +962,7 @@ export default function HomePage() {
               </div>
             </div>
             
-            Links
+            {/* Links */}
             <div>
               <h4 className="font-semibold mb-4">Product</h4>
               <ul className="space-y-3 text-sm text-white/50">
