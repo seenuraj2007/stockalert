@@ -10,7 +10,7 @@ import {
   Database, Code2, Globe, Server, Receipt, QrCode, FileText,
   IndianRupee, Building2, UserPlus, MessageSquare, Smartphone,
   Download, Languages, Star, TrendingUp, Check, Clock, Github, Heart,
-  Menu, X, Play, ArrowUpRight, MoveRight, Eye, Settings, PieChart
+  Menu, X, Play, ArrowUpRight, MoveRight, Eye, Settings, PieChart, Barcode
 } from 'lucide-react'
 
 const stats = [
@@ -22,9 +22,23 @@ const stats = [
 
 const features = [
   {
+    icon: Smartphone,
+    title: 'IMEI & Serial Tracking',
+    description: 'Track every phone & electronic item by IMEI or serial number. Perfect for mobile stores.',
+    badge: 'Electronics',
+    accent: '#06b6d4'
+  },
+  {
+    icon: Shield,
+    title: 'Warranty Management',
+    description: 'Automatic warranty expiry tracking. Get alerts before warranties expire.',
+    badge: 'Pro Feature',
+    accent: '#f59e0b'
+  },
+  {
     icon: Github,
     title: 'Open Source',
-    description: 'Fully transparent codebase. Fork it, self-host it, contribute to it. No vendor lock-in ever.',
+    description: 'Fully transparent codebase. Fork it, self-host it, contribute to it. No vendor lock-in.',
     badge: 'MIT License',
     accent: '#10b981'
   },
@@ -39,47 +53,39 @@ const features = [
     icon: Package,
     title: 'Real-time Stock',
     description: 'Live inventory tracking across all locations. Know your stock levels instantly.',
+    badge: 'Live',
     accent: '#8b5cf6'
   },
   {
     icon: Receipt,
     title: 'GST Invoicing',
     description: 'Generate compliant invoices with automatic HSN codes, tax calculations, and e-way bills.',
+    badge: 'GST Ready',
     accent: '#f59e0b'
   },
   {
-    icon: MapPin,
-    title: 'Multi-Location',
-    description: 'Manage warehouses, retail stores, and godowns from a single unified dashboard.',
-    accent: '#ef4444'
+    icon: Barcode,
+    title: 'Barcode Scanner',
+    description: 'Scan barcodes & IMEI with camera. Speed up billing and inventory operations.',
+    badge: 'Mobile',
+    accent: '#ec4899'
   },
   {
     icon: Bell,
     title: 'Smart Alerts',
-    description: 'Get notified before stock runs out. Set custom thresholds for each product.',
+    description: 'Low stock, warranty expiry, and reorder alerts. Never miss anything.',
+    badge: 'Automated',
     accent: '#06b6d4'
-  },
-  {
-    icon: QrCode,
-    title: 'Barcode Support',
-    description: 'Generate, print, and scan barcodes. Speed up your inventory operations.',
-    accent: '#ec4899'
-  },
-  {
-    icon: Globe,
-    title: 'Multi-Language',
-    description: 'Built for global teams. Easily switch between languages as needed.',
-    accent: '#14b8a6'
   },
 ]
 
 const comparisonData = [
   { feature: 'Monthly Cost', us: 'Free', zoho: '₹749', marg: '₹1,500', tally: '₹4,500' },
   { feature: 'Tally Import', us: true, zoho: false, marg: false, tally: false },
-  { feature: 'Multi-Location', us: true, zoho: 'Limited', marg: true, tally: true },
+  { feature: 'IMEI/Serial Tracking', us: true, zoho: false, marg: false, tally: false },
+  { feature: 'Warranty Tracking', us: true, zoho: false, marg: false, tally: false },
   { feature: 'GST Invoicing', us: true, zoho: true, marg: true, tally: true },
   { feature: 'Open Source', us: true, zoho: false, marg: false, tally: false },
-  { feature: 'WhatsApp Alerts', us: 'Soon', zoho: false, marg: false, tally: false },
 ]
 
 const techStack = [
@@ -330,8 +336,8 @@ export default function HomePage() {
             transition={{ duration: 0.8, delay: 0.2 }}
             className="text-center text-lg sm:text-xl text-white/50 max-w-2xl mx-auto mb-12 leading-relaxed"
           >
-            The modern, open-source inventory system. One-click Tally import, 
-            GST-compliant invoicing, and real-time stock tracking across all your locations.
+            The modern inventory system for electronics & mobile stores. 
+            Track IMEI, serial numbers, warranty expiry, with GST invoicing and real-time stock.
           </motion.p>
           
           {/* CTA Buttons */}

@@ -71,6 +71,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     if (productData.sku !== undefined) prismaProductData.sku = productData.sku || null
     if (productData.barcode !== undefined) prismaProductData.barcode = productData.barcode || null
     if (productData.category !== undefined) prismaProductData.category = productData.category || null
+    if (productData.brand !== undefined) prismaProductData.brand = productData.brand || null
     if (productData.unit !== undefined) prismaProductData.unit = productData.unit || 'unit'
     if (productData.description !== undefined) prismaProductData.description = productData.description || null
     if (productData.unit_cost !== undefined) prismaProductData.unitCost = productData.unit_cost || 0
@@ -79,6 +80,10 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     if (productData.supplier_name !== undefined) prismaProductData.supplierName = productData.supplier_name || null
     if (productData.supplier_email !== undefined) prismaProductData.supplierEmail = productData.supplier_email || null
     if (productData.supplier_phone !== undefined) prismaProductData.supplierPhone = productData.supplier_phone || null
+    // Electronics fields
+    if (productData.requires_imei !== undefined) prismaProductData.requiresIMEI = productData.requires_imei
+    if (productData.requires_serial !== undefined) prismaProductData.requiresSerialNumber = productData.requires_serial
+    if (productData.warranty_months !== undefined) prismaProductData.warrantyMonths = productData.warranty_months ? parseInt(productData.warranty_months) : null
 
     // Update product
     const product = await prisma.product.update({

@@ -2,10 +2,13 @@
 
 import { useEffect, useState, memo } from 'react'
 import { useRouter } from 'next/navigation'
-import { Package, TrendingDown, AlertTriangle, Bell, Plus, ArrowUpRight, ArrowDownRight, ChevronRight, Zap } from 'lucide-react'
+import { Package, TrendingDown, AlertTriangle, Bell, Plus, ArrowUpRight, ArrowDownRight, ChevronRight, Zap, Smartphone, Barcode, Clock, Shield, AlertCircle, Scan, X, Search, DollarSign } from 'lucide-react'
 import Link from 'next/link'
 import { SubscriptionGate } from '@/components/SubscriptionGate'
 import SidebarLayout from '@/components/SidebarLayout'
+import dynamic from 'next/dynamic'
+
+const BarcodeScanner = dynamic(() => import('@/components/BarcodeScanner'), { ssr: false })
 
 interface DashboardStats {
     totalProducts: number
@@ -28,6 +31,30 @@ interface DashboardStats {
         teamMembers: number
         products: number
         locations: number
+    }
+    electronics?: {
+        totalSerialNumbers: number
+        serialByStatus: Record<string, number>
+        warrantyExpiring30Days: number
+        warrantyExpiring90Days: number
+        warrantyExpired: number
+        topWarrantyExpiring: Array<{
+            id: string
+            serialNumber: string
+            warrantyExpiry: string
+            status: string
+            productName: string
+        }>
+        imeiRequiredCount: number
+        serialRequiredCount: number
+        warrantyAlertSettings?: {
+            alertBefore30Days: boolean
+            alertBefore60Days: boolean
+            alertBefore90Days: boolean
+            emailNotifications: boolean
+            whatsappNotifications: boolean
+        }
+        highValueItems?: number
     }
 }
 
@@ -109,6 +136,10 @@ export default function DashboardPage() {
     const router = useRouter()
     const [stats, setStats] = useState<DashboardStats | null>(null)
     const [loading, setLoading] = useState(true)
+    const [scannerOpen, setScannerOpen] = useState(false)
+    const [imeiSearch, setImeiSearch] = useState('')
+    const [searchResults, setSearchResults] = useState<any[]>([])
+    const [searching, setSearching] = useState(false)
 
     useEffect(() => {
         fetchDashboard()
@@ -131,6 +162,28 @@ export default function DashboardPage() {
         } finally {
             setLoading(false)
         }
+    }
+
+    const handleImeiSearch = async () => {
+        if (!imeiSearch.trim()) return
+        setSearching(true)
+        try {
+            const res = await fetch(`/api/serial-numbers?search=${encodeURIComponent(imeiSearch)}&limit=10`, {
+                credentials: 'include'
+            })
+            const data = await res.json()
+            setSearchResults(data.serialNumbers || [])
+        } catch (error) {
+            console.error('Search error:', error)
+        } finally {
+            setSearching(false)
+        }
+    }
+
+    const handleBarcodeDetected = (code: string) => {
+        setImeiSearch(code)
+        setScannerOpen(false)
+        handleImeiSearch()
     }
 
     if (loading) {
@@ -198,6 +251,175 @@ export default function DashboardPage() {
                         <p className="text-gray-500 mt-0.5 text-[0.8125rem] sm:text-base">Overview of your inventory</p>
                     </div>
 
+                    {/* Electronics Stats - Always show for testing */}
+                    <div className="mb-5 sm:mb-7">
+                        <div className="flex items-center gap-2 mb-3">
+                            <Smartphone className="w-5 h-5 text-indigo-500" />
+                            <h2 className="text-lg font-bold text-gray-900">Electronics Overview</h2>
+                        </div>
+                        <div className="grid grid-cols-2 lg:grid-cols-6 gap-3 sm:gap-4">
+                            <StatCard
+                                title="Serial Numbers"
+                                value={stats?.electronics?.totalSerialNumbers ?? 0}
+                                icon={Barcode}
+                                color="bg-gradient-to-br from-indigo-500 to-purple-600"
+                            />
+                            <StatCard
+                                title="Warranty Expired"
+                                value={stats?.electronics?.warrantyExpired ?? 0}
+                                icon={AlertCircle}
+                                color="bg-gradient-to-br from-red-500 to-red-600"
+                            />
+                            <StatCard
+                                title="Expiring (30d)"
+                                value={stats?.electronics?.warrantyExpiring30Days ?? 0}
+                                icon={Clock}
+                                color="bg-gradient-to-br from-orange-500 to-red-500"
+                            />
+                            <StatCard
+                                title="Expiring (90d)"
+                                value={stats?.electronics?.warrantyExpiring90Days ?? 0}
+                                icon={Shield}
+                                color="bg-gradient-to-br from-amber-500 to-orange-500"
+                            />
+                            <StatCard
+                                title="High Value (₹10k+)"
+                                value={stats?.electronics?.highValueItems ?? 0}
+                                icon={DollarSign}
+                                color="bg-gradient-to-br from-emerald-500 to-green-600"
+                            />
+                            <StatCard
+                                title="IMEI Required"
+                                value={stats?.electronics?.imeiRequiredCount ?? 0}
+                                icon={Smartphone}
+                                color="bg-gradient-to-br from-cyan-500 to-blue-500"
+                            />
+                        </div>
+                    </div>
+
+                    {/* IMEI Scanner & Search */}
+                    <div className="mb-5 sm:mb-7">
+                        <div className="card-elevated-lg p-4 sm:p-5">
+                            <div className="flex items-center gap-2 mb-3">
+                                <Scan className="w-5 h-5 text-indigo-500" />
+                                <h2 className="text-lg font-bold text-gray-900">Quick IMEI Search</h2>
+                            </div>
+                            <div className="flex flex-col sm:flex-row gap-3">
+                                <div className="flex-1 relative">
+                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                    <input
+                                        type="text"
+                                        placeholder="Enter IMEI or Serial Number..."
+                                        value={imeiSearch}
+                                        onChange={(e) => setImeiSearch(e.target.value)}
+                                        onKeyDown={(e) => e.key === 'Enter' && handleImeiSearch()}
+                                        className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none text-sm"
+                                    />
+                                </div>
+                                <button
+                                    onClick={() => setScannerOpen(true)}
+                                    className="flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 transition-colors"
+                                >
+                                    <Scan className="w-4 h-4" />
+                                    Scan
+                                </button>
+                                <button
+                                    onClick={handleImeiSearch}
+                                    disabled={!imeiSearch.trim() || searching}
+                                    className="flex items-center justify-center gap-2 px-4 py-2.5 bg-gray-900 text-white rounded-xl font-medium hover:bg-gray-800 transition-colors disabled:opacity-50"
+                                >
+                                    <Search className="w-4 h-4" />
+                                    Search
+                                </button>
+                            </div>
+
+                            {/* Search Results */}
+                            {searchResults.length > 0 && (
+                                <div className="mt-4 space-y-2">
+                                    <h3 className="text-sm font-semibold text-gray-700">Search Results</h3>
+                                    {searchResults.map((result) => (
+                                        <div
+                                            key={result.id}
+                                            className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer"
+                                            onClick={() => router.push('/serial-numbers')}
+                                        >
+                                            <div>
+                                                <p className="font-medium text-gray-900 text-sm">{result.serialNumber}</p>
+                                                <p className="text-xs text-gray-500">{result.product?.name}</p>
+                                            </div>
+                                            <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                                                result.status === 'IN_STOCK' ? 'bg-green-100 text-green-700' :
+                                                result.status === 'SOLD' ? 'bg-blue-100 text-blue-700' :
+                                                result.status === 'RESERVED' ? 'bg-amber-100 text-amber-700' :
+                                                'bg-red-100 text-red-700'
+                                            }`}>
+                                                {result.status}
+                                            </span>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+
+                            {imeiSearch && searchResults.length === 0 && !searching && (
+                                <div className="mt-4 text-center py-4 text-gray-500 text-sm">
+                                    No serial numbers found for "{imeiSearch}"
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Warranty Alert Settings */}
+                    <div className="mb-5 sm:mb-7">
+                        <div className="card-elevated-lg p-4 sm:p-5">
+                            <div className="flex items-center gap-2 mb-3">
+                                <Shield className="w-5 h-5 text-indigo-500" />
+                                <h2 className="text-lg font-bold text-gray-900">Warranty Alert Settings</h2>
+                            </div>
+                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                                <label className="flex items-center gap-2 cursor-pointer">
+                                    <input
+                                        type="checkbox"
+                                        defaultChecked={stats?.electronics?.warrantyAlertSettings?.alertBefore30Days ?? true}
+                                        className="w-4 h-4 text-indigo-600 rounded"
+                                    />
+                                    <span className="text-sm text-gray-700">Alert 30 days before</span>
+                                </label>
+                                <label className="flex items-center gap-2 cursor-pointer">
+                                    <input
+                                        type="checkbox"
+                                        defaultChecked={stats?.electronics?.warrantyAlertSettings?.alertBefore60Days ?? true}
+                                        className="w-4 h-4 text-indigo-600 rounded"
+                                    />
+                                    <span className="text-sm text-gray-700">Alert 60 days before</span>
+                                </label>
+                                <label className="flex items-center gap-2 cursor-pointer">
+                                    <input
+                                        type="checkbox"
+                                        defaultChecked={stats?.electronics?.warrantyAlertSettings?.alertBefore90Days ?? false}
+                                        className="w-4 h-4 text-indigo-600 rounded"
+                                    />
+                                    <span className="text-sm text-gray-700">Alert 90 days before</span>
+                                </label>
+                                <label className="flex items-center gap-2 cursor-pointer">
+                                    <input
+                                        type="checkbox"
+                                        defaultChecked={stats?.electronics?.warrantyAlertSettings?.emailNotifications ?? true}
+                                        className="w-4 h-4 text-indigo-600 rounded"
+                                    />
+                                    <span className="text-sm text-gray-700">Email notifications</span>
+                                </label>
+                                <label className="flex items-center gap-2 cursor-pointer">
+                                    <input
+                                        type="checkbox"
+                                        defaultChecked={stats?.electronics?.warrantyAlertSettings?.whatsappNotifications ?? false}
+                                        className="w-4 h-4 text-indigo-600 rounded"
+                                    />
+                                    <span className="text-sm text-gray-700">WhatsApp notifications</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
                     {/* Stat Cards */}
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-5 sm:mb-7">
                         <StatCard
@@ -229,6 +451,105 @@ export default function DashboardPage() {
 
                     {/* Content Grid */}
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-5">
+                        {/* Warranty Expiring - Electronics Widget */}
+                        <div className="card-elevated-lg overflow-hidden">
+                            <div className="flex items-center justify-between px-4 pt-4 pb-2 sm:px-5 sm:pt-5">
+                                <h2 className="text-[0.9375rem] sm:text-lg font-bold text-gray-900 flex items-center gap-2">
+                                    <Clock className="w-4 h-4 text-orange-500" />
+                                    Warranty Expiring Soon
+                                </h2>
+                                <Link
+                                    href="/serial-numbers"
+                                    className="text-indigo-600 text-[0.75rem] sm:text-sm font-semibold flex items-center gap-0.5 cursor-pointer"
+                                >
+                                    View All
+                                    <ArrowUpRight className="w-3.5 h-3.5" />
+                                </Link>
+                            </div>
+                            {stats?.electronics?.topWarrantyExpiring && stats.electronics.topWarrantyExpiring.length > 0 ? (
+                                <div className="native-list-group mx-0 rounded-none border-x-0 border-b-0">
+                                    {stats.electronics.topWarrantyExpiring.map((item) => {
+                                        const daysUntilExpiry = item.warrantyExpiry 
+                                            ? Math.ceil((new Date(item.warrantyExpiry).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+                                            : 0
+                                        const isCritical = daysUntilExpiry <= 30
+                                        const isWarning = daysUntilExpiry <= 90
+                                        
+                                        return (
+                                            <div
+                                                key={item.id}
+                                                className="native-list-item"
+                                                onClick={() => router.push(`/serial-numbers`)}
+                                            >
+                                                <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${isCritical ? 'bg-red-50' : isWarning ? 'bg-amber-50' : 'bg-blue-50'}`}>
+                                                    <Shield className={`w-[1.1rem] h-[1.1rem] ${isCritical ? 'text-red-500' : isWarning ? 'text-amber-500' : 'text-blue-500'}`} />
+                                                </div>
+                                                <div className="min-w-0 flex-1">
+                                                    <h3 className="font-semibold text-gray-900 text-[0.8125rem] truncate leading-tight">{item.productName}</h3>
+                                                    <div className="flex items-center gap-2 mt-1">
+                                                        <span className="text-[0.6875rem] text-gray-500">IMEI: {item.serialNumber}</span>
+                                                    </div>
+                                                </div>
+                                                <div className="text-right flex-shrink-0">
+                                                    <span className={`px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold ${isCritical ? 'bg-red-100 text-red-600' : isWarning ? 'bg-amber-100 text-amber-600' : 'bg-blue-100 text-blue-600'}`}>
+                                                        {daysUntilExpiry}d
+                                                    </span>
+                                                    <p className="text-[0.6875rem] text-gray-500 mt-1">
+                                                        {item.warrantyExpiry ? new Date(item.warrantyExpiry).toLocaleDateString('en-IN') : 'N/A'}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        )
+                                    })}
+                                </div>
+                            ) : (
+                                <div className="text-center py-10 px-4">
+                                    <div className="w-14 h-14 bg-gray-50 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                                        <Shield className="w-7 h-7 text-gray-400" />
+                                    </div>
+                                    <p className="text-gray-500 font-medium text-[0.875rem]">No warranty expiring soon</p>
+                                    <p className="text-[0.75rem] text-gray-400 mt-0.5">Add serial numbers with warranty dates</p>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Serial Numbers by Status - Electronics Widget */}
+                        <div className="card-elevated-lg overflow-hidden">
+                            <div className="flex items-center justify-between px-4 pt-4 pb-2 sm:px-5 sm:pt-5">
+                                <h2 className="text-[0.9375rem] sm:text-lg font-bold text-gray-900 flex items-center gap-2">
+                                    <Barcode className="w-4 h-4 text-indigo-500" />
+                                    Serial Numbers Status
+                                </h2>
+                                <Link
+                                    href="/serial-numbers"
+                                    className="text-indigo-600 text-[0.75rem] sm:text-sm font-semibold flex items-center gap-0.5 cursor-pointer"
+                                >
+                                    View All
+                                    <ArrowUpRight className="w-3.5 h-3.5" />
+                                </Link>
+                            </div>
+                            <div className="p-4 sm:p-5">
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div className="p-3 bg-green-50 rounded-xl border border-green-100">
+                                        <p className="text-2xl font-bold text-green-700">{stats?.electronics?.serialByStatus?.IN_STOCK ?? 0}</p>
+                                        <p className="text-[0.6875rem] text-green-600 font-medium">In Stock</p>
+                                    </div>
+                                    <div className="p-3 bg-blue-50 rounded-xl border border-blue-100">
+                                        <p className="text-2xl font-bold text-blue-700">{stats?.electronics?.serialByStatus?.SOLD ?? 0}</p>
+                                        <p className="text-[0.6875rem] text-blue-600 font-medium">Sold</p>
+                                    </div>
+                                    <div className="p-3 bg-amber-50 rounded-xl border border-amber-100">
+                                        <p className="text-2xl font-bold text-amber-700">{stats?.electronics?.serialByStatus?.RESERVED ?? 0}</p>
+                                        <p className="text-[0.6875rem] text-amber-600 font-medium">Reserved</p>
+                                    </div>
+                                    <div className="p-3 bg-red-50 rounded-xl border border-red-100">
+                                        <p className="text-2xl font-bold text-red-700">{stats?.electronics?.serialByStatus?.DEFECTIVE ?? 0}</p>
+                                        <p className="text-[0.6875rem] text-red-600 font-medium">Defective</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         {/* Low Stock Items */}
                         <div className="card-elevated-lg overflow-hidden">
                             <div className="flex items-center justify-between px-4 pt-4 pb-2 sm:px-5 sm:pt-5">
@@ -304,6 +625,17 @@ export default function DashboardPage() {
                                             <span className="font-semibold text-[0.875rem] text-white">Check Alerts</span>
                                         </div>
                                     </Link>
+                                    <Link
+                                        href="/serial-numbers"
+                                        className="block bg-white/20 backdrop-blur-sm rounded-xl p-3.5 hover:bg-white/30 transition-all border border-white/20 cursor-pointer tap-bounce"
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-9 h-9 bg-white/30 rounded-lg flex items-center justify-center shadow-sm">
+                                                <Barcode className="w-[1.1rem] h-[1.1rem] text-white" />
+                                            </div>
+                                            <span className="font-semibold text-[0.875rem] text-white">Serial Numbers</span>
+                                        </div>
+                                    </Link>
                                 </div>
 
                                 <div className="mt-4 p-3 bg-white/20 backdrop-blur-sm rounded-xl border border-white/20">
@@ -315,6 +647,29 @@ export default function DashboardPage() {
                         </div>
                     </div>
                 </div>
+
+                {/* Barcode Scanner Modal */}
+                {scannerOpen && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+                        <div className="bg-white rounded-2xl w-full max-w-md overflow-hidden">
+                            <div className="flex items-center justify-between p-4 border-b">
+                                <h3 className="font-semibold text-gray-900">Scan IMEI/Barcode</h3>
+                                <button
+                                    onClick={() => setScannerOpen(false)}
+                                    className="p-1 hover:bg-gray-100 rounded-lg"
+                                >
+                                    <X className="w-5 h-5 text-gray-500" />
+                                </button>
+                            </div>
+                            <div className="p-4">
+                                <BarcodeScanner
+                                    onDetected={handleBarcodeDetected}
+                                    onClose={() => setScannerOpen(false)}
+                                />
+                            </div>
+                        </div>
+                    </div>
+                )}
             </SubscriptionGate>
         </SidebarLayout>
     )

@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
-import { Plus, Search, Package, Edit, Trash2, AlertTriangle, X, SlidersHorizontal } from 'lucide-react'
+import { Plus, Search, Package, Edit, Trash2, AlertTriangle, X, SlidersHorizontal, Smartphone, Barcode, Shield, Filter } from 'lucide-react'
 import Link from 'next/link'
 import { SubscriptionGate } from '@/components/SubscriptionGate'
 import SidebarLayout from '@/components/SidebarLayout'
@@ -11,7 +11,9 @@ interface Product {
   id: number
   name: string
   sku: string | null
+  barcode: string | null
   category: string | null
+  brand: string | null
   current_quantity: number
   reorder_point: number
   supplier_name: string | null
@@ -19,6 +21,11 @@ interface Product {
   needs_restock: boolean
   is_out_of_stock: boolean
   image_url: string | null
+  selling_price: number | null
+  // Electronics-specific fields
+  requires_imei: boolean
+  requires_serial: boolean
+  warranty_months: number | null
 }
 
 export default function ProductsPage() {
@@ -28,6 +35,7 @@ export default function ProductsPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [categoryFilter, setCategoryFilter] = useState('')
   const [showFilters, setShowFilters] = useState(false)
+  const [electronicsFilter, setElectronicsFilter] = useState('')
 
   useEffect(() => {
     fetchProducts()
@@ -77,11 +85,20 @@ export default function ProductsPage() {
     const lowerSearch = searchTerm.toLowerCase()
     return products.filter(product => {
       const matchesSearch = product.name.toLowerCase().includes(lowerSearch) ||
-        product.sku?.toLowerCase().includes(lowerSearch)
+        product.sku?.toLowerCase().includes(lowerSearch) ||
+        product.barcode?.toLowerCase().includes(lowerSearch) ||
+        product.brand?.toLowerCase().includes(lowerSearch)
       const matchesCategory = !categoryFilter || product.category === categoryFilter
+      
+      // Electronics filter
+      if (electronicsFilter === 'imei' && !product.requires_imei) return false
+      if (electronicsFilter === 'serial' && !product.requires_serial) return false
+      if (electronicsFilter === 'warranty' && !product.warranty_months) return false
+      if (electronicsFilter === 'high_value' && (product.selling_price || 0) < 10000) return false
+      
       return matchesSearch && matchesCategory
     })
-  }, [products, searchTerm, categoryFilter])
+  }, [products, searchTerm, categoryFilter, electronicsFilter])
 
   const categories = useMemo(() => {
     return Array.from(new Set(products.map(p => p.category).filter(Boolean) as string[]))
@@ -187,7 +204,7 @@ export default function ProductsPage() {
               </button>
 
               {/* Category Filter (Desktop) */}
-              <div className="hidden sm:block relative min-w-[180px]">
+              <div className="hidden sm:block relative min-w-[140px]">
                 <select
                   value={categoryFilter}
                   onChange={(e) => setCategoryFilter(e.target.value)}
@@ -197,6 +214,21 @@ export default function ProductsPage() {
                   {categories.map((cat) => (
                     <option key={cat} value={cat}>{cat}</option>
                   ))}
+                </select>
+              </div>
+
+              {/* Electronics Filter (Desktop) */}
+              <div className="hidden sm:block relative min-w-[140px]">
+                <select
+                  value={electronicsFilter}
+                  onChange={(e) => setElectronicsFilter(e.target.value)}
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all appearance-none bg-white text-gray-700 cursor-pointer"
+                >
+                  <option value="">Electronics</option>
+                  <option value="imei">IMEI Required</option>
+                  <option value="serial">Serial Req.</option>
+                  <option value="warranty">Has Warranty</option>
+                  <option value="high_value">High Value (₹10k+)</option>
                 </select>
               </div>
             </div>
@@ -215,12 +247,26 @@ export default function ProductsPage() {
                     <option key={cat} value={cat}>{cat}</option>
                   ))}
                 </select>
-                {categoryFilter && (
+
+                <label className="text-sm font-medium text-gray-700 mb-2 block mt-3">Electronics</label>
+                <select
+                  value={electronicsFilter}
+                  onChange={(e) => setElectronicsFilter(e.target.value)}
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all appearance-none bg-white text-gray-700 cursor-pointer"
+                >
+                  <option value="">All Products</option>
+                  <option value="imei">IMEI Required</option>
+                  <option value="serial">Serial Number Required</option>
+                  <option value="warranty">Has Warranty</option>
+                  <option value="high_value">High Value (₹10k+)</option>
+                </select>
+
+                {(categoryFilter || electronicsFilter) && (
                   <button
-                    onClick={() => setCategoryFilter('')}
-                    className="mt-2 text-sm text-indigo-600 font-medium flex items-center gap-1"
+                    onClick={() => { setCategoryFilter(''); setElectronicsFilter(''); }}
+                    className="mt-3 text-sm text-indigo-600 font-medium flex items-center gap-1"
                   >
-                    <X className="w-4 h-4" /> Clear filter
+                    <X className="w-4 h-4" /> Clear all filters
                   </button>
                 )}
               </div>
@@ -277,6 +323,30 @@ export default function ProductsPage() {
                         {product.category}
                       </span>
                     )}
+
+                    {/* Electronics Badges */}
+                    <div className="flex flex-wrap gap-1.5 mb-3">
+                      {product.requires_imei && (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-cyan-50 text-cyan-700 rounded text-xs font-medium">
+                          <Smartphone className="w-3 h-3" /> IMEI
+                        </span>
+                      )}
+                      {product.requires_serial && (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-indigo-50 text-indigo-700 rounded text-xs font-medium">
+                          <Barcode className="w-3 h-3" /> Serial
+                        </span>
+                      )}
+                      {product.warranty_months && (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-amber-50 text-amber-700 rounded text-xs font-medium">
+                          <Shield className="w-3 h-3" /> {product.warranty_months}M
+                        </span>
+                      )}
+                      {(product.selling_price ?? 0) >= 10000 && (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded text-xs font-medium">
+                          ₹{((product.selling_price ?? 0) / 1000).toFixed(0)}k+
+                        </span>
+                      )}
+                    </div>
 
                     {/* Stock Info */}
                     <div className="mb-3">

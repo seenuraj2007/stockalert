@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { getUserFromRequest } from '@/lib/auth'
 import { getOrganizationSubscription } from '@/lib/subscription'
 import { v4 as uuidv4 } from 'uuid'
+import { addDays, addMonths } from 'date-fns'
 
 function slugify(text: string): string {
   return text
@@ -83,6 +84,12 @@ export async function GET(req: NextRequest) {
       })
     }
 
+    // Get tenant settings
+    const tenant = await prisma.tenant.findUnique({
+      where: { id: tenantId },
+      select: { settings: true }
+    })
+
     // Use Promise.all for parallel queries with optimized selections
     const [
       totalProducts,
@@ -155,6 +162,96 @@ export async function GET(req: NextRequest) {
       }
     }
 
+    // ELECTRONICS-SPECIFIC DASHBOARD DATA
+    const now = new Date()
+    const thirtyDaysFromNow = addDays(now, 30)
+    const sixtyDaysFromNow = addDays(now, 60)
+    const ninetyDaysFromNow = addDays(now, 90)
+    const sixMonthsFromNow = addMonths(now, 6)
+
+    // 1. Total serial numbers tracked
+    const totalSerialNumbers = await prisma.serialNumber.count({
+      where: { tenantId }
+    })
+
+    // 2. Serial numbers by status
+    const serialStatusCounts = await prisma.serialNumber.groupBy({
+      by: ['status'],
+      where: { tenantId },
+      _count: { id: true }
+    })
+
+    const serialByStatus = serialStatusCounts.reduce((acc, item) => {
+      acc[item.status] = item._count.id
+      return acc
+    }, {} as Record<string, number>)
+
+    // 3. Warranty expiring counts
+    const [warrantyExpiring30Days, warrantyExpiring90Days, warrantyExpired] = await Promise.all([
+      prisma.serialNumber.count({
+        where: {
+          tenantId,
+          warrantyExpiry: { lte: thirtyDaysFromNow, gt: now },
+          status: 'SOLD'
+        }
+      }),
+      prisma.serialNumber.count({
+        where: {
+          tenantId,
+          warrantyExpiry: { lte: ninetyDaysFromNow, gt: thirtyDaysFromNow },
+          status: 'SOLD'
+        }
+      }),
+      prisma.serialNumber.count({
+        where: {
+          tenantId,
+          warrantyExpiry: { lt: now },
+          status: 'SOLD'
+        }
+      })
+    ])
+
+    // 4. Top serial numbers with warranty expiring soon
+    const topWarrantyExpiring = await prisma.serialNumber.findMany({
+      where: {
+        tenantId,
+        warrantyExpiry: { lte: sixMonthsFromNow },
+        status: 'SOLD'
+      },
+      select: {
+        id: true,
+        serialNumber: true,
+        warrantyExpiry: true,
+        status: true,
+        product: {
+          select: {
+            id: true,
+            name: true
+          }
+        }
+      },
+      orderBy: { warrantyExpiry: 'asc' },
+      take: 5
+    })
+
+    // 5. Products requiring IMEI
+    const imeiRequiredCount = await prisma.product.count({
+      where: {
+        tenantId,
+        isActive: true,
+        requiresIMEI: true
+      }
+    })
+
+    // 6. Products requiring Serial Number
+    const serialRequiredCount = await prisma.product.count({
+      where: {
+        tenantId,
+        isActive: true,
+        requiresSerialNumber: true
+      }
+    })
+
     // Get subscription info
     const orgSubscription = await getOrganizationSubscription(tenantId)
     const subscription = orgSubscription ? {
@@ -180,6 +277,39 @@ export async function GET(req: NextRequest) {
         teamMembers: teamMembersCount,
         products: totalProducts || 0,
         locations: locationsCount
+      },
+      // Electronics-specific data
+      electronics: {
+        totalSerialNumbers,
+        serialByStatus,
+        warrantyExpiring30Days,
+        warrantyExpiring90Days,
+        warrantyExpired,
+        topWarrantyExpiring: topWarrantyExpiring.map(s => ({
+          id: s.id,
+          serialNumber: s.serialNumber,
+          warrantyExpiry: s.warrantyExpiry?.toISOString(),
+          status: s.status,
+          productName: s.product?.name
+        })),
+        imeiRequiredCount,
+        serialRequiredCount,
+        // Warranty alert settings from tenant settings
+        warrantyAlertSettings: {
+          alertBefore30Days: (tenant?.settings as any)?.warrantyAlert?.alertBefore30Days ?? true,
+          alertBefore60Days: (tenant?.settings as any)?.warrantyAlert?.alertBefore60Days ?? true,
+          alertBefore90Days: (tenant?.settings as any)?.warrantyAlert?.alertBefore90Days ?? false,
+          emailNotifications: (tenant?.settings as any)?.warrantyAlert?.emailNotifications ?? true,
+          whatsappNotifications: (tenant?.settings as any)?.warrantyAlert?.whatsappNotifications ?? false
+        },
+        // High value items (for electronics)
+        highValueItems: await prisma.product.count({
+          where: {
+            tenantId,
+            isActive: true,
+            sellingPrice: { gte: 10000 }
+          }
+        })
       }
     }, {
       headers: {

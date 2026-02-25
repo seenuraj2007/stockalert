@@ -10,7 +10,7 @@ import {
   Wallet, IndianRupee, QrCode, Calculator, RefreshCw,
   ArrowLeft, Save, FolderOpen, Tag, Grid, List,
   ChevronDown, Move, Edit3, Star, AlertCircle,
-  Loader2, Info, Scale, Camera
+  Loader2, Info, Scale, Camera, Smartphone, Shield
 } from 'lucide-react'
 import QRCode from 'qrcode'
 import { memo } from 'react'
@@ -65,6 +65,26 @@ const ProductCard = memo(({
           <div className="flex-1 flex flex-col min-h-0">
             <p className="font-semibold text-gray-900 text-sm sm:text-base leading-tight line-clamp-2 mb-1">{product.name}</p>
             <p className="text-xs text-gray-500 mb-2">{product.sku || 'No SKU'}</p>
+            
+            {/* Electronics Badges */}
+            <div className="flex flex-wrap gap-1 mb-2">
+              {product.requires_imei && (
+                <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-cyan-50 text-cyan-700 rounded text-[10px] font-medium">
+                  <Smartphone className="w-2.5 h-2.5" /> IMEI
+                </span>
+              )}
+              {product.requires_serial && (
+                <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-indigo-50 text-indigo-700 rounded text-[10px] font-medium">
+                  <Barcode className="w-2.5 h-2.5" /> Serial
+                </span>
+              )}
+              {product.warranty_months && (
+                <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-amber-50 text-amber-700 rounded text-[10px] font-medium">
+                  <Shield className="w-2.5 h-2.5" /> {product.warranty_months}M
+                </span>
+              )}
+            </div>
+
             <div className="flex items-center justify-between mt-auto pt-1 gap-1">
               <p className="font-bold text-indigo-600 text-base sm:text-lg">₹{product.selling_price.toFixed(0)}</p>
               <span className={`text-xs font-bold px-2 py-1 rounded-full whitespace-nowrap ${product.current_quantity === 0 ? 'bg-red-100 text-red-700' : product.current_quantity <= product.reorder_point ? 'bg-orange-100 text-orange-700' : 'bg-green-100 text-green-700'}`}>
@@ -87,6 +107,24 @@ const ProductCard = memo(({
             <p className="font-semibold text-gray-900 text-base sm:text-lg truncate">{product.name}</p>
             <p className="text-sm text-gray-500">{product.sku || 'No SKU'}</p>
             <div className="flex items-center gap-2 mt-1">
+              {/* Electronics Badges */}
+              <div className="flex flex-wrap gap-1">
+                {product.requires_imei && (
+                  <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-cyan-50 text-cyan-700 rounded text-[10px] font-medium">
+                    <Smartphone className="w-2.5 h-2.5" /> IMEI
+                  </span>
+                )}
+                {product.requires_serial && (
+                  <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-indigo-50 text-indigo-700 rounded text-[10px] font-medium">
+                    <Barcode className="w-2.5 h-2.5" /> Serial
+                  </span>
+                )}
+                {product.warranty_months && (
+                  <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-amber-50 text-amber-700 rounded text-[10px] font-medium">
+                    <Shield className="w-2.5 h-2.5" /> {product.warranty_months}M
+                  </span>
+                )}
+              </div>
               <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${product.current_quantity === 0 ? 'bg-red-100 text-red-700' : product.current_quantity <= product.reorder_point ? 'bg-orange-100 text-orange-700' : 'bg-green-100 text-green-700'}`}>
                 Stock: {product.current_quantity}
               </span>
@@ -128,6 +166,10 @@ interface Product {
   expiry_date?: string | null
   weight_per_unit?: number
   min_weight?: number | null
+  // Electronics fields
+  requires_imei?: boolean
+  requires_serial?: boolean
+  warranty_months?: number | null
 }
 
 interface CartItem {

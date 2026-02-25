@@ -2,7 +2,7 @@
 
 import { useState, useEffect, use } from 'react'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, Save, Package, Tag, Hash, AlertTriangle, Mail, Phone, DollarSign, Box, Scan, Clock, Scale, Info, Search, CheckCircle, XCircle, Loader2 } from 'lucide-react'
+import { ArrowLeft, Save, Package, Tag, Hash, AlertTriangle, Mail, Phone, DollarSign, Box, Scan, Clock, Scale, Info, Search, CheckCircle, XCircle, Loader2, Smartphone } from 'lucide-react'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
 import { SubscriptionGate } from '@/components/SubscriptionGate'
@@ -73,6 +73,7 @@ function ProductFormContent({ params }: { params?: Promise<{ id?: string }> }) {
     sku: '',
     barcode: '',
     category: '',
+    brand: '',
     current_quantity: '',
     reorder_point: '',
     supplier_name: '',
@@ -86,7 +87,11 @@ function ProductFormContent({ params }: { params?: Promise<{ id?: string }> }) {
     is_perishable: false,
     expiry_date: '',
     weight_per_unit: '1',
-    min_weight: ''
+    min_weight: '',
+    // Electronics fields
+    requires_imei: false,
+    requires_serial: false,
+    warranty_months: ''
   })
 
   useEffect(() => {
@@ -106,6 +111,7 @@ function ProductFormContent({ params }: { params?: Promise<{ id?: string }> }) {
         sku: product.sku || '',
         barcode: product.barcode || '',
         category: product.category || '',
+        brand: product.brand || '',
         current_quantity: product.current_quantity.toString(),
         reorder_point: product.reorder_point.toString(),
         supplier_name: product.supplier_name || '',
@@ -118,7 +124,10 @@ function ProductFormContent({ params }: { params?: Promise<{ id?: string }> }) {
         is_perishable: product.is_perishable || false,
         expiry_date: product.expiry_date ? product.expiry_date.split('T')[0] : '',
         weight_per_unit: product.weight_per_unit?.toString() || '1',
-        min_weight: product.min_weight?.toString() || ''
+        min_weight: product.min_weight?.toString() || '',
+        requires_imei: product.requires_imei || false,
+        requires_serial: product.requires_serial || false,
+        warranty_months: product.warranty_months?.toString() || ''
       })
     } catch (err) {
       setError('Failed to load product')
@@ -613,6 +622,78 @@ function ProductFormContent({ params }: { params?: Promise<{ id?: string }> }) {
                     value={formData.supplier_phone}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, supplier_phone: e.target.value })}
                     placeholder="+1 234 567 8900"
+                  />
+                </div>
+              </div>
+
+              {/* Electronics Section */}
+              <div className="pt-6 border-t border-gray-100">
+                <div className="flex items-center gap-3 pb-4 border-b border-gray-100 mb-6">
+                  <div className="w-10 h-10 bg-cyan-100 rounded-xl flex items-center justify-center">
+                    <Package className="w-5 h-5 text-cyan-600" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-gray-900">Electronics & Warranty</h3>
+                    <p className="text-sm text-gray-500">Track IMEI, serial numbers, and warranty</p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-200">
+                    <div className="flex items-center gap-3">
+                      <Smartphone className="w-5 h-5 text-cyan-600" />
+                      <div>
+                        <p className="font-medium text-gray-900">Requires IMEI</p>
+                        <p className="text-sm text-gray-500">Mobile phones, tablets</p>
+                      </div>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={formData.requires_imei}
+                        onChange={(e) => setFormData({ ...formData, requires_imei: e.target.checked })}
+                        className="sr-only peer"
+                      />
+                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                    </label>
+                  </div>
+
+                  <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-200">
+                    <div className="flex items-center gap-3">
+                      <Hash className="w-5 h-5 text-indigo-600" />
+                      <div>
+                        <p className="font-medium text-gray-900">Requires Serial Number</p>
+                        <p className="text-sm text-gray-500">Laptops, appliances</p>
+                      </div>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={formData.requires_serial}
+                        onChange={(e) => setFormData({ ...formData, requires_serial: e.target.checked })}
+                        className="sr-only peer"
+                      />
+                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                    </label>
+                  </div>
+
+                  <InputField
+                    label="Warranty (months)"
+                    icon={Clock}
+                    type="number"
+                    name="warranty_months"
+                    value={formData.warranty_months}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, warranty_months: e.target.value })}
+                    placeholder="12"
+                    min="0"
+                  />
+
+                  <InputField
+                    label="Brand"
+                    icon={Tag}
+                    name="brand"
+                    value={formData.brand}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, brand: e.target.value })}
+                    placeholder="Apple, Samsung, etc."
                   />
                 </div>
               </div>

@@ -9,6 +9,7 @@ export interface CreateProductInput {
   unitCost?: number;
   sellingPrice?: number;
   category?: string;
+  brand?: string;
   unit?: string;
   imageUrl?: string;
   imageKey?: string;
@@ -19,6 +20,9 @@ export interface CreateProductInput {
   expiryDate?: Date | null;
   weightPerUnit?: number;
   minWeight?: number | null;
+  requiresIMEI?: boolean;
+  requiresSerialNumber?: boolean;
+  warrantyMonths?: number | null;
 }
 
 export interface UpdateProductInput {
@@ -29,6 +33,7 @@ export interface UpdateProductInput {
   unitCost?: number;
   sellingPrice?: number;
   category?: string;
+  brand?: string;
   unit?: string;
   imageUrl?: string;
   imageKey?: string;
@@ -40,6 +45,9 @@ export interface UpdateProductInput {
   expiryDate?: Date | null;
   weightPerUnit?: number;
   minWeight?: number | null;
+  requiresIMEI?: boolean;
+  requiresSerialNumber?: boolean;
+  warrantyMonths?: number | null;
 }
 
 export class ProductRepository extends BaseRepository {

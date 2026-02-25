@@ -65,6 +65,7 @@ export async function GET(req: NextRequest) {
         sku: product.sku,
         barcode: product.barcode,
         category: product.category,
+        brand: product.brand || null,
         current_quantity: currentQuantity,
         reorder_point: reorderPoint,
         supplier_id: null,
@@ -80,6 +81,10 @@ export async function GET(req: NextRequest) {
         expiry_date: product.expiryDate,
         weight_per_unit: product.weightPerUnit ? Number(product.weightPerUnit) : 1,
         min_weight: product.minWeight ? Number(product.minWeight) : null,
+        // Electronics-specific fields
+        requires_imei: product.requiresIMEI || false,
+        requires_serial: product.requiresSerialNumber || false,
+        warranty_months: product.warrantyMonths || null,
         deleted_at: product.deletedAt,
         created_at: product.createdAt.toISOString(),
         updated_at: product.updatedAt.toISOString(),
@@ -117,10 +122,11 @@ export async function POST(req: NextRequest) {
 
     const body = await req.json()
     const {
-      name, sku, barcode, category, current_quantity, reorder_point,
+      name, sku, barcode, category, brand, current_quantity, reorder_point,
       supplier_id, supplier_name, supplier_email, supplier_phone,
       unit_cost, selling_price, unit, image_url,
-      is_perishable, expiry_date, weight_per_unit, min_weight
+      is_perishable, expiry_date, weight_per_unit, min_weight,
+      requires_imei, requires_serial, warranty_months
     } = body
 
     if (!name) {
@@ -161,7 +167,11 @@ export async function POST(req: NextRequest) {
         isPerishable: is_perishable || false,
         expiryDate: expiry_date ? new Date(expiry_date) : null,
         weightPerUnit: weight_per_unit ? parseFloat(weight_per_unit) : 1,
-        minWeight: min_weight ? parseFloat(min_weight) : null
+        minWeight: min_weight ? parseFloat(min_weight) : null,
+        brand: brand || null,
+        requiresIMEI: requires_imei || false,
+        requiresSerialNumber: requires_serial || false,
+        warrantyMonths: warranty_months ? parseInt(warranty_months) : null
       })
     } catch (error) {
       if (error instanceof Error && error.message.includes('PRODUCT_CONFLICT')) {
