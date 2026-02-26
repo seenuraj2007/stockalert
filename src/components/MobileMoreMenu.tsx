@@ -7,7 +7,7 @@ import {
     LayoutDashboard, TrendingUp, Package, MapPin, Truck,
     FileText, ArrowUpDown, Bell, Users, Settings, User,
     Calculator, Receipt, X, LogOut, ChevronRight, Sparkles,
-    CreditCard, BarChart2, Store, Boxes
+    CreditCard, BarChart2, Store, Boxes, Wrench
 } from 'lucide-react'
 
 interface MobileMoreMenuProps {
@@ -33,6 +33,7 @@ const menuSections = [
             { href: '/locations', label: 'Locations', icon: MapPin, desc: 'Stock locations' },
             { href: '/suppliers', label: 'Suppliers', icon: Truck, desc: 'Vendor management' },
             { href: '/stock-transfers', label: 'Transfers', icon: ArrowUpDown, desc: 'Move stock' },
+            { href: '/service-tickets', label: 'Repairs / Service', icon: Wrench, desc: 'Warranty & repairs' },
         ]
     },
     {
@@ -80,7 +81,7 @@ const MobileMoreMenu = memo(function MobileMoreMenu({ isOpen, onClose, locale, o
                 className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 animate-fade-in sm:hidden"
                 onClick={onClose}
             />
-            
+
             {/* Bottom Sheet */}
             <div className="fixed bottom-0 left-0 right-0 bg-gray-50 rounded-t-3xl z-50 max-h-[90vh] sm:hidden animate-slide-up shadow-2xl flex flex-col">
                 {/* Handle bar */}
@@ -125,15 +126,15 @@ const MobileMoreMenu = memo(function MobileMoreMenu({ isOpen, onClose, locale, o
                                             key={item.href}
                                             href={localizedHref}
                                             onClick={handleItemClick}
-                                            className={`flex items-center gap-4 p-3 rounded-2xl transition-all ${isActive 
-                                                ? 'bg-white shadow-md border border-indigo-100' 
+                                            className={`flex items-center gap-4 p-3 rounded-2xl transition-all ${isActive
+                                                ? 'bg-white shadow-md border border-indigo-100'
                                                 : 'hover:bg-white hover:shadow-sm'
-                                            }`}
+                                                }`}
                                         >
                                             <div className={`w-11 h-11 rounded-xl flex items-center justify-center ${isActive
                                                 ? 'bg-gradient-to-br from-indigo-500 to-purple-600 shadow-lg shadow-indigo-200'
                                                 : 'bg-white shadow-sm border border-gray-100'
-                                            }`}>
+                                                }`}>
                                                 <Icon className={`w-5 h-5 ${isActive ? 'text-white' : 'text-gray-600'}`} />
                                             </div>
                                             <div className="flex-1 min-w-0">

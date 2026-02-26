@@ -88,6 +88,7 @@ model Tenant {
   auditLogs      AuditLog[]
   receiptScans  ReceiptScan[]
   barcodeRegistry BarcodeRegistry[]
+  serviceTickets ServiceTicket[]
 
   @@map("tenants")
 }
@@ -304,6 +305,7 @@ model Product {
   batches          Batch[]
   serialNumbers    SerialNumber[]
   stockTakeItems   StockTakeItem[]
+  serviceTickets   ServiceTicket[]
 
   @@unique([tenantId, sku])
   @@index([tenantId])
@@ -766,6 +768,7 @@ model SerialNumber {
   product    Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
   batch      Batch?      @relation(fields: [batchId], references: [id], onDelete: SetNull)
   stockLevel StockLevel? @relation(fields: [stockLevelId], references: [id], onDelete: SetNull)
+  serviceTickets ServiceTicket[] @relation("ServiceTicketSerial")
 
   @@unique([tenantId, productId, serialNumber])
   @@index([tenantId])
@@ -929,4 +932,92 @@ model ReceiptScan {
   @@index([tenantId])
   @@index([scannedAt])
   @@map("receipt_scans")
+}
+
+// Service Tickets - For electronics repair/warranty service
+model ServiceTicket {
+  id              String         @id @default(uuid())
+  tenantId        String         @map("tenant_id")
+  
+  // Ticket reference
+  ticketNumber    String         @unique @map("ticket_number")
+  
+  // Customer Info
+  customerName    String         @map("customer_name")
+  customerPhone   String?        @map("customer_phone")
+  customerEmail   String?        @map("customer_email")
+  
+  // Device Info
+  productId       String?        @map("product_id")
+  serialNumberId  String?        @map("serial_number_id")
+  deviceSerial    String?        @map("device_serial") // Store copy for history
+  
+  // Service Details
+  serviceType     ServiceType    @map("service_type")
+  issueDescription String        @db.Text @map("issue_description")
+  estimatedCost  Decimal?       @map("estimated_cost") @db.Decimal(12, 2)
+  
+  // Status tracking
+  status          ServiceStatus @default(PENDING)
+  priority        ServicePriority @default(MEDIUM)
+  
+  // Warranty
+  isWarrantyClaim Boolean       @default(false) @map("is_warranty_claim")
+  warrantyStatus  String?        @map("warranty_status") // VALID, EXPIRED, NO_WARRANTY
+  
+  // Timeline
+  receivedAt      DateTime       @default(now()) @map("received_at")
+  estimatedDate   DateTime?      @map("estimated_date")
+  completedAt     DateTime?      @map("completed_at")
+  
+  // Resolution
+  resolution      String?        @db.Text
+  finalCost       Decimal?       @map("final_cost") @db.Decimal(12, 2)
+  
+  // Assigned technician
+  assignedTo      String?        @map("assigned_to")
+  
+  // Notes
+  internalNotes   String?        @db.Text @map("internal_notes")
+  
+  // Audit
+  createdBy       String         @map("created_by")
+  createdAt       DateTime       @default(now()) @map("created_at")
+  updatedAt       DateTime       @updatedAt @map("updated_at")
+  
+  tenant          Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  product         Product?       @relation(fields: [productId], references: [id], onDelete: SetNull)
+  linkedSerial    SerialNumber?  @relation("ServiceTicketSerial", fields: [serialNumberId], references: [id], onDelete: SetNull)
+  
+  @@unique([tenantId, ticketNumber])
+  @@index([tenantId])
+  @@index([tenantId, status])
+  @@index([tenantId, customerPhone])
+  @@map("service_tickets")
+}
+
+enum ServiceType {
+  REPAIR          // General repair
+  REPLACEMENT      // Device replacement
+  UPGRADE         // Software/hardware upgrade
+  INSPECTION      // Quality check
+  UNLOCK          // Network unlock
+  DATA_RECOVERY   // Data backup/recovery
+  OTHER           // Other services
+}
+
+enum ServiceStatus {
+  PENDING         // Waiting for pickup
+  IN_PROGRESS     // Being worked on
+  WAITING_PARTS   // Need spare parts
+  COMPLETED       // Service done
+  DELIVERED       // Returned to customer
+  CANCELLED       // Cancelled
+}
+
+enum ServicePriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
 }

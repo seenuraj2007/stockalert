@@ -28,6 +28,19 @@ const BarcodeScanner = dynamic(() => import('@/components/BarcodeScanner'), {
   loading: () => <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
 })
 
+// Electronics Category Templates
+const ELECTRONICS_TEMPLATES = [
+  { value: '', label: 'Select a template (optional)', description: 'Auto-fill electronics settings' },
+  { value: 'mobile', label: 'Mobile Phone', description: 'IMEI + 12 month warranty', requires_imei: true, requires_serial: false, warranty_months: '12' },
+  { value: 'tablet', label: 'Tablet', description: 'IMEI + 12 month warranty', requires_imei: true, requires_serial: false, warranty_months: '12' },
+  { value: 'laptop', label: 'Laptop/Computer', description: 'Serial number + 12 month warranty', requires_imei: false, requires_serial: true, warranty_months: '12' },
+  { value: 'smartwatch', label: 'Smartwatch', description: 'IMEI + 12 month warranty', requires_imei: true, requires_serial: false, warranty_months: '12' },
+  { value: 'headphones', label: 'Headphones/Earbuds', description: 'Serial number + 6 month warranty', requires_imei: false, requires_serial: true, warranty_months: '6' },
+  { value: 'appliance', label: 'Home Appliance', description: 'Serial number + 24 month warranty', requires_imei: false, requires_serial: true, warranty_months: '24' },
+  { value: 'tv', label: 'LED/LCD TV', description: 'Serial number + 24 month warranty', requires_imei: false, requires_serial: true, warranty_months: '24' },
+  { value: 'accessory', label: 'Accessory', description: 'No serial tracking', requires_imei: false, requires_serial: false, warranty_months: '' },
+]
+
 const InputField = ({ label, icon: Icon, type = 'text', name, value, onChange, placeholder, required = false }: any) => (
   <div>
     <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -66,7 +79,7 @@ function ProductFormContent({ params }: { params?: Promise<{ id?: string }> }) {
   const [error, setError] = useState('')
   const [showScanner, setShowScanner] = useState(false)
   const [barcodeLookupLoading, setBarcodeLookupLoading] = useState(false)
-  const [barcodeLookupResult, setBarcodeLookupResult] = useState<{found: boolean, message?: string, source?: string | null} | null>(null)
+  const [barcodeLookupResult, setBarcodeLookupResult] = useState<{ found: boolean, message?: string, source?: string | null } | null>(null)
 
   const [formData, setFormData] = useState({
     name: '',
@@ -93,6 +106,14 @@ function ProductFormContent({ params }: { params?: Promise<{ id?: string }> }) {
     requires_serial: false,
     warranty_months: ''
   })
+
+  // Template selection state
+  const [selectedTemplate, setSelectedTemplate] = useState('')
+
+  // Reset template when switching between create/edit modes
+  useEffect(() => {
+    setSelectedTemplate('')
+  }, [isEdit])
 
   useEffect(() => {
     if (isEdit) {
@@ -143,21 +164,37 @@ function ProductFormContent({ params }: { params?: Promise<{ id?: string }> }) {
     setTimeout(() => lookupBarcode(code), 500)
   }
 
+  // Handle template selection
+  const handleTemplateChange = (templateValue: string) => {
+    setSelectedTemplate(templateValue)
+    if (!templateValue) return
+
+    const template = ELECTRONICS_TEMPLATES.find(t => t.value === templateValue)
+    if (template) {
+      setFormData({
+        ...formData,
+        requires_imei: template.requires_imei ?? false,
+        requires_serial: template.requires_serial ?? false,
+        warranty_months: template.warranty_months ?? ''
+      })
+    }
+  }
+
   const lookupBarcode = async (barcode: string) => {
     if (!barcode || barcode.length < 8) return
-    
+
     setBarcodeLookupLoading(true)
     setBarcodeLookupResult(null)
-    
+
     try {
       const res = await fetch('/api/products/lookup-barcode', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ barcode })
       })
-      
+
       const data = await res.json()
-      
+
       if (data.found) {
         if (data.source === 'local') {
           // Product already exists
@@ -186,7 +223,7 @@ function ProductFormContent({ params }: { params?: Promise<{ id?: string }> }) {
             message: `Found: ${data.product.name}`,
             source: 'openfoodfacts'
           })
-          
+
           setFormData(prev => ({
             ...prev,
             name: data.product.name || prev.name,
@@ -220,7 +257,7 @@ function ProductFormContent({ params }: { params?: Promise<{ id?: string }> }) {
   const handleBarcodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const barcode = e.target.value
     setFormData({ ...formData, barcode })
-    
+
     // Auto-lookup when barcode is 8+ characters (only in create mode)
     if (barcode.length >= 8 && !isEdit) {
       setBarcodeLookupLoading(true)
@@ -341,6 +378,29 @@ function ProductFormContent({ params }: { params?: Promise<{ id?: string }> }) {
 
           <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-xl shadow-gray-200/50 border border-gray-100 p-6">
             <form onSubmit={handleSubmit} className="space-y-8">
+              {/* Electronics Category Template */}
+              {!isEdit && (
+                <div className="mb-6 p-4 bg-gradient-to-r from-cyan-50 to-indigo-50 rounded-xl border border-cyan-200">
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Quick Template
+                  </label>
+                  <select
+                    value={selectedTemplate}
+                    onChange={(e) => handleTemplateChange(e.target.value)}
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white text-gray-900"
+                  >
+                    {ELECTRONICS_TEMPLATES.map((template) => (
+                      <option key={template.value} value={template.value}>
+                        {template.label} - {template.description}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="text-xs text-gray-500 mt-2">
+                    Select a template to auto-fill IMEI, serial, and warranty settings
+                  </p>
+                </div>
+              )}
+
               <div className="flex items-center gap-3 pb-4 border-b border-gray-100">
                 <div className="w-10 h-10 bg-indigo-100 rounded-xl flex items-center justify-center">
                   <Package className="w-5 h-5 text-indigo-600" />
@@ -395,13 +455,12 @@ function ProductFormContent({ params }: { params?: Promise<{ id?: string }> }) {
                       value={formData.barcode}
                       onChange={handleBarcodeChange}
                       placeholder="1234567890123"
-                      className={`w-full pl-11 pr-24 py-3.5 border rounded-xl focus:ring-4 outline-none transition-all bg-gray-50/50 hover:bg-white hover:shadow-md focus:bg-white text-gray-900 cursor-text ${
-                        barcodeLookupResult?.found 
-                          ? 'border-green-500 focus:border-green-500 focus:ring-green-500/10' 
-                          : barcodeLookupResult && !barcodeLookupResult.found
+                      className={`w-full pl-11 pr-24 py-3.5 border rounded-xl focus:ring-4 outline-none transition-all bg-gray-50/50 hover:bg-white hover:shadow-md focus:bg-white text-gray-900 cursor-text ${barcodeLookupResult?.found
+                        ? 'border-green-500 focus:border-green-500 focus:ring-green-500/10'
+                        : barcodeLookupResult && !barcodeLookupResult.found
                           ? 'border-orange-500 focus:border-orange-500 focus:ring-orange-500/10'
                           : 'border-gray-200 focus:border-indigo-500 focus:ring-indigo-500/10'
-                      }`}
+                        }`}
                     />
                     <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
                       <button
@@ -423,12 +482,11 @@ function ProductFormContent({ params }: { params?: Promise<{ id?: string }> }) {
                       </button>
                     </div>
                   </div>
-                  
+
                   {/* Lookup Result Message */}
                   {barcodeLookupResult && (
-                    <div className={`mt-2 text-sm flex items-center gap-2 ${
-                      barcodeLookupResult.found ? 'text-green-600' : 'text-orange-600'
-                    }`}>
+                    <div className={`mt-2 text-sm flex items-center gap-2 ${barcodeLookupResult.found ? 'text-green-600' : 'text-orange-600'
+                      }`}>
                       {barcodeLookupResult.found ? (
                         <CheckCircle className="w-4 h-4" />
                       ) : (
@@ -505,7 +563,7 @@ function ProductFormContent({ params }: { params?: Promise<{ id?: string }> }) {
                     <Info className="w-5 h-5 text-amber-600" />
                     <h3 className="font-semibold text-amber-800">Produce & Weight Settings</h3>
                   </div>
-                  
+
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="flex items-center gap-3">
                       <input

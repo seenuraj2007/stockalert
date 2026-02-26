@@ -4,7 +4,7 @@ import { memo, useMemo } from 'react'
 import {
   Package, MapPin, Truck, FileText, ArrowUpDown, Calculator,
   Bell, Users, Settings, User,
-  BarChart3, TrendingUp, Receipt, Tag
+  BarChart3, TrendingUp, Receipt, Tag, Wrench
 } from 'lucide-react'
 
 interface NavItem {
@@ -18,6 +18,7 @@ const navItems: NavItem[] = [
   { href: '/analytics', label: 'Analytics', icon: TrendingUp },
   { href: '/products', label: 'Products', icon: Package },
   { href: '/serial-numbers', label: 'Serial Numbers', icon: Tag },
+  { href: '/service-tickets', label: 'Repairs / Service', icon: Wrench },
   { href: '/locations', label: 'Locations', icon: MapPin },
   { href: '/suppliers', label: 'Suppliers', icon: Truck },
   { href: '/purchase-orders', label: 'Purchase Orders', icon: FileText },
