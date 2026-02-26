@@ -38,23 +38,6 @@ Built for Indian SMBs but works globally.
 - npm or yarn
 
 
-## 🤝 Contributing
-
-We welcome contributions! Please see [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines.
-
-### Quick Start for Contributors
-
-```bash
-# Fork the repo, then:
-git clone https://github.com/YOUR_USERNAME/dks-stockalert.git
-cd dks-stockalert
-npm install
-cp .env.sample .env.local
-# Edit .env.local with your DB credentials
-npx prisma migrate dev
-npm run dev
-```
-
 ## 📝 License
 
 This project is licensed under the MIT License - see the [LICENSE](./LICENSE) file for details.
