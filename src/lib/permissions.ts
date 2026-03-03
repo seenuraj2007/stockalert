@@ -30,6 +30,7 @@ export interface AuthUser {
   rolePermissions?: Record<string, Record<string, boolean>>
   status: string | null
   emailVerified: boolean
+  permissions?: Record<string, any>
 }
 
 export interface Permission {
