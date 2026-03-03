@@ -26,7 +26,7 @@ export interface AuthUser {
   full_name: string | null
   organization_id: string | null
   role: UserRole | null
-  roleId?: string | null
+  roleId: string | null
   rolePermissions?: Record<string, Record<string, boolean>>
   status: string | null
   emailVerified: boolean
