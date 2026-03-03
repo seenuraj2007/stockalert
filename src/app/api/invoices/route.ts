@@ -153,8 +153,6 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'Organization not found' }, { status: 404 })
         }
 
-        const tenantSettings = tenant.settings as any || {}
-
         // Generate invoice number
         const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '')
         const lastInvoice = await prisma.invoice.findFirst({
@@ -314,11 +312,11 @@ export async function POST(req: NextRequest) {
                     dueDate,
                     status: invoiceStatus,
                     businessName: tenant.name,
-                    businessAddress: tenantSettings.address || null,
-                    businessCity: tenantSettings.city || null,
-                    businessState: tenantSettings.state || null,
-                    businessPincode: tenantSettings.pincode || null,
-                    businessGstNumber: tenantSettings.gstNumber || null,
+                    businessAddress: null,
+                    businessCity: null,
+                    businessState: null,
+                    businessPincode: null,
+                    businessGstNumber: null,
                     customerName: customerName || customer?.name || 'Walk-in Customer',
                     customerAddress: customerAddress || customer?.address || null,
                     customerCity: customerCity || customer?.city || null,

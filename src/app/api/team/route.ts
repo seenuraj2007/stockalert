@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getUserFromRequest, requireAuth } from '@/lib/auth'
-import { PermissionsService } from '@/lib/permissions'
+import { getUserFromRequest } from '@/lib/auth'
 import { getOrganizationSubscription } from '@/lib/subscription'
 import bcrypt from 'bcryptjs'
 import { prisma } from '@/lib/prisma'
@@ -19,20 +18,26 @@ export async function GET(req: NextRequest) {
         user: {
           select: {
             id: true,
+            username: true,
             email: true,
             name: true,
             createdAt: true
           }
-        }
+        },
+        roleData: true
       },
       orderBy: { createdAt: 'asc' }
     })
 
     const team = members.map((m: any) => ({
-      id: m.user.id,
+      id: m.id,
+      userId: m.userId,
+      username: m.user.username,
       email: m.user.email,
       full_name: m.user.name,
       role: m.role,
+      roleId: m.roleId,
+      roleName: m.roleData?.name || m.role,
       status: m.status,
       created_at: m.createdAt
     }))
@@ -44,44 +49,38 @@ export async function GET(req: NextRequest) {
   }
 }
 
-// POST /api/team - Create team member directly
+// POST /api/team - Create team member with username and password
 export async function POST(req: NextRequest) {
   try {
     const user = await getUserFromRequest(req)
-    if (!user) {
+    if (!user || !user.tenantId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     // Only owner can create users
-    if (!PermissionsService.isOwner(user)) {
+    if (user.role !== 'OWNER') {
       return NextResponse.json({ error: 'Only owners can create users' }, { status: 403 })
     }
 
     const body = await req.json()
-    const { email, password, full_name, role } = body
+    const { username, password, full_name, roleId } = body
 
-    if (!email || !password || !role) {
-      return NextResponse.json({ error: 'Email, password, and role are required' }, { status: 400 })
+    // Validate required fields
+    if (!username || !password || !roleId) {
+      return NextResponse.json({ error: 'Username, password, and role are required' }, { status: 400 })
     }
 
-    const validRoles = ['ADMIN', 'EDITOR', 'VIEWER', 'MEMBER']
-    if (!validRoles.includes(role)) {
-      return NextResponse.json({ error: 'Invalid role' }, { status: 400 })
+    // Validate username (alphanumeric and underscores only, 3-30 characters)
+    const usernameRegex = /^[a-zA-Z0-9_]{3,30}$/
+    if (!usernameRegex.test(username)) {
+      return NextResponse.json({ 
+        error: 'Username must be 3-30 characters and contain only letters, numbers, and underscores' 
+      }, { status: 400 })
     }
 
     // Validate password length
     if (password.length < 8) {
       return NextResponse.json({ error: 'Password must be at least 8 characters' }, { status: 400 })
-    }
-
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailRegex.test(email)) {
-      return NextResponse.json({ error: 'Invalid email address' }, { status: 400 })
-    }
-
-    if (!user.tenantId) {
-      return NextResponse.json({ error: 'No organization found' }, { status: 400 })
     }
 
     // Check subscription and team member limit
@@ -96,16 +95,7 @@ export async function POST(req: NextRequest) {
       where: { tenantId: user.tenantId }
     })
 
-    console.log('Team member limit check:', {
-      count: memberCount,
-      maxLimit: maxTeamMembers,
-      subscriptionStatus: subscription?.status,
-      planName: subscription?.plan?.display_name || 'Free',
-      planType: subscription?.plan?.name || 'free'
-    })
-
     if (maxTeamMembers !== -1 && memberCount >= maxTeamMembers) {
-      console.log('Blocking team member creation - limit reached')
       return NextResponse.json({
         error: 'Team member limit reached',
         limit: maxTeamMembers,
@@ -114,82 +104,91 @@ export async function POST(req: NextRequest) {
       }, { status: 403 })
     }
 
-    // Check if user already exists in the tenant
-    const existingMember = await prisma.member.findFirst({
-      where: {
-        tenantId: user.tenantId,
-        user: { email }
-      }
+    // Check if role exists and belongs to tenant
+    const role = await prisma.role.findFirst({
+      where: { id: roleId, tenantId: user.tenantId }
     })
 
-    if (existingMember) {
-      return NextResponse.json({ error: 'User already exists in organization' }, { status: 400 })
+    if (!role) {
+      return NextResponse.json({ error: 'Invalid role selected' }, { status: 400 })
     }
 
-    // Check if user exists in the system
-    let targetUser = await prisma.user.findUnique({
-      where: { email }
+    // Check if username already exists
+    const existingUser = await prisma.user.findUnique({
+      where: { username: username.toLowerCase() }
     })
 
-    if (targetUser) {
-      // User exists, add them to the tenant as a member
+    if (existingUser) {
+      // Check if user is already in this tenant
+      const existingMember = await prisma.member.findFirst({
+        where: {
+          tenantId: user.tenantId,
+          userId: existingUser.id
+        }
+      })
+      
+      if (existingMember) {
+        return NextResponse.json({ error: 'User already exists in organization' }, { status: 400 })
+      }
+      
+      // Add existing user to tenant with selected role
       await prisma.member.create({
         data: {
           tenantId: user.tenantId,
-          userId: targetUser.id,
-          role: role as any,
+          userId: existingUser.id,
+          roleId: roleId,
           status: 'ACTIVE',
           invitedBy: user.id
         }
       })
-    } else {
-      // User doesn't exist, create them with password
-      const hashedPassword = await bcrypt.hash(password, 10)
-
-      targetUser = await prisma.user.create({
-        data: {
-          email,
-          name: full_name || null,
-          passwordHash: hashedPassword
+      
+      return NextResponse.json({
+        user: {
+          id: existingUser.id,
+          username: existingUser.username,
+          email: existingUser.email,
+          full_name: existingUser.name,
+          role: role.name,
+          roleId: roleId,
+          status: 'ACTIVE',
+          message: 'User added to organization'
         }
-      })
-
-      await prisma.member.create({
-        data: {
-          tenantId: user.tenantId,
-          userId: targetUser.id,
-          role: role as any,
-          status: 'INVITED',
-          invitedBy: user.id
-        }
-      })
+      }, { status: 201 })
     }
 
-    // Fetch the created member
-    const member = await prisma.member.findFirst({
-      where: {
+    // Create new user with username and password
+    const hashedPassword = await bcrypt.hash(password, 10)
+
+    const newUser = await prisma.user.create({
+      data: {
+        username: username.toLowerCase(),
+        name: full_name || null,
+        passwordHash: hashedPassword
+      }
+    })
+
+    // Create member record with selected role
+    const member = await prisma.member.create({
+      data: {
         tenantId: user.tenantId,
-        userId: targetUser.id
-      },
-      include: {
-        user: {
-          select: {
-            id: true,
-            email: true,
-            name: true
-          }
-        }
+        userId: newUser.id,
+        roleId: roleId,
+        status: 'ACTIVE',
+        invitedBy: user.id
       }
     })
 
     return NextResponse.json({
       user: {
-        id: member?.user.id,
-        email: member?.user.email,
-        full_name: member?.user.name,
-        role: member?.role,
-        status: member?.status,
-        created_at: member?.createdAt
+        id: newUser.id,
+        username: newUser.username,
+        email: newUser.email,
+        full_name: newUser.name,
+        role: role.name,
+        roleId: roleId,
+        status: member.status,
+        created_at: member.createdAt,
+        message: 'User created successfully. They can now login with their username and password.'
       }
     }, { status: 201 })
   } catch (error) {

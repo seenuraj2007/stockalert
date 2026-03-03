@@ -59,7 +59,7 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id?: st
 function ProductFormContent({ params }: { params?: Promise<{ id?: string }> }) {
   const resolvedParams = use(params || Promise.resolve({ id: undefined }))
   const router = useRouter()
-  const { showLimitReached } = useUpgradeToast()
+  const { showLimitReached, showPermissionDenied } = useUpgradeToast()
   const isEdit = !!resolvedParams?.id
   const [loading, setLoading] = useState(false)
   const [fetching, setFetching] = useState(isEdit)
@@ -263,6 +263,13 @@ function ProductFormContent({ params }: { params?: Promise<{ id?: string }> }) {
         if (res.status === 403 && data.limit !== undefined) {
           showLimitReached('products', data.current, data.limit)
           setError(`Product limit reached. Please upgrade your plan to add more products.`)
+          return
+        }
+
+        // Check if it's a permission denied error
+        if (res.status === 403 && data.error?.includes('Permission denied')) {
+          showPermissionDenied(data.error)
+          setError(data.error)
           return
         }
 

@@ -1,10 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { requireAuth } from '@/lib/auth'
+import { getUserFromRequest } from '@/lib/auth'
+import { PermissionsService } from '@/lib/permissions'
 
 export async function GET(req: NextRequest) {
   try {
-    const user = await requireAuth(req)
+    const user = await getUserFromRequest(req)
+    if (!user || !user.tenantId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
 
     const productId = req.url.split('/').slice(-2, -1)[0]
 
@@ -15,17 +19,21 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ stockLevels })
   } catch (error) {
     console.error('Get stock error:', error)
-    // Check if it's an auth error
-    if (error instanceof Error && error.message.includes('Unauthorized')) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
 
 export async function POST(req: NextRequest) {
   try {
-    const user = await requireAuth(req)
+    const user = await getUserFromRequest(req)
+    if (!user || !user.tenantId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    // Check permission for stock update
+    if (!PermissionsService.hasPermission(user, 'products', 'stock_update')) {
+      return NextResponse.json({ error: 'Permission denied. You do not have permission to update stock.' }, { status: 403 })
+    }
 
     const body = await req.json()
     const productId = req.url.split('/').slice(-2, -1)[0]

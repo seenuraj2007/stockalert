@@ -69,16 +69,56 @@ export async function POST(req: NextRequest) {
     const tenant = await prisma.tenant.create({
       data: {
         name: `${validatedData.full_name || validatedData.email.split('@')[0]}'s Business`,
-        slug: tenantSlug,
-        ownerId: user.id,
-        settings: {
-          currency: 'USD',
-          timezone: 'UTC',
-        }
+        slug: tenantSlug
       }
     })
 
     console.log('[SIGNUP] Tenant created:', tenant.id);
+
+    // Create default roles
+    await prisma.role.create({
+      data: {
+        tenantId: tenant.id,
+        name: 'Admin',
+        permissions: {
+          products: { create: true, read: true, update: true, delete: true, stock_update: true },
+          sales: { create: true, read: true, update: true, delete: true },
+          customers: { create: true, read: true, update: true, delete: true },
+          suppliers: { create: true, read: true, update: true, delete: true },
+          purchase_orders: { create: true, read: true, update: true, delete: true, receive: true },
+          stock_transfers: { create: true, read: true, update: true, delete: true },
+          stock_takes: { create: true, read: true, update: true, delete: true },
+          locations: { create: true, read: true, update: true, delete: true },
+          reports: { read: true, export: true },
+          analytics: { read: true },
+          alerts: { read: true, update: true },
+          users: { create: true, read: true, update: true, delete: true },
+        },
+        isDefault: true
+      }
+    });
+
+    await prisma.role.create({
+      data: {
+        tenantId: tenant.id,
+        name: 'Viewer',
+        permissions: {
+          products: { create: false, read: true, update: false, delete: false, stock_update: false },
+          sales: { create: false, read: true, update: false, delete: false },
+          customers: { create: false, read: true, update: false, delete: false },
+          suppliers: { create: false, read: true, update: false, delete: false },
+          purchase_orders: { create: false, read: true, update: false, delete: false, receive: false },
+          stock_transfers: { create: false, read: true, update: false, delete: false },
+          stock_takes: { create: false, read: true, update: false, delete: false },
+          locations: { create: false, read: true, update: false, delete: false },
+          reports: { read: true, export: false },
+          analytics: { read: true },
+          alerts: { read: true, update: false },
+          users: { create: false, read: false, update: false, delete: false },
+        },
+        isDefault: false
+      }
+    });
 
     await prisma.member.create({
       data: {

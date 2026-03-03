@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, createContext, useContext } from 'react'
 import { X, Zap, AlertTriangle, Crown } from 'lucide-react'
 
-export type NotificationType = 'limit_reached' | 'limit_warning' | 'trial_ending' | 'upgrade_required'
+export type NotificationType = 'limit_reached' | 'limit_warning' | 'trial_ending' | 'upgrade_required' | 'permission_denied'
 
 export interface Toast {
   id: string
@@ -20,6 +20,7 @@ interface ToastContextValue {
   showUpgradeToast: (toast: Omit<Toast, 'id'>) => void
   showLimitReached: (limitType: 'products' | 'team_members' | 'locations', current: number, limit: number, planName?: string) => void
   showLimitWarning: (limitType: 'products' | 'team_members' | 'locations', current: number, limit: number, planName?: string) => void
+  showPermissionDenied: (message?: string) => void
   dismissToast: (id: string) => void
 }
 
@@ -28,6 +29,7 @@ const nullContextValue: ToastContextValue = {
   showUpgradeToast: () => {},
   showLimitReached: () => {},
   showLimitWarning: () => {},
+  showPermissionDenied: () => {},
   dismissToast: () => {},
 }
 
@@ -72,6 +74,14 @@ function SimpleToast({ toast, onClose }: { toast: Toast; onClose: () => void }) 
       titleColor: 'text-purple-800',
       messageColor: 'text-purple-700',
       buttonBg: 'bg-purple-600 hover:bg-purple-700',
+    },
+    permission_denied: {
+      bg: 'bg-orange-50 border-orange-200',
+      icon: AlertTriangle,
+      iconColor: 'text-orange-600',
+      titleColor: 'text-orange-800',
+      messageColor: 'text-orange-700',
+      buttonBg: 'bg-orange-600 hover:bg-orange-700',
     },
   }
 
@@ -156,12 +166,20 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
     })
   }, [showUpgradeToast])
 
+  const showPermissionDenied = useCallback((message?: string) => {
+    showUpgradeToast({
+      type: 'permission_denied',
+      title: 'Permission Denied',
+      message: message || 'You do not have permission to perform this action. Contact your administrator for access.',
+    })
+  }, [showUpgradeToast])
+
   const dismissToast = useCallback((id: string) => {
     setToasts((prev) => prev.filter((t) => t.id !== id))
   }, [])
 
   return (
-    <ToastContext.Provider value={{ showUpgradeToast, showLimitReached, showLimitWarning, dismissToast }}>
+    <ToastContext.Provider value={{ showUpgradeToast, showLimitReached, showLimitWarning, showPermissionDenied, dismissToast }}>
       {children}
       {toasts.length > 0 && (
         <div className="fixed bottom-4 right-4 z-50">

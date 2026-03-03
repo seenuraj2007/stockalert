@@ -2,40 +2,58 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Users, UserPlus, Mail, Shield, MoreVertical, X, RefreshCw, Lock, ChevronRight } from 'lucide-react'
+import { Users, UserPlus, Mail, Shield, MoreVertical, X, RefreshCw, Lock, ChevronRight, Settings } from 'lucide-react'
 import { SubscriptionGate } from '@/components/SubscriptionGate'
 import { useUpgradeToast } from '@/components/UpgradeNotification'
 import Link from 'next/link'
 import SidebarLayout from '@/components/SidebarLayout'
 
+interface Role {
+  id: string
+  name: string
+  isDefault: boolean
+}
+
 interface TeamMember {
-  id: number
-  email: string
+  id: string
+  userId: string
+  username: string
+  email: string | null
   full_name: string | null
   role: string
-  status: string
+  roleId: string | null
+  roleName: string
+  status: 'ACTIVE' | 'INVITED' | 'SUSPENDED'
   created_at: string
 }
 
 export default function TeamPage() {
   const router = useRouter()
   const [team, setTeam] = useState<TeamMember[]>([])
+  const [roles, setRoles] = useState<Role[]>([])
   const [loading, setLoading] = useState(true)
   const [creating, setCreating] = useState(false)
   const [showCreateForm, setShowCreateForm] = useState(false)
   const [error, setError] = useState('')
   const [successMessage, setSuccessMessage] = useState('')
-  const { showLimitReached } = useUpgradeToast()
+  const [deleteMember, setDeleteMember] = useState<TeamMember | null>(null)
+  const { showLimitReached, showPermissionDenied } = useUpgradeToast()
 
-  const [createForm, setCreateForm] = useState({
-    email: '',
+  const [createForm, setCreateForm] = useState<{
+    username: string
+    password: string
+    full_name: string
+    roleId: string
+  }>({
+    username: '',
     password: '',
     full_name: '',
-    role: 'editor'
+    roleId: ''
   })
 
   useEffect(() => {
     fetchTeam()
+    fetchRoles()
   }, [])
 
   const fetchTeam = async () => {
@@ -44,22 +62,40 @@ export default function TeamPage() {
       const res = await fetch('/api/team', {
         credentials: 'include'
       })
-      if (!res.ok) throw new Error('Failed to fetch team')
-
       const data = await res.json()
-      setTeam(data.team || [])
-    } catch (err: any) {
-      setError(err.message)
+      if (res.ok) {
+        setTeam(data.team)
+      }
+    } catch (err) {
+      console.error('Error fetching team:', err)
     } finally {
       setLoading(false)
     }
   }
 
+  const fetchRoles = async () => {
+    try {
+      const res = await fetch('/api/roles', {
+        credentials: 'include'
+      })
+      if (res.ok) {
+        const data = await res.json()
+        setRoles(data.roles)
+        // Set default role if available, otherwise first role
+        const defaultRole = data.roles.find((r: Role) => r.isDefault) || data.roles[0]
+        if (defaultRole && !createForm.roleId) {
+          setCreateForm(prev => ({ ...prev, roleId: defaultRole.id }))
+        }
+      }
+    } catch (err) {
+      console.error('Error fetching roles:', err)
+    }
+  }
+
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault()
-    setCreating(true)
     setError('')
-    setSuccessMessage('')
+    setCreating(true)
 
     try {
       const res = await fetch('/api/team', {
@@ -72,16 +108,19 @@ export default function TeamPage() {
       const data = await res.json()
 
       if (!res.ok) {
-        if (res.status === 403 && data.limit !== undefined) {
-          showLimitReached('team_members', data.current, data.limit)
-          setError(`Team member limit reached. Please upgrade your plan to add more members.`)
-          return
+        if (res.status === 403) {
+          if (data.error?.includes('Permission denied')) {
+            showPermissionDenied(data.error)
+          }
+          if (data.error?.includes('limit')) {
+            showLimitReached('team_members', data.current, data.limit)
+          }
         }
         throw new Error(data.error || 'Failed to create user')
       }
 
-      setSuccessMessage(`User created: ${createForm.email}`)
-      setCreateForm({ email: '', password: '', full_name: '', role: 'editor' })
+      setSuccessMessage(`User created: ${createForm.username}`)
+      setCreateForm({ username: '', password: '', full_name: '', roleId: roles[0]?.id || '' })
       setShowCreateForm(false)
       fetchTeam()
     } catch (err: any) {
@@ -91,117 +130,204 @@ export default function TeamPage() {
     }
   }
 
-  const handleRemoveMember = async (memberId: number) => {
-    if (!confirm('Remove this team member? They will lose access to all data.')) return
+  const handleRemoveMember = async (memberId: string) => {
+    if (!confirm('Are you sure you want to remove this team member?')) return
 
     try {
+      console.log('Removing member:', memberId)
       const res = await fetch(`/api/team/${memberId}`, {
         method: 'DELETE',
         credentials: 'include'
       })
 
-      if (!res.ok) throw new Error('Failed to remove team member')
+      console.log('Response status:', res.status)
+      const data = await res.json()
+      console.log('Response data:', data)
 
-      setSuccessMessage('Team member removed')
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to remove member')
+      }
+
       fetchTeam()
+      alert('Member removed successfully')
     } catch (err: any) {
-      setError(err.message)
+      console.error('Error removing member:', err)
+      alert('Error: ' + err.message)
     }
   }
 
-  const getRoleBadge = (role: string) => {
+  const getRoleBadge = (role: TeamMember['role'], roleName?: string) => {
     const colors: Record<string, string> = {
-      owner: 'bg-gradient-to-r from-purple-100 to-indigo-100 text-purple-700 border border-purple-200',
-      admin: 'bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-700 border border-blue-200',
-      editor: 'bg-gradient-to-r from-green-100 to-emerald-100 text-green-700 border border-green-200',
-      viewer: 'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-700 border border-gray-200'
+      OWNER: 'bg-gradient-to-r from-purple-100 to-indigo-100 text-purple-700 border border-purple-200',
     }
     return (
-      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${colors[role] || colors.viewer}`}>
-        {role?.charAt(0).toUpperCase() + role?.slice(1)}
+      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${colors[role] || 'bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-700 border border-blue-200'}`}>
+        {roleName || role}
       </span>
     )
   }
 
-  const getStatusBadge = (status: string) => {
-    const colors: Record<string, string> = {
-      active: 'bg-gradient-to-r from-green-100 to-emerald-100 text-green-700 border border-green-200',
-      inactive: 'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-600 border border-gray-200',
-      pending: 'bg-gradient-to-r from-amber-100 to-orange-100 text-amber-700 border border-amber-200'
+  const getStatusBadge = (status: TeamMember['status']) => {
+    const colors: Record<TeamMember['status'], string> = {
+      ACTIVE: 'bg-gradient-to-r from-green-100 to-emerald-100 text-green-700 border border-green-200',
+      INVITED: 'bg-gradient-to-r from-amber-100 to-orange-100 text-amber-700 border border-amber-200',
+      SUSPENDED: 'bg-gradient-to-r from-red-100 to-rose-100 text-red-700 border border-red-200'
     }
+    const label = status?.charAt(0) + status?.slice(1).toLowerCase()
     return (
-      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${colors[status] || colors.inactive}`}>
-        {status?.charAt(0).toUpperCase() + status?.slice(1)}
+      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${colors[status] || colors.ACTIVE}`}>
+        {label}
       </span>
     )
   }
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="flex flex-col items-center gap-4">
-          <div className="relative">
-            <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-indigo-600"></div>
-            <div className="absolute inset-0 flex items-center justify-center">
-              <Users className="w-8 h-8 text-indigo-300" />
-            </div>
-          </div>
-          <p className="text-gray-600 font-medium">Loading team...</p>
+      <SidebarLayout>
+        <div className="flex items-center justify-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
         </div>
-      </div>
+      </SidebarLayout>
     )
   }
 
   return (
     <SidebarLayout>
-      <SubscriptionGate>
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          {error && (
-            <div className="mb-6 p-4 bg-red-50/80 backdrop-blur-sm border border-red-200 text-red-700 rounded-2xl flex items-center gap-3">
-              <span className="font-medium">{error}</span>
-              <button onClick={() => setError('')} className="ml-auto text-red-500 hover:text-red-700 cursor-pointer">
-                <X className="w-5 h-5" />
-              </button>
+      <div className="max-w-7xl mx-auto">
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Team Members <span className="text-xs text-red-500">v2</span></h1>
+            <p className="text-gray-600 mt-1">Manage your team and their access</p>
+          </div>
+          <div className="flex items-center gap-3">
+            <Link
+              href="/roles"
+              className="flex items-center gap-2 px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+            >
+              <Settings className="w-5 h-5" />
+              Manage Roles
+            </Link>
+            <button
+              onClick={() => {
+                // Ensure roleId is set before opening modal
+                if (roles.length > 0 && !createForm.roleId) {
+                  const defaultRole = roles.find(r => r.isDefault) || roles[0]
+                  setCreateForm(prev => ({ ...prev, roleId: defaultRole.id }))
+                }
+                setShowCreateForm(true)
+              }}
+              disabled={roles.length === 0}
+              title={roles.length === 0 ? 'Create roles first before adding members' : ''}
+              className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <UserPlus className="w-5 h-5" />
+              Add Member
+            </button>
+          </div>
+        </div>
+
+        {successMessage && (
+          <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg text-green-700 flex items-center justify-between">
+            <span>{successMessage}</span>
+            <button onClick={() => setSuccessMessage('')} className="text-green-500 hover:text-green-700">
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+        )}
+
+        {error && (
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
+            {error}
+          </div>
+        )}
+
+        {/* Team List */}
+        <div className="grid gap-4">
+          {team.map(member => (
+            <div
+              key={member.id}
+              className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-lg border border-gray-100 p-5 hover:shadow-xl transition-all duration-300"
+            >
+              <div className="flex items-center justify-between">
+                <div 
+                  className="flex items-center gap-5 flex-1 cursor-pointer"
+                  onClick={() => router.push(`/team/${member.id}`)}
+                >
+                  <div className="w-14 h-14 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
+                    <span className="text-white font-bold text-xl">
+                      {member.full_name?.charAt(0) || member.username.charAt(0).toUpperCase()}
+                    </span>
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-gray-900 hover:text-indigo-600 transition-colors">
+                      {member.full_name || member.username}
+                    </h3>
+                    <p className="text-sm text-gray-500">@{member.username}</p>
+                    {member.email && (
+                      <p className="text-sm text-gray-500 flex items-center gap-2">
+                        <Mail className="w-3.5 h-3.5" />
+                        {member.email}
+                      </p>
+                    )}
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  {getRoleBadge(member.role, member.roleName)}
+                  {getStatusBadge(member.status)}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setDeleteMember(member);
+                    }}
+                    className="px-3 py-1.5 bg-red-500 text-white hover:bg-red-600 rounded-lg text-sm font-bold cursor-pointer"
+                  >
+                    DELETE
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+
+          {team.length === 0 && (
+            <div className="text-center py-12 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200">
+              <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <p className="text-gray-500">No team members yet</p>
+              <p className="text-sm text-gray-400">Add your first team member to get started</p>
             </div>
           )}
+        </div>
 
-          {successMessage && (
-            <div className="mb-6 p-4 bg-green-50/80 backdrop-blur-sm border border-green-200 text-green-700 rounded-2xl flex items-center gap-3">
-              <span className="font-medium">{successMessage}</span>
-              <button onClick={() => setSuccessMessage('')} className="ml-auto text-green-500 hover:text-green-700 cursor-pointer">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-          )}
-
-          {showCreateForm && (
-            <div className="mb-8 bg-white/80 backdrop-blur-xl rounded-2xl shadow-lg border border-gray-100 p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold text-gray-900">Create New User</h2>
+        {/* Create Member Modal */}
+        {showCreateForm && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl shadow-xl max-w-lg w-full">
+              <div className="p-6 border-b border-gray-200 flex items-center justify-between">
+                <h2 className="text-xl font-semibold">Add New Member</h2>
                 <button
                   onClick={() => setShowCreateForm(false)}
-                  className="p-2.5 text-gray-500 hover:text-gray-600 hover:bg-gray-100 rounded-xl transition-all cursor-pointer"
+                  className="p-2 hover:bg-gray-100 rounded-lg"
                 >
                   <X className="w-5 h-5" />
                 </button>
               </div>
 
-              <form onSubmit={handleCreate} className="space-y-5">
+              <form onSubmit={handleCreate} className="p-6 space-y-5">
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Email Address <span className="text-red-500">*</span>
+                    Username <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
                     <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
                     <input
-                      type="email"
-                      value={createForm.email}
-                      onChange={(e) => setCreateForm({ ...createForm, email: e.target.value })}
-                      placeholder="user@example.com"
+                      type="text"
+                      value={createForm.username}
+                      onChange={(e) => setCreateForm({ ...createForm, username: e.target.value })}
+                      placeholder="john_doe"
                       required
                       className="w-full pl-12 pr-4 py-3 border border-gray-200 rounded-xl focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all text-gray-900 bg-gray-50/50 hover:bg-white hover:shadow-md cursor-text"
                     />
                   </div>
+                  <p className="mt-2 text-sm text-gray-500">3-30 characters, letters, numbers, underscores only</p>
                 </div>
 
                 <div>
@@ -220,7 +346,6 @@ export default function TeamPage() {
                       className="w-full pl-12 pr-4 py-3 border border-gray-200 rounded-xl focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all text-gray-900 bg-gray-50/50 hover:bg-white hover:shadow-md cursor-text"
                     />
                   </div>
-                  <p className="mt-2 text-sm text-gray-500">Password must be at least 8 characters</p>
                 </div>
 
                 <div>
@@ -243,28 +368,32 @@ export default function TeamPage() {
                   <div className="relative">
                     <Shield className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
                     <select
-                      value={createForm.role}
-                      onChange={(e) => setCreateForm({ ...createForm, role: e.target.value })}
-                      className="w-full pl-12 pr-4 py-3 border border-gray-200 rounded-xl focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all appearance-none bg-gray-50/50 hover:bg-white cursor-pointer text-gray-900"
+                      value={createForm.roleId}
+                      onChange={(e) => setCreateForm({ ...createForm, roleId: e.target.value })}
+                      required
+                      disabled={roles.length === 0}
+                      className="w-full pl-12 pr-4 py-3 border border-gray-200 rounded-xl focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all appearance-none bg-gray-50/50 hover:bg-white cursor-pointer text-gray-900 disabled:opacity-50"
                     >
-                      <option value="admin">Admin</option>
-                      <option value="editor">Editor</option>
-                      <option value="viewer">Viewer</option>
+                      {roles.length === 0 ? (
+                        <option value="">No roles available</option>
+                      ) : (
+                        roles.map(role => (
+                          <option key={role.id} value={role.id}>
+                            {role.name} {role.isDefault && '(Default)'}
+                          </option>
+                        ))
+                      )}
                     </select>
                   </div>
-                  <div className="mt-3 p-4 bg-gray-50 rounded-xl space-y-2 text-sm">
-                    <p className="flex items-start gap-2">
-                      <span className="font-semibold text-indigo-600">Admin:</span>
-                      <span className="text-gray-600">Full access except organization deletion</span>
-                    </p>
-                    <p className="flex items-start gap-2">
-                      <span className="font-semibold text-green-600">Editor:</span>
-                      <span className="text-gray-600">Can create/edit products, sales, inventory</span>
-                    </p>
-                    <p className="flex items-start gap-2">
-                      <span className="font-semibold text-gray-600">Viewer:</span>
-                      <span className="text-gray-600">Read-only access</span>
-                    </p>
+                  <div className="mt-3">
+                    <Link
+                      href="/roles"
+                      className="text-sm text-indigo-600 hover:text-indigo-700 flex items-center gap-1"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <Settings className="w-4 h-4" />
+                      Manage Roles
+                    </Link>
                   </div>
                 </div>
 
@@ -272,109 +401,79 @@ export default function TeamPage() {
                   <button
                     type="button"
                     onClick={() => setShowCreateForm(false)}
-                    className="px-6 py-3 border border-gray-200 rounded-xl font-medium text-gray-700 hover:bg-gray-50 hover:shadow-md transition-all cursor-pointer"
+                    className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    disabled={creating}
-                    className="px-6 py-3 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-xl font-semibold hover:from-indigo-600 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 cursor-pointer"
+                    disabled={creating || roles.length === 0}
+                    className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50 flex items-center gap-2"
                   >
                     {creating ? (
                       <>
-                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
                         Creating...
                       </>
                     ) : (
-                      'Create User'
+                      <>
+                        <UserPlus className="w-4 h-4" />
+                        Create Member
+                      </>
                     )}
                   </button>
                 </div>
               </form>
             </div>
-          )}
-
-          <div>
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-gray-900">Team Members</h2>
-              <div className="flex items-center gap-3">
-                <span className="px-4 py-2 bg-indigo-100 text-indigo-700 rounded-full text-sm font-semibold">
-                  {team.length} members
-                </span>
+          </div>
+        )}
+        {/* Delete Confirmation Modal */}
+        {deleteMember && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6">
+              <h2 className="text-xl font-semibold mb-4">Remove Team Member</h2>
+              <p className="text-gray-600 mb-6">
+                Are you sure you want to remove <strong>{deleteMember.username}</strong> from the team? This action cannot be undone.
+              </p>
+              <div className="flex justify-end gap-3">
                 <button
-                  onClick={() => setShowCreateForm(true)}
-                  className="inline-flex items-center gap-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-4 py-2 rounded-xl font-semibold hover:from-indigo-600 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl cursor-pointer"
+                  onClick={() => setDeleteMember(null)}
+                  className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
                 >
-                  <UserPlus className="w-5 h-5" />
-                  Add Member
+                  Cancel
+                </button>
+                <button
+                  onClick={async () => {
+                    try {
+                      console.log('Deleting member:', deleteMember.id);
+                      const res = await fetch(`/api/team/${deleteMember.id}`, { 
+                        method: 'DELETE', 
+                        credentials: 'include' 
+                      });
+                      console.log('Delete response:', res.status);
+                      const data = await res.json();
+                      console.log('Delete data:', data);
+                      if (!res.ok) {
+                        alert('Error: ' + (data.error || 'Unknown error'));
+                        return;
+                      }
+                      setDeleteMember(null);
+                      fetchTeam();
+                      alert('Member removed successfully');
+                    } catch (err: any) {
+                      console.error('Delete error:', err);
+                      alert('Error: ' + err.message);
+                    }
+                  }}
+                  className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                >
+                  Remove Member
                 </button>
               </div>
             </div>
-
-            {team.length === 0 ? (
-              <div className="text-center py-16 bg-white/80 backdrop-blur-xl rounded-2xl shadow-lg border border-gray-100">
-                <div className="w-20 h-20 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <Users className="w-10 h-10 text-gray-500" />
-                </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">No team members yet</h3>
-                <p className="text-gray-500 mb-6">Create your first team member to get started</p>
-                <button
-                  onClick={() => setShowCreateForm(true)}
-                  className="inline-flex items-center gap-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-6 py-3 rounded-xl font-semibold hover:from-indigo-600 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl cursor-pointer"
-                >
-                  <UserPlus className="w-5 h-5" />
-                  Create First Member
-                </button>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {team.map((member) => (
-                  <div
-                    key={member.id}
-                    className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-lg border border-gray-100 p-5 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300 cursor-pointer group"
-                    onClick={() => router.push(`/team/${member.id}`)}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-5">
-                        <div className="w-14 h-14 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-indigo-200 transition-shadow">
-                          <span className="text-white font-bold text-xl">
-                            {member.full_name?.charAt(0) || member.email.charAt(0).toUpperCase()}
-                          </span>
-                        </div>
-                        <div>
-                          <h3 className="font-semibold text-gray-900 group-hover:text-indigo-600 transition-colors">{member.full_name || member.email}</h3>
-                          <p className="text-sm text-gray-500 flex items-center gap-2">
-                            <Mail className="w-3.5 h-3.5" />
-                            {member.email}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        {getRoleBadge(member.role)}
-                        {getStatusBadge(member.status)}
-                        {member.role !== 'owner' && (
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              handleRemoveMember(member.id)
-                            }}
-                            className="p-2.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all cursor-pointer"
-                            title="Remove member"
-                          >
-                            <X className="w-5 h-5" />
-                          </button>
-                        )}
-                        <ChevronRight className="w-5 h-5 text-gray-500 group-hover:text-indigo-600 transition-colors" />
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
           </div>
-        </main>
-      </SubscriptionGate>
+        )}
+      </div>
     </SidebarLayout>
   )
 }

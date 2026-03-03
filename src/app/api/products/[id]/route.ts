@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { requireAuth } from '@/lib/auth'
+import { getUserFromRequest } from '@/lib/auth'
+import { PermissionsService } from '@/lib/permissions'
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const user = await requireAuth(req)
-    if (!user) {
+    const user = await getUserFromRequest(req)
+    if (!user || !user.tenantId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -49,9 +50,18 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const user = await requireAuth(req)
-    if (!user) {
+    let user = await getUserFromRequest(req)
+    if (!user || !user.tenantId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    // Load role permissions from database
+    user = await PermissionsService.loadUserPermissions(user)
+
+    // Check permission
+    const hasPermission = await PermissionsService.canUpdate(user, 'products')
+    if (!hasPermission) {
+      return NextResponse.json({ error: 'Permission denied. You do not have permission to update products.' }, { status: 403 })
     }
 
     const body = await req.json()
@@ -159,9 +169,18 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const user = await requireAuth(req)
-    if (!user) {
+    let user = await getUserFromRequest(req)
+    if (!user || !user.tenantId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    // Load role permissions from database
+    user = await PermissionsService.loadUserPermissions(user)
+
+    // Check permission
+    const hasPermission = await PermissionsService.canDelete(user, 'products')
+    if (!hasPermission) {
+      return NextResponse.json({ error: 'Permission denied. You do not have permission to delete products.' }, { status: 403 })
     }
 
     const { id: productId } = await params

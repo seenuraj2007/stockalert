@@ -133,6 +133,16 @@ body {
    NATIVE MOBILE UTILITIES
    ═══════════════════════════════════════════════════ */
 
+/* Hide scrollbar utility */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
 /* Haptic tap feedback */
 .tap-bounce {
   transition: transform 0.1s ease;

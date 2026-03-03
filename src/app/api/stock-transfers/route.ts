@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getUserFromRequest } from '@/lib/auth'
+import { PermissionsService } from '@/lib/permissions'
 
 // GET - List all stock transfers with enhanced filtering
 export async function GET(req: NextRequest) {
@@ -69,9 +70,18 @@ export async function GET(req: NextRequest) {
 // POST - Create new stock transfer with validation
 export async function POST(req: NextRequest) {
   try {
-    const user = await getUserFromRequest(req)
+    let user = await getUserFromRequest(req)
     if (!user || !user.tenantId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    // Load role permissions from database
+    user = await PermissionsService.loadUserPermissions(user)
+
+    // Check permission
+    const hasPermission = await PermissionsService.canCreate(user, 'stock_transfers')
+    if (!hasPermission) {
+      return NextResponse.json({ error: 'Permission denied. You do not have permission to create stock transfers.' }, { status: 403 })
     }
 
     const body = await req.json()

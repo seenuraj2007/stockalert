@@ -31,21 +31,18 @@ export async function GET(req: NextRequest) {
       where: { tenantId: user.tenantId }
     })
 
-    // Parse tenant settings for business details
-    const settings = tenant.settings as any || {}
-
     return NextResponse.json({
       organization: {
         id: tenant.id,
         name: tenant.name,
-        address: settings.address || null,
-        city: settings.city || null,
-        state: settings.state || null,
-        pincode: settings.pincode || null,
-        gstNumber: settings.gstNumber || null,
-        phone: settings.phone || null,
-        email: settings.email || null,
-        upiId: settings.upiId || null,
+        address: null,
+        city: null,
+        state: null,
+        pincode: null,
+        gstNumber: null,
+        phone: null,
+        email: null,
+        upiId: null,
         created_at: tenant.createdAt,
         updated_at: tenant.updatedAt
       },
@@ -92,24 +89,10 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ error: 'Organization not found' }, { status: 404 })
     }
 
-    const currentSettings = (currentOrg.settings as any) || {}
-    const updatedSettings = {
-      ...currentSettings,
-      ...(address !== undefined && { address }),
-      ...(city !== undefined && { city }),
-      ...(state !== undefined && { state }),
-      ...(pincode !== undefined && { pincode }),
-      ...(gstNumber !== undefined && { gstNumber }),
-      ...(phone !== undefined && { phone }),
-      ...(email !== undefined && { email }),
-      ...(upiId !== undefined && { upiId })
-    }
-
     const updatedOrg = await prisma.tenant.update({
       where: { id: user.tenantId },
       data: { 
-        name: name.trim(),
-        settings: updatedSettings
+        name: name.trim()
       }
     })
 

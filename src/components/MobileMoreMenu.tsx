@@ -1,14 +1,15 @@
 'use client'
 
-import { useEffect, useCallback, memo } from 'react'
+import { useEffect, useCallback, memo, useMemo } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
     LayoutDashboard, TrendingUp, Package, MapPin, Truck,
     FileText, ArrowUpDown, Bell, Users, Settings, User,
     Calculator, Receipt, X, LogOut, ChevronRight, Sparkles,
-    CreditCard, BarChart2, Store, Boxes
+    BarChart2
 } from 'lucide-react'
+import { usePermissions } from '@/lib/UserContext'
 
 interface MobileMoreMenuProps {
     isOpen: boolean
@@ -17,48 +18,79 @@ interface MobileMoreMenuProps {
     onLogout: () => void
 }
 
-const menuSections = [
+interface MenuItem {
+    href: string
+    label: string
+    icon: React.ComponentType<{ className?: string }>
+    desc: string
+    permissionResource: string
+}
+
+interface MenuSection {
+    title: string
+    items: MenuItem[]
+}
+
+const menuSections: MenuSection[] = [
     {
         title: 'Overview',
         items: [
-            { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, desc: 'View overview' },
-            { href: '/analytics', label: 'Analytics', icon: BarChart2, desc: 'Reports & insights' },
-            { href: '/alerts', label: 'Alerts', icon: Bell, desc: 'Notifications' },
+            { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, desc: 'View overview', permissionResource: 'reports' },
+            { href: '/analytics', label: 'Analytics', icon: BarChart2, desc: 'Reports & insights', permissionResource: 'analytics' },
+            { href: '/alerts', label: 'Alerts', icon: Bell, desc: 'Notifications', permissionResource: 'alerts' },
         ]
     },
     {
         title: 'Inventory',
         items: [
-            { href: '/products', label: 'Products', icon: Package, desc: 'Manage products' },
-            { href: '/locations', label: 'Locations', icon: MapPin, desc: 'Stock locations' },
-            { href: '/suppliers', label: 'Suppliers', icon: Truck, desc: 'Vendor management' },
-            { href: '/stock-transfers', label: 'Transfers', icon: ArrowUpDown, desc: 'Move stock' },
+            { href: '/products', label: 'Products', icon: Package, desc: 'Manage products', permissionResource: 'products' },
+            { href: '/locations', label: 'Locations', icon: MapPin, desc: 'Stock locations', permissionResource: 'locations' },
+            { href: '/suppliers', label: 'Suppliers', icon: Truck, desc: 'Vendor management', permissionResource: 'suppliers' },
+            { href: '/stock-transfers', label: 'Transfers', icon: ArrowUpDown, desc: 'Move stock', permissionResource: 'stock_transfers' },
         ]
     },
     {
         title: 'Sales & Billing',
         items: [
-            { href: '/billing', label: 'POS / Billing', icon: Calculator, desc: 'Create sales' },
-            { href: '/invoices', label: 'Invoices', icon: Receipt, desc: 'Manage invoices' },
-            { href: '/purchase-orders', label: 'Purchase Orders', icon: FileText, desc: 'Buy stock' },
+            { href: '/billing', label: 'POS / Billing', icon: Calculator, desc: 'Create sales', permissionResource: 'billing' },
+            { href: '/invoices', label: 'Invoices', icon: Receipt, desc: 'Manage invoices', permissionResource: 'invoices' },
+            { href: '/purchase-orders', label: 'Purchase Orders', icon: FileText, desc: 'Buy stock', permissionResource: 'purchase_orders' },
         ]
     },
     {
         title: 'Settings',
         items: [
-            { href: '/team', label: 'Team Members', icon: Users, desc: 'Manage users' },
-            { href: '/settings', label: 'Settings', icon: Settings, desc: 'App preferences' },
-            { href: '/profile', label: 'My Profile', icon: User, desc: 'Account details' },
+            { href: '/team', label: 'Team Members', icon: Users, desc: 'Manage users', permissionResource: 'users' },
+            { href: '/settings', label: 'Settings', icon: Settings, desc: 'App preferences', permissionResource: 'settings' },
+            { href: '/profile', label: 'My Profile', icon: User, desc: 'Account details', permissionResource: 'profile' },
         ]
     },
 ]
 
 const MobileMoreMenu = memo(function MobileMoreMenu({ isOpen, onClose, locale, onLogout }: MobileMoreMenuProps) {
     const pathname = usePathname()
+    const { hasPermission, isOwner, isReady } = usePermissions()
 
     const handleItemClick = useCallback(() => {
         onClose()
     }, [onClose])
+
+    // Filter menu sections based on permissions
+    const filteredSections = useMemo(() => {
+        // While loading or not ready, show all items to prevent empty menu
+        if (!isReady) return menuSections
+        
+        // OWNER can see all items
+        if (isOwner) return menuSections
+        
+        // Filter items based on read permission for each resource
+        return menuSections.map(section => ({
+            ...section,
+            items: section.items.filter(item => {
+                return hasPermission(item.permissionResource, 'read')
+            })
+        })).filter(section => section.items.length > 0) // Remove empty sections
+    }, [hasPermission, isOwner, isReady])
 
     useEffect(() => {
         if (isOpen) {
@@ -107,7 +139,7 @@ const MobileMoreMenu = memo(function MobileMoreMenu({ isOpen, onClose, locale, o
 
                 {/* Content */}
                 <div className="overflow-y-auto max-h-[calc(90vh-140px)] pb-6 touch-pan-y" style={{ WebkitOverflowScrolling: 'touch' }}>
-                    {menuSections.map((section, sectionIndex) => (
+                    {filteredSections.map((section, sectionIndex) => (
                         <div key={section.title} className={sectionIndex > 0 ? 'mt-2' : ''}>
                             <div className="px-5 py-2">
                                 <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
@@ -115,7 +147,7 @@ const MobileMoreMenu = memo(function MobileMoreMenu({ isOpen, onClose, locale, o
                                 </h3>
                             </div>
                             <div className="px-3">
-                                {section.items.map((item, itemIndex) => {
+                                {section.items.map((item) => {
                                     const Icon = item.icon
                                     const localizedHref = `/${locale}${item.href}`
                                     const isActive = pathname === localizedHref || pathname.startsWith(`${localizedHref}/`)

@@ -34,10 +34,54 @@ export async function GET(req: NextRequest) {
       const newOrg = await prisma.tenant.create({
         data: {
           name: orgName,
-          slug: orgSlug,
-          ownerId: user.id,
+          slug: orgSlug
         }
       })
+
+      // Create default roles
+      await prisma.role.create({
+        data: {
+          tenantId: newOrg.id,
+          name: 'Admin',
+          permissions: {
+            products: { create: true, read: true, update: true, delete: true, stock_update: true },
+            sales: { create: true, read: true, update: true, delete: true },
+            customers: { create: true, read: true, update: true, delete: true },
+            suppliers: { create: true, read: true, update: true, delete: true },
+            purchase_orders: { create: true, read: true, update: true, delete: true, receive: true },
+            stock_transfers: { create: true, read: true, update: true, delete: true },
+            stock_takes: { create: true, read: true, update: true, delete: true },
+            locations: { create: true, read: true, update: true, delete: true },
+            reports: { read: true, export: true },
+            analytics: { read: true },
+            alerts: { read: true, update: true },
+            users: { create: true, read: true, update: true, delete: true },
+          },
+          isDefault: true
+        }
+      });
+
+      await prisma.role.create({
+        data: {
+          tenantId: newOrg.id,
+          name: 'Viewer',
+          permissions: {
+            products: { create: false, read: true, update: false, delete: false, stock_update: false },
+            sales: { create: false, read: true, update: false, delete: false },
+            customers: { create: false, read: true, update: false, delete: false },
+            suppliers: { create: false, read: true, update: false, delete: false },
+            purchase_orders: { create: false, read: true, update: false, delete: false, receive: false },
+            stock_transfers: { create: false, read: true, update: false, delete: false },
+            stock_takes: { create: false, read: true, update: false, delete: false },
+            locations: { create: false, read: true, update: false, delete: false },
+            reports: { read: true, export: false },
+            analytics: { read: true },
+            alerts: { read: true, update: false },
+            users: { create: false, read: false, update: false, delete: false },
+          },
+          isDefault: false
+        }
+      });
 
       // Create default location for the organization
       await prisma.location.create({
@@ -84,10 +128,9 @@ export async function GET(req: NextRequest) {
       })
     }
 
-    // Get tenant settings
+    // Get tenant
     const tenant = await prisma.tenant.findUnique({
-      where: { id: tenantId },
-      select: { settings: true }
+      where: { id: tenantId }
     })
 
     // Use Promise.all for parallel queries with optimized selections
@@ -294,13 +337,13 @@ export async function GET(req: NextRequest) {
         })),
         imeiRequiredCount,
         serialRequiredCount,
-        // Warranty alert settings from tenant settings
+        // Warranty alert settings (defaults)
         warrantyAlertSettings: {
-          alertBefore30Days: (tenant?.settings as any)?.warrantyAlert?.alertBefore30Days ?? true,
-          alertBefore60Days: (tenant?.settings as any)?.warrantyAlert?.alertBefore60Days ?? true,
-          alertBefore90Days: (tenant?.settings as any)?.warrantyAlert?.alertBefore90Days ?? false,
-          emailNotifications: (tenant?.settings as any)?.warrantyAlert?.emailNotifications ?? true,
-          whatsappNotifications: (tenant?.settings as any)?.warrantyAlert?.whatsappNotifications ?? false
+          alertBefore30Days: true,
+          alertBefore60Days: true,
+          alertBefore90Days: false,
+          emailNotifications: true,
+          whatsappNotifications: false
         },
         // High value items (for electronics)
         highValueItems: await prisma.product.count({

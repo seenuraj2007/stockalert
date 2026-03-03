@@ -71,7 +71,8 @@ export default function AuthPage() {
       return
     }
 
-    if (!email.includes('@') || !email.includes('.')) {
+    // Only validate email format for signup, not for login
+    if (!isLogin && (!email.includes('@') || !email.includes('.'))) {
       setError('Please enter a valid email address')
       setLoading(false)
       return
@@ -229,16 +230,16 @@ export default function AuthPage() {
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
                 <span className="w-1 h-4 bg-indigo-500 rounded-full"></span>
-                Email Address
+                Email or Username
               </label>
               <div className="relative">
                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
                 <input
-                  type="email"
+                  type="text"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full pl-12 pr-4 py-3.5 border border-gray-200 rounded-xl focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all bg-gray-50/50 hover:bg-white hover:shadow-md cursor-text text-gray-900"
-                  placeholder="you@example.com"
+                  placeholder="you@example.com or username"
                   required
                 />
               </div>

@@ -26,22 +26,48 @@ export async function POST(req: NextRequest) {
       )
     }
 
+    // Check if input is email or username, and find user accordingly
+    const isEmail = validatedData.email.includes('@')
+    let foundUser = null
+
+    if (isEmail) {
+      // Look up by email
+      foundUser = await prisma.user.findUnique({
+        where: { email: validatedData.email.toLowerCase() }
+      })
+    } else {
+      // Look up by username
+      foundUser = await prisma.user.findUnique({
+        where: { username: validatedData.email.toLowerCase() }
+      })
+    }
+
+    if (!foundUser) {
+      return NextResponse.json(
+        { error: 'Invalid email/username or password' },
+        { status: 401 }
+      )
+    }
+
     // Use our custom signIn function with bcrypt password verification
     const result = await signIn(validatedData.email, validatedData.password)
 
     if (!result) {
       return NextResponse.json(
-        { error: 'Invalid email or password' },
+        { error: 'Invalid email/username or password' },
         { status: 401 }
       )
     }
 
     const { user, token } = result
 
-    // Get or create tenant for user
-    let tenant = await prisma.tenant.findFirst({
-      where: { ownerId: user.id }
+    // Get tenant for user through member relationship
+    const memberWithTenant = await prisma.member.findFirst({
+      where: { userId: user.id },
+      include: { tenant: true }
     })
+
+    let tenant = memberWithTenant?.tenant
 
     if (!tenant) {
       tenant = await ensureUserTenant(user.id, user.email)

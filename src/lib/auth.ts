@@ -8,7 +8,8 @@ export type { UserRole };
 
 export interface AuthUser {
   id: string;
-  email: string;
+  email: string | null;
+  username: string | null;
   displayName: string | null;
   tenantId: string | null;
   metadata: Record<string, any>;
@@ -18,6 +19,8 @@ export interface AuthUser {
   role: UserRole | null;
   status: string | null;
   emailVerified: boolean;
+  roleId: string | null;
+  permissions: Record<string, any>;
 }
 
 // JWT configuration
@@ -30,6 +33,7 @@ const JWT_EXPIRY = '7d';
 export interface JWTPayload {
   sub: string;
   email: string;
+  tenantId?: string;
   iat: number;
   exp: number;
 }
@@ -65,8 +69,8 @@ export async function hashPassword(password: string): Promise<string> {
 }
 
 // JWT Token functions
-export async function createSessionToken(userId: string, email: string): Promise<string> {
-  const token = await new SignJWT({ sub: userId, email })
+export async function createSessionToken(userId: string, email: string, tenantId?: string): Promise<string> {
+  const token = await new SignJWT({ sub: userId, email, tenantId })
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
     .setExpirationTime(JWT_EXPIRY)
@@ -81,6 +85,7 @@ export async function verifyToken(token: string): Promise<JWTPayload | null> {
     return {
       sub: payload.sub as string,
       email: payload.email as string,
+      tenantId: payload.tenantId as string | undefined,
       iat: payload.iat as number,
       exp: payload.exp as number,
     };
@@ -104,15 +109,24 @@ function getTokenFromRequest(req: Request): string | null {
   return null;
 }
 
-export async function signIn(email: string, password: string): Promise<{ user: any; token: string } | null> {
+export async function signIn(identifier: string, password: string): Promise<{ user: any; token: string } | null> {
   try {
-    // Find user in database
-    const user = await prisma.user.findUnique({
-      where: { email: email.toLowerCase() }
-    });
+    const normalizedIdentifier = identifier.toLowerCase().trim();
+    
+    // Check if identifier is an email (contains @) or username
+    const isEmail = normalizedIdentifier.includes('@');
+    
+    // Find user in database by email or username
+    const user = isEmail 
+      ? await prisma.user.findUnique({
+          where: { email: normalizedIdentifier }
+        })
+      : await prisma.user.findUnique({
+          where: { username: normalizedIdentifier }
+        });
 
     if (!user) {
-      console.log('[AUTH] Sign in failed: User not found for email:', email.toLowerCase());
+      console.log('[AUTH] Sign in failed: User not found for:', normalizedIdentifier);
       return null;
     }
 
@@ -140,7 +154,11 @@ export async function signIn(email: string, password: string): Promise<{ user: a
     }
 
     // Create JWT session token
-    const token = await createSessionToken(user.id, user.email);
+    // Get the tenant ID from the member record
+    const member = await prisma.member.findFirst({
+      where: { userId: user.id }
+    });
+    const token = await createSessionToken(user.id, user.email || user.username, member?.tenantId);
 
     console.log('[AUTH] Sign in successful for user:', user.id);
 
@@ -148,6 +166,7 @@ export async function signIn(email: string, password: string): Promise<{ user: a
       user: {
         id: user.id,
         email: user.email,
+        username: user.username,
         name: user.name,
         created_at: user.createdAt?.toISOString() || new Date().toISOString(),
         emailVerified: user.emailVerified,
@@ -160,19 +179,29 @@ export async function signIn(email: string, password: string): Promise<{ user: a
   }
 }
 
-export async function signUp(email: string, password: string, name?: string): Promise<{ user: any; token: string } | null> {
+export async function signUp(email: string, password: string, name?: string, username?: string): Promise<{ user: any; token: string } | null> {
   const normalizedEmail = email.toLowerCase().trim();
+  const normalizedUsername = (username || email.split('@')[0]).toLowerCase().trim();
 
-  console.log('[AUTH] SignUp attempt for email:', normalizedEmail);
+  console.log('[AUTH] SignUp attempt for email:', normalizedEmail, 'username:', normalizedUsername);
 
   try {
-    // Check if user already exists
-    const existingUser = await prisma.user.findUnique({
+    // Check if user already exists by email or username
+    const existingUserByEmail = await prisma.user.findUnique({
       where: { email: normalizedEmail }
     });
 
-    if (existingUser) {
-      console.log('[AUTH] SignUp failed: User already exists with email:', normalizedEmail, 'ID:', existingUser.id);
+    if (existingUserByEmail) {
+      console.log('[AUTH] SignUp failed: User already exists with email:', normalizedEmail);
+      return null;
+    }
+
+    const existingUserByUsername = await prisma.user.findUnique({
+      where: { username: normalizedUsername }
+    });
+
+    if (existingUserByUsername) {
+      console.log('[AUTH] SignUp failed: User already exists with username:', normalizedUsername);
       return null;
     }
 
@@ -182,10 +211,11 @@ export async function signUp(email: string, password: string, name?: string): Pr
     // Generate email verification token
     const emailVerificationToken = generateVerificationToken();
 
-    // Create user
+    // Create user with both email and username
     const user = await prisma.user.create({
       data: {
         email: normalizedEmail,
+        username: normalizedUsername,
         name: name?.trim() || null,
         passwordHash,
         emailVerified: false,
@@ -194,15 +224,20 @@ export async function signUp(email: string, password: string, name?: string): Pr
       }
     });
 
-    console.log('[AUTH] SignUp successful: Created user with ID:', user.id, 'email:', user.email);
+    console.log('[AUTH] SignUp successful: Created user with ID:', user.id, 'email:', user.email, 'username:', user.username);
 
     // Create JWT session token
-    const token = await createSessionToken(user.id, user.email);
+    // Get the tenant ID from the member record (user was just created, should have a member)
+    const newMember = await prisma.member.findFirst({
+      where: { userId: user.id }
+    });
+    const token = await createSessionToken(user.id, user.email || user.username, newMember?.tenantId);
 
     return {
       user: {
         id: user.id,
         email: user.email,
+        username: user.username,
         name: user.name,
         created_at: user.createdAt?.toISOString() || new Date().toISOString(),
         emailVerified: user.emailVerified,
@@ -212,8 +247,8 @@ export async function signUp(email: string, password: string, name?: string): Pr
     };
   } catch (error: any) {
     // Check for unique constraint violation (race condition)
-    if (error?.code === 'P2002' && error?.meta?.target?.includes('email')) {
-      console.log('[AUTH] SignUp failed: Unique constraint violation - user created in race condition for email:', normalizedEmail);
+    if (error?.code === 'P2002') {
+      console.log('[AUTH] SignUp failed: Unique constraint violation for email:', normalizedEmail, 'or username:', normalizedUsername);
       return null;
     }
 
@@ -262,11 +297,12 @@ export async function oauthSignIn(email: string, name: string | null, provider: 
 
       console.log('[AUTH] OAuth sign in: Found existing OAuth account, user ID:', existingOAuth.user.id);
 
-      const token = await createSessionToken(existingOAuth.user.id, existingOAuth.user.email);
+      const token = await createSessionToken(existingOAuth.user.id, existingOAuth.user.email || existingOAuth.user.username, existingOAuth.user.tenantId || undefined);
       return {
         user: {
           id: existingOAuth.user.id,
           email: existingOAuth.user.email,
+          username: existingOAuth.user.username,
           name: existingOAuth.user.name,
           created_at: existingOAuth.user.createdAt?.toISOString() || new Date().toISOString(),
           emailVerified: existingOAuth.user.emailVerified,
@@ -284,10 +320,22 @@ export async function oauthSignIn(email: string, name: string | null, provider: 
       // Create new user for OAuth
       console.log('[AUTH] OAuth sign in: Creating new user for email:', normalizedEmail);
 
+      // Generate username from email (before @)
+      const baseUsername = normalizedEmail.split('@')[0];
+      let username = baseUsername;
+      let counter = 1;
+      
+      // Check if username exists and append number if needed
+      while (await prisma.user.findUnique({ where: { username } })) {
+        username = `${baseUsername}${counter}`;
+        counter++;
+      }
+
       user = await prisma.user.create({
         data: {
           email: normalizedEmail,
-          name: name || normalizedEmail.split('@')[0],
+          username,
+          name: name || baseUsername,
           emailVerified: true, // OAuth providers verify email
           passwordHash: null, // No password for OAuth users
         }
@@ -316,12 +364,17 @@ export async function oauthSignIn(email: string, name: string | null, provider: 
     console.log('[AUTH] OAuth sign in successful: User ID:', user.id);
 
     // Create JWT session token
-    const token = await createSessionToken(user.id, user.email);
+    // Get the tenant ID from the member record
+    const oauthMember = await prisma.member.findFirst({
+      where: { userId: user.id }
+    });
+    const token = await createSessionToken(user.id, user.email || user.username, oauthMember?.tenantId);
 
     return {
       user: {
         id: user.id,
         email: user.email,
+        username: user.username,
         name: user.name,
         created_at: user.createdAt?.toISOString() || new Date().toISOString(),
         emailVerified: true,
@@ -337,11 +390,16 @@ export async function oauthSignIn(email: string, name: string | null, provider: 
         where: { email: normalizedEmail }
       });
       if (existingUser) {
-        const token = await createSessionToken(existingUser.id, existingUser.email);
+        // Get the tenant ID from the member record
+        const existingMember = await prisma.member.findFirst({
+          where: { userId: existingUser.id }
+        });
+        const token = await createSessionToken(existingUser.id, existingUser.email || existingUser.username, existingMember?.tenantId);
         return {
           user: {
             id: existingUser.id,
             email: existingUser.email,
+            username: existingUser.username,
             name: existingUser.name,
             created_at: existingUser.createdAt?.toISOString() || new Date().toISOString(),
             emailVerified: existingUser.emailVerified,
@@ -383,7 +441,12 @@ export async function getCurrentTenantId(req: Request): Promise<string | null> {
     const decoded = await verifyToken(token);
     if (!decoded) return null;
 
-    // Get user's tenant from member table
+    // If tenantId is in token, use it
+    if (decoded.tenantId) {
+      return decoded.tenantId;
+    }
+
+    // Fallback: Get user's tenant from member table
     const member = await prisma.member.findFirst({
       where: { userId: decoded.sub }
     });
@@ -409,14 +472,39 @@ export async function getCurrentUser(req: Request): Promise<AuthUser | null> {
 
     if (!user) return null;
 
-    // Get user's tenant
-    const member = await prisma.member.findFirst({
-      where: { userId: user.id }
-    });
+    // Get user's tenant and role - use tenantId from token if available, otherwise fallback to first member
+    const tenantId = decoded.tenantId || null;
+    
+    let member = null;
+    if (tenantId) {
+      // Use tenant from token to get the correct member record
+      member = await prisma.member.findFirst({
+        where: { userId: user.id, tenantId }
+      });
+    }
+    
+    // Fallback: if no tenant in token or member not found, get first member
+    if (!member) {
+      member = await prisma.member.findFirst({
+        where: { userId: user.id }
+      });
+    }
+
+    // Get role permissions if member has a roleId
+    let permissions: Record<string, any> = {};
+    if (member?.roleId) {
+      const roleData = await prisma.role.findUnique({
+        where: { id: member.roleId }
+      });
+      if (roleData?.permissions) {
+        permissions = roleData.permissions as Record<string, any>;
+      }
+    }
 
     return {
       id: user.id,
       email: user.email,
+      username: user.username,
       displayName: user.name,
       tenantId: member?.tenantId || null,
       metadata: {},
@@ -426,6 +514,8 @@ export async function getCurrentUser(req: Request): Promise<AuthUser | null> {
       role: member?.role || null,
       status: member?.status || null,
       emailVerified: user.emailVerified || false,
+      roleId: member?.roleId || null,
+      permissions,
     };
   } catch {
     return null;

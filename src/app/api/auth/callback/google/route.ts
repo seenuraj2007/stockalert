@@ -101,9 +101,13 @@ export async function GET(request: NextRequest) {
 
         const { user, token } = result;
 
-        let tenant = await prisma.tenant.findFirst({
-            where: { ownerId: user.id }
+        // Get tenant for user through member relationship
+        const memberWithTenant = await prisma.member.findFirst({
+            where: { userId: user.id },
+            include: { tenant: true }
         });
+
+        let tenant = memberWithTenant?.tenant;
 
         if (!tenant) {
             tenant = await ensureUserTenant(user.id, user.email);

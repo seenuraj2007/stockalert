@@ -1,33 +1,36 @@
+'use client'
+
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { memo, useMemo } from 'react'
 import {
   Package, MapPin, Truck, FileText, ArrowUpDown, Calculator,
   Bell, Users, Settings, User,
-  BarChart3, TrendingUp, Receipt, Tag
+  BarChart3, TrendingUp, Receipt
 } from 'lucide-react'
+import { usePermissions } from '@/lib/UserContext'
 
 interface NavItem {
   href: string
   label: string
   icon: React.ComponentType<{ className?: string }>
+  permissionResource: string
 }
 
 const navItems: NavItem[] = [
-  { href: '/dashboard', label: 'Dashboard', icon: BarChart3 },
-  { href: '/analytics', label: 'Analytics', icon: TrendingUp },
-  { href: '/products', label: 'Products', icon: Package },
-  { href: '/serial-numbers', label: 'Serial Numbers', icon: Tag },
-  { href: '/locations', label: 'Locations', icon: MapPin },
-  { href: '/suppliers', label: 'Suppliers', icon: Truck },
-  { href: '/purchase-orders', label: 'Purchase Orders', icon: FileText },
-  { href: '/stock-transfers', label: 'Stock Transfers', icon: ArrowUpDown },
-  { href: '/billing', label: 'Billing / POS', icon: Calculator },
-  { href: '/invoices', label: 'Invoices', icon: Receipt },
-  { href: '/alerts', label: 'Alerts', icon: Bell },
-  { href: '/team', label: 'Team', icon: Users },
-  { href: '/profile', label: 'Profile', icon: User },
-  { href: '/settings', label: 'Settings', icon: Settings },
+  { href: '/dashboard', label: 'Dashboard', icon: BarChart3, permissionResource: 'reports' },
+  { href: '/analytics', label: 'Analytics', icon: TrendingUp, permissionResource: 'analytics' },
+  { href: '/products', label: 'Products', icon: Package, permissionResource: 'products' },
+  { href: '/locations', label: 'Locations', icon: MapPin, permissionResource: 'locations' },
+  { href: '/suppliers', label: 'Suppliers', icon: Truck, permissionResource: 'suppliers' },
+  { href: '/purchase-orders', label: 'Purchase Orders', icon: FileText, permissionResource: 'purchase_orders' },
+  { href: '/stock-transfers', label: 'Stock Transfers', icon: ArrowUpDown, permissionResource: 'stock_transfers' },
+  { href: '/billing', label: 'Billing / POS', icon: Calculator, permissionResource: 'billing' },
+  { href: '/invoices', label: 'Invoices', icon: Receipt, permissionResource: 'invoices' },
+  { href: '/alerts', label: 'Alerts', icon: Bell, permissionResource: 'alerts' },
+  { href: '/team', label: 'Team', icon: Users, permissionResource: 'users' },
+  { href: '/profile', label: 'Profile', icon: User, permissionResource: 'profile' },
+  { href: '/settings', label: 'Settings', icon: Settings, permissionResource: 'settings' },
 ]
 
 const NavItemComponent = memo(({ item, isActive, locale }: {
@@ -61,19 +64,34 @@ NavItemComponent.displayName = 'NavItemComponent'
 
 const SidebarMenu = memo(function SidebarMenu() {
   const pathname = usePathname()
+  const { hasPermission, isOwner, isReady } = usePermissions()
 
   const locale = useMemo(() => {
     const pathParts = pathname.split('/')
     return pathParts[1] === 'en' || pathParts[1] === 'hi' ? pathParts[1] : 'en'
   }, [pathname])
 
+  // Filter nav items based on permissions
+  const filteredNavItems = useMemo(() => {
+    // While loading or not ready, show all items to prevent empty sidebar
+    if (!isReady) return navItems
+    
+    // OWNER can see all items
+    if (isOwner) return navItems
+    
+    // Filter items based on read permission for each resource
+    return navItems.filter(item => {
+      return hasPermission(item.permissionResource, 'read')
+    })
+  }, [hasPermission, isOwner, isReady])
+
   const activeItems = useMemo(() => {
-    return navItems.map(item => {
+    return filteredNavItems.map(item => {
       const localizedHref = `/${locale}${item.href}`
       const isActive = pathname === localizedHref || pathname.startsWith(`${localizedHref}/`)
       return { ...item, isActive, locale }
     })
-  }, [pathname, locale])
+  }, [filteredNavItems, pathname, locale])
 
   return (
     <nav className="px-3 sm:px-4 space-y-1 sm:space-y-2">
