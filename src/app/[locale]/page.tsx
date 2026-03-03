@@ -9,7 +9,7 @@ import {
   ChevronRight, Layers, Target, Sparkles, Cpu, Lock,
   Database, Code2, Globe, Server, Receipt, QrCode, FileText,
   IndianRupee, Building2, UserPlus, MessageSquare, Smartphone,
-  Download, Languages, Star, TrendingUp, Check, Clock, Github, Heart,
+  Download, Languages, Star, TrendingUp, Check, Clock, Heart,
   Menu, X, Play, ArrowUpRight, MoveRight, Eye, Settings, PieChart, Barcode
 } from 'lucide-react'
 
@@ -34,13 +34,6 @@ const features = [
     description: 'Automatic warranty expiry tracking. Get alerts before warranties expire.',
     badge: 'Pro Feature',
     accent: '#f59e0b'
-  },
-  {
-    icon: Github,
-    title: 'Open Source',
-    description: 'Fully transparent codebase. Fork it, self-host it, contribute to it. No vendor lock-in.',
-    badge: 'MIT License',
-    accent: '#10b981'
   },
   {
     icon: Download,
@@ -81,11 +74,18 @@ const features = [
 
 const comparisonData = [
   { feature: 'Monthly Cost', us: 'Free', zoho: '₹749', marg: '₹1,500', tally: '₹4,500' },
-  { feature: 'Tally Import', us: true, zoho: false, marg: false, tally: false },
-  { feature: 'IMEI/Serial Tracking', us: true, zoho: false, marg: false, tally: false },
-  { feature: 'Warranty Tracking', us: true, zoho: false, marg: false, tally: false },
+  { feature: 'Dashboard & Analytics', us: true, zoho: true, marg: true, tally: true },
+  { feature: 'Product Management', us: true, zoho: true, marg: true, tally: true },
+  { feature: 'Multi-Location Support', us: true, zoho: false, marg: false, tally: false },
+  { feature: 'Supplier Management', us: true, zoho: true, marg: true, tally: true },
+  { feature: 'Purchase Orders', us: true, zoho: true, marg: true, tally: true },
+  { feature: 'Stock Transfers', us: true, zoho: false, marg: false, tally: false },
+  { feature: 'Billing / POS', us: true, zoho: true, marg: true, tally: true },
   { feature: 'GST Invoicing', us: true, zoho: true, marg: true, tally: true },
-  { feature: 'Open Source', us: true, zoho: false, marg: false, tally: false },
+  { feature: 'Low Stock Alerts', us: true, zoho: true, marg: true, tally: false },
+  { feature: 'Team Management', us: true, zoho: false, marg: false, tally: false },
+  { feature: 'Role-Based Access', us: true, zoho: false, marg: false, tally: false },
+  { feature: 'Tally Import', us: true, zoho: false, marg: false, tally: false },
 ]
 
 const techStack = [
@@ -209,7 +209,6 @@ export default function HomePage() {
                 </div>
                 <div>
                   <span className="font-bold text-lg tracking-tight">StockAlert</span>
-                  <span className="hidden sm:inline text-xs text-emerald-400 ml-2 px-2 py-0.5 bg-emerald-400/10 rounded-full">Open Source</span>
                 </div>
               </Link>
               
@@ -218,10 +217,6 @@ export default function HomePage() {
                 <a href="#features" className="text-sm text-white/60 hover:text-white transition-colors">Features</a>
                 <a href="#comparison" className="text-sm text-white/60 hover:text-white transition-colors">Compare</a>
                 <a href="#pricing" className="text-sm text-white/60 hover:text-white transition-colors">Pricing</a>
-                <a href="https://github.com/seenuraj2007/stockalert" target="_blank" className="text-sm text-white/60 hover:text-white transition-colors flex items-center gap-1">
-                  <Github className="w-4 h-4" />
-                  GitHub
-                </a>
               </div>
               
               {/* CTA */}
@@ -263,7 +258,6 @@ export default function HomePage() {
                   <a href="#features" onClick={() => setMobileMenuOpen(false)} className="block px-4 py-3 rounded-xl hover:bg-white/5 transition-colors">Features</a>
                   <a href="#comparison" onClick={() => setMobileMenuOpen(false)} className="block px-4 py-3 rounded-xl hover:bg-white/5 transition-colors">Compare</a>
                   <a href="#pricing" onClick={() => setMobileMenuOpen(false)} className="block px-4 py-3 rounded-xl hover:bg-white/5 transition-colors">Pricing</a>
-                  <a href="https://github.com/seenuraj2007/stockalert" target="_blank" className="block px-4 py-3 rounded-xl hover:bg-white/5 transition-colors">GitHub</a>
                 </div>
               </motion.div>
             )}
@@ -274,24 +268,6 @@ export default function HomePage() {
       {/* Hero Section */}
       <section className="relative pt-36 pb-24 px-4">
         <motion.div style={{ y, opacity }} className="max-w-7xl mx-auto">
-          {/* Badge */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="flex justify-center mb-8"
-          >
-            <a 
-              href="https://github.com/seenuraj2007/stockalert"
-              target="_blank"
-              className="group flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-full hover:border-emerald-500/50 transition-all"
-            >
-              <Github className="w-4 h-4 text-emerald-400" />
-              <span className="text-sm text-white/70 group-hover:text-white transition-colors">Star us on GitHub</span>
-              <ArrowUpRight className="w-3.5 h-3.5 text-white/40" />
-            </a>
-          </motion.div>
-          
           {/* Headline */}
           <motion.div
             initial={{ opacity: 0, y: 40 }}
@@ -526,36 +502,6 @@ export default function HomePage() {
           
           {/* Bento Grid */}
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {/* Featured - Open Source */}
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="lg:col-span-2 lg:row-span-2 group relative bg-gradient-to-br from-emerald-500/10 to-teal-500/5 border border-emerald-500/20 rounded-3xl p-8 overflow-hidden hover:border-emerald-500/40 transition-all"
-            >
-              <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-              <div className="relative">
-                <div className="inline-flex items-center gap-2 px-3 py-1 bg-emerald-500/20 text-emerald-400 text-xs font-semibold rounded-full mb-6">
-                  <Github className="w-3.5 h-3.5" />
-                  MIT License
-                </div>
-                <Github className="w-16 h-16 text-emerald-400/50 mb-6" strokeWidth={1} />
-                <h3 className="text-3xl font-bold mb-4">Open Source</h3>
-                <p className="text-white/60 text-lg leading-relaxed mb-6">
-                  Fully transparent codebase. Fork it, customize it, self-host it. 
-                  No vendor lock-in, no hidden costs, no surprises.
-                </p>
-                <a 
-                  href="https://github.com/seenuraj2007/stockalert" 
-                  target="_blank"
-                  className="inline-flex items-center gap-2 text-emerald-400 font-medium group-hover:gap-3 transition-all"
-                >
-                  View on GitHub
-                  <ArrowRight className="w-4 h-4" />
-                </a>
-              </div>
-            </motion.div>
-            
             {/* Tally Import */}
             <motion.div
               initial={{ opacity: 0, y: 30 }}
@@ -807,7 +753,7 @@ export default function HomePage() {
               </div>
               
               <div className="mb-6">
-                <h3 className="text-2xl font-bold mb-2">Open Source</h3>
+                <h3 className="text-2xl font-bold mb-2">Free</h3>
                 <p className="text-white/50">Free forever, no credit card required</p>
               </div>
               
@@ -929,18 +875,9 @@ export default function HomePage() {
                 <span className="font-bold text-lg">StockAlert</span>
               </Link>
               <p className="text-white/50 text-sm leading-relaxed max-w-sm mb-4">
-                Open source inventory management. Track stock, generate invoices, 
+                Modern inventory management. Track stock, generate invoices,
                 and manage multiple locations with ease.
               </p>
-              <div className="flex items-center gap-4">
-                <a 
-                  href="https://github.com/seenuraj2007/stockalert"
-                  target="_blank"
-                  className="w-10 h-10 bg-white/5 border border-white/10 rounded-xl flex items-center justify-center hover:border-white/20 transition-all"
-                >
-                  <Github className="w-5 h-5" />
-                </a>
-              </div>
             </div>
             
             {/* Links */}
@@ -950,7 +887,6 @@ export default function HomePage() {
                 <li><a href="#features" className="hover:text-white transition-colors">Features</a></li>
                 <li><a href="#comparison" className="hover:text-white transition-colors">Comparison</a></li>
                 <li><a href="#pricing" className="hover:text-white transition-colors">Pricing</a></li>
-                <li><a href="https://github.com/seenuraj2007/stockalert" target="_blank" className="hover:text-white transition-colors">GitHub</a></li>
               </ul>
             </div>
             
