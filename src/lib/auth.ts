@@ -11,7 +11,7 @@ export interface AuthUser {
   email: string | null;
   username: string | null;
   displayName: string | null;
-  tenantId: string | null;
+  tenantId: string;
   metadata: Record<string, any>;
   created_at: string;
   full_name: string | null;
@@ -20,7 +20,7 @@ export interface AuthUser {
   status: string | null;
   emailVerified: boolean;
   roleId: string | null;
-  permissions: Record<string, any>;
+  permissions?: Record<string, any>;
 }
 
 // JWT configuration
@@ -490,9 +490,14 @@ export async function getCurrentUser(req: Request): Promise<AuthUser | null> {
       });
     }
 
+    // If no member or tenantId, user can't be authenticated for tenant-scoped operations
+    if (!member?.tenantId) {
+      return null;
+    }
+
     // Get role permissions if member has a roleId
     let permissions: Record<string, any> = {};
-    if (member?.roleId) {
+    if (member.roleId) {
       const roleData = await prisma.role.findUnique({
         where: { id: member.roleId }
       });
@@ -506,15 +511,15 @@ export async function getCurrentUser(req: Request): Promise<AuthUser | null> {
       email: user.email,
       username: user.username,
       displayName: user.name,
-      tenantId: member?.tenantId || null,
+      tenantId: member.tenantId,
       metadata: {},
       created_at: user.createdAt?.toISOString() || new Date().toISOString(),
       full_name: user.name,
-      organization_id: member?.tenantId || null,
-      role: member?.role || null,
-      status: member?.status || null,
+      organization_id: member.tenantId,
+      role: member.role,
+      status: member.status,
       emailVerified: user.emailVerified || false,
-      roleId: member?.roleId || null,
+      roleId: member.roleId,
       permissions,
     };
   } catch {

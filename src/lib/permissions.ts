@@ -20,7 +20,7 @@ export interface AuthUser {
   email: string | null
   username: string | null
   displayName: string | null
-  tenantId: string | null
+  tenantId: string
   metadata: Record<string, any>
   created_at: string
   full_name: string | null
