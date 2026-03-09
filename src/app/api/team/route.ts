@@ -4,6 +4,9 @@ import { getOrganizationSubscription } from '@/lib/subscription'
 import bcrypt from 'bcryptjs'
 import { prisma } from '@/lib/prisma'
 
+// Force dynamic rendering to prevent caching
+export const dynamic = 'force-dynamic'
+
 // GET /api/team - List team members
 export async function GET(req: NextRequest) {
   try {

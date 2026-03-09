@@ -39,6 +39,8 @@ interface Invoice {
     businessState: string | null
     businessPincode: string | null
     businessGstNumber: string | null
+    businessPhone: string | null
+    businessEmail: string | null
     customerName: string
     customerAddress: string | null
     customerCity: string | null
@@ -331,6 +333,22 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
                                     <span className="font-medium text-indigo-700">GSTIN:</span> <span className="text-gray-700">{invoice.businessGstNumber}</span>
                                 </p>
                             )}
+                            {(invoice.businessPhone || invoice.businessEmail) && (
+                                <div className="mt-3 pt-3 border-t border-gray-200 space-y-1">
+                                    {invoice.businessPhone && (
+                                        <p className="text-sm text-gray-600 flex items-center gap-2">
+                                            <Phone className="w-3.5 h-3.5 text-gray-400" />
+                                            {invoice.businessPhone}
+                                        </p>
+                                    )}
+                                    {invoice.businessEmail && (
+                                        <p className="text-sm text-gray-600 flex items-center gap-2">
+                                            <Mail className="w-3.5 h-3.5 text-gray-400" />
+                                            {invoice.businessEmail}
+                                        </p>
+                                    )}
+                                </div>
+                            )}
                         </div>
 
                         <div className="bg-gray-50 p-4 rounded-2xl">
@@ -373,6 +391,22 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
                                 <p className="mt-2 text-sm">
                                     <span className="font-medium">GSTIN:</span> {invoice.businessGstNumber}
                                 </p>
+                            )}
+                            {(invoice.businessPhone || invoice.businessEmail) && (
+                                <div className="mt-3 pt-3 border-t border-gray-200 space-y-1">
+                                    {invoice.businessPhone && (
+                                        <p className="text-sm text-gray-600 flex items-center gap-2">
+                                            <Phone className="w-3.5 h-3.5 text-gray-400" />
+                                            {invoice.businessPhone}
+                                        </p>
+                                    )}
+                                    {invoice.businessEmail && (
+                                        <p className="text-sm text-gray-600 flex items-center gap-2">
+                                            <Mail className="w-3.5 h-3.5 text-gray-400" />
+                                            {invoice.businessEmail}
+                                        </p>
+                                    )}
+                                </div>
                             )}
                         </div>
 

@@ -35,14 +35,14 @@ export async function GET(req: NextRequest) {
       organization: {
         id: tenant.id,
         name: tenant.name,
-        address: null,
-        city: null,
-        state: null,
-        pincode: null,
-        gstNumber: null,
-        phone: null,
-        email: null,
-        upiId: null,
+        address: tenant.address,
+        city: tenant.city,
+        state: tenant.state,
+        pincode: tenant.pincode,
+        gstNumber: tenant.gstNumber,
+        phone: tenant.phone,
+        email: tenant.email,
+        upiId: tenant.upiId,
         created_at: tenant.createdAt,
         updated_at: tenant.updatedAt
       },
@@ -92,7 +92,15 @@ export async function PATCH(req: NextRequest) {
     const updatedOrg = await prisma.tenant.update({
       where: { id: user.tenantId },
       data: { 
-        name: name.trim()
+        name: name.trim(),
+        upiId: upiId?.trim() || null,
+        address: address?.trim() || null,
+        city: city?.trim() || null,
+        state: state?.trim() || null,
+        pincode: pincode?.trim() || null,
+        gstNumber: gstNumber?.trim() || null,
+        phone: phone?.trim() || null,
+        email: email?.trim() || null
       }
     })
 
@@ -100,6 +108,14 @@ export async function PATCH(req: NextRequest) {
       organization: {
         id: updatedOrg.id,
         name: updatedOrg.name,
+        address: updatedOrg.address,
+        city: updatedOrg.city,
+        state: updatedOrg.state,
+        pincode: updatedOrg.pincode,
+        gstNumber: updatedOrg.gstNumber,
+        phone: updatedOrg.phone,
+        email: updatedOrg.email,
+        upiId: updatedOrg.upiId,
         created_at: updatedOrg.createdAt,
         updated_at: updatedOrg.updatedAt
       }
