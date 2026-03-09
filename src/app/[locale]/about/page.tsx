@@ -4,11 +4,11 @@ import { Package, ArrowLeft, Building2, Users, Target, Heart, Globe, Award } fro
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'About DKS StockAlert - Free Open Source Inventory Management Company',
-  description: 'Learn about DKS StockAlert, India\'s leading free open source inventory management software company. Our mission is to help small businesses manage stock efficiently with GST compliance, multi-location support, and WhatsApp alerts.',
-  keywords: ['about DKS StockAlert', 'inventory management company India', 'open source inventory software', 'free stock management', 'GST inventory software company'],
+  title: 'About DKS Stockox - Free Open Source Inventory Management Company',
+  description: 'Learn about DKS Stockox, India\'s leading free open source inventory management software company. Our mission is to help small businesses manage stock efficiently with GST compliance, multi-location support, and WhatsApp alerts.',
+  keywords: ['about DKS Stockox', 'inventory management company India', 'open source inventory software', 'free stock management', 'GST inventory software company'],
   openGraph: {
-    title: 'About DKS StockAlert - Free Open Source Inventory Management',
+    title: 'About DKS Stockox - Free Open Source Inventory Management',
     description: 'Learn about our mission to make inventory management accessible for Indian businesses with free open source software.',
     type: 'website',
   },
@@ -24,7 +24,7 @@ export default function AboutPage() {
               <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg shadow-purple-200">
                 <Package className="w-6 h-6 text-white" />
               </div>
-              <span className="text-xl font-bold text-gray-900">DKS StockAlert</span>
+              <span className="text-xl font-bold text-gray-900">DKS Stockox</span>
             </Link>
             <Link href="/auth" className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-5 py-2.5 rounded-xl font-medium hover:from-indigo-600 hover:to-purple-700 transition-all hover:-translate-y-0.5 shadow-lg shadow-purple-200">
               Get Started
@@ -46,7 +46,7 @@ export default function AboutPage() {
                 <Building2 className="w-7 h-7 text-indigo-600" />
               </div>
               <div>
-                <h1 className="text-4xl font-bold text-gray-900">About DKS StockAlert</h1>
+                <h1 className="text-4xl font-bold text-gray-900">About DKS Stockox</h1>
                 <p className="text-gray-500 mt-1">Simplifying inventory management since 2024</p>
               </div>
             </div>
@@ -54,7 +54,7 @@ export default function AboutPage() {
             <div className="prose prose-lg max-w-none">
               <section className="mb-8">
                 <p className="text-gray-600 text-lg leading-relaxed">
-                  DKS StockAlert was founded with a simple mission: to make inventory management accessible and effortless for businesses of all sizes. We believe that every business, regardless of its size, deserves powerful tools to manage their stock efficiently.
+                  DKS Stockox was founded with a simple mission: to make inventory management accessible and effortless for businesses of all sizes. We believe that every business, regardless of its size, deserves powerful tools to manage their stock efficiently.
                 </p>
               </section>
 
@@ -105,7 +105,7 @@ export default function AboutPage() {
                   <h2 className="text-2xl font-semibold text-gray-900">Global Infrastructure</h2>
                 </div>
                 <p className="text-gray-600 mb-4">
-                  StockAlert is built with a global infrastructure approach, ensuring reliability and performance for users worldwide.
+                  Stockox is built with a global infrastructure approach, ensuring reliability and performance for users worldwide.
                 </p>
                 <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-6 border border-green-100/50">
                   <div className="flex items-start gap-4">
@@ -138,7 +138,7 @@ export default function AboutPage() {
 
       <footer className="bg-white/80 backdrop-blur-xl border-t border-gray-100 py-8 px-4">
         <div className="max-w-4xl mx-auto text-center">
-          <p className="text-sm text-gray-500">© {new Date().getFullYear()} DKS StockAlert. All rights reserved.</p>
+          <p className="text-sm text-gray-500">© {new Date().getFullYear()} DKS Stockox. All rights reserved.</p>
         </div>
       </footer>
     </div>

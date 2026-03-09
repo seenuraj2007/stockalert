@@ -66,7 +66,7 @@ export default function SidebarLayout({ children }: SidebarProps) {
               <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-200/50">
                 <Package className="w-[1.1rem] h-[1.1rem] text-white" />
               </div>
-              <span className="text-[1.05rem] sm:text-xl font-bold text-gray-900 tracking-tight">DKS StockAlert</span>
+              <span className="text-[1.05rem] sm:text-xl font-bold text-gray-900 tracking-tight">DKS Stockox</span>
             </Link>
           </div>
 
@@ -125,7 +125,7 @@ export default function SidebarLayout({ children }: SidebarProps) {
               <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
                 <Package className="w-5 h-5 text-white" />
               </div>
-              <span className="text-lg font-bold text-gray-900 tracking-tight">DKS StockAlert</span>
+              <span className="text-lg font-bold text-gray-900 tracking-tight">DKS Stockox</span>
             </Link>
           </div>
 
@@ -148,7 +148,7 @@ export default function SidebarLayout({ children }: SidebarProps) {
       </aside>
 
       {/* ── Main Content ── */}
-      <main className="pt-14 sm:pt-16 pb-[5.5rem] sm:pb-0 min-h-screen">
+      <main className={`pt-14 sm:pt-16 pb-[5.5rem] sm:pb-0 min-h-screen transition-all duration-300 ${sidebarOpen ? 'blur-sm scale-[0.99] opacity-60' : ''}`}>
         <div className="p-3 sm:p-6 lg:p-8">
           {children}
         </div>

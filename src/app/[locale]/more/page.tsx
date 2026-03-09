@@ -205,7 +205,7 @@ export default function MorePage() {
 
           {/* App Version - Improved Typography */}
           <div className="text-center pt-6 pb-4">
-            <p className="text-xs font-medium text-gray-400 tracking-wide">DKS StockAlert v1.0.0</p>
+            <p className="text-xs font-medium text-gray-400 tracking-wide">DKS Stockox v1.0.0</p>
           </div>
         </div>
 

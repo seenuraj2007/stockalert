@@ -1975,7 +1975,7 @@ export default function POSPage() {
               {/* Organization Header */}
               <div className="text-center border-b-2 border-gray-900 pb-3 mb-3">
                 <h1 className="text-lg font-bold uppercase tracking-wide">
-                  {organization.name || 'DKS StockAlert'}
+                  {organization.name || 'DKS Stockox'}
                 </h1>
                 {organization.address && (
                   <p className="text-xs mt-1">{organization.address}</p>

@@ -23,7 +23,7 @@ export function generateOpenAPISpec(): OpenAPISpec {
   return {
     openapi: '3.0.0',
     info: {
-      title: 'DKS StockAlert API',
+      title: 'DKS Stockox API',
       version: '2.0.0',
       description: `Comprehensive inventory management API with multi-user support, 
                    sales tracking, batch management, and audit trails.`

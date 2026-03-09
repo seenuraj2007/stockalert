@@ -94,6 +94,16 @@ const nextConfig = {
         source: '/home',
         destination: '/dashboard',
         permanent: true
+      },
+      {
+        source: '/',
+        destination: '/en',
+        permanent: false
+      },
+      {
+        source: '/:path((?!api|_next|static|.*\\.|en).*)',
+        destination: '/en/:path',
+        permanent: false
       }
     ]
   }

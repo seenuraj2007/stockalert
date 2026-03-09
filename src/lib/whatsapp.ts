@@ -120,7 +120,7 @@ class WhatsAppService {
   async sendLowStockAlert(phone: string, productName: string, currentStock: number, reorderPoint: number) {
     const message: WhatsAppMessage = {
       to: phone,
-      body: `🚨 *Low Stock Alert*\n\n📦 Product: ${productName}\n📊 Current Stock: ${currentStock} units\n⚠️ Reorder Point: ${reorderPoint} units\n\nPlease restock soon to avoid stockouts!\n\n_DKS StockAlert_`,
+      body: `🚨 *Low Stock Alert*\n\n📦 Product: ${productName}\n📊 Current Stock: ${currentStock} units\n⚠️ Reorder Point: ${reorderPoint} units\n\nPlease restock soon to avoid stockouts!\n\n_DKS Stockox_`,
     }
     return this.sendMessage(message)
   }
@@ -128,7 +128,7 @@ class WhatsAppService {
   async sendOutOfStockAlert(phone: string, productName: string) {
     const message: WhatsAppMessage = {
       to: phone,
-      body: `⛔ *Out of Stock Alert*\n\n📦 Product: ${productName}\n📊 Current Stock: 0 units\n\n⚠️ This product is completely out of stock! Please restock immediately to avoid losing sales.\n\n_DKS StockAlert_`,
+      body: `⛔ *Out of Stock Alert*\n\n📦 Product: ${productName}\n📊 Current Stock: 0 units\n\n⚠️ This product is completely out of stock! Please restock immediately to avoid losing sales.\n\n_DKS Stockox_`,
     }
     return this.sendMessage(message)
   }
@@ -136,7 +136,7 @@ class WhatsAppService {
   async sendStockReceivedAlert(phone: string, productName: string, quantity: number, location: string) {
     const message: WhatsAppMessage = {
       to: phone,
-      body: `📥 *Stock Received*\n\n📦 Product: ${productName}\n📊 Quantity: +${quantity} units\n📍 Location: ${location}\n\nStock has been successfully updated!\n\n_DKS StockAlert_`,
+      body: `📥 *Stock Received*\n\n📦 Product: ${productName}\n📊 Quantity: +${quantity} units\n📍 Location: ${location}\n\nStock has been successfully updated!\n\n_DKS Stockox_`,
     }
     return this.sendMessage(message)
   }
@@ -144,7 +144,7 @@ class WhatsAppService {
   async sendPurchaseOrderAlert(phone: string, orderNumber: string, supplierName: string, totalAmount: number) {
     const message: WhatsAppMessage = {
       to: phone,
-      body: `📋 *Purchase Order Created*\n\n📝 Order #: ${orderNumber}\n🏪 Supplier: ${supplierName}\n💰 Total: ₹${totalAmount.toLocaleString('en-IN')}\n\nYour purchase order has been created successfully!\n\n_DKS StockAlert_`,
+      body: `📋 *Purchase Order Created*\n\n📝 Order #: ${orderNumber}\n🏪 Supplier: ${supplierName}\n💰 Total: ₹${totalAmount.toLocaleString('en-IN')}\n\nYour purchase order has been created successfully!\n\n_DKS Stockox_`,
     }
     return this.sendMessage(message)
   }
@@ -157,7 +157,7 @@ class WhatsAppService {
   }) {
     const message: WhatsAppMessage = {
       to: phone,
-      body: `📊 *Daily Inventory Summary*\n\n📦 Total Products: ${summary.totalProducts}\n💰 Stock Value: ₹${summary.totalStockValue.toLocaleString('en-IN')}\n\n⚠️ Alerts:\n• ${summary.lowStockCount} products low on stock\n• ${summary.outOfStockCount} products out of stock\n\nView details: https://dksstockalert.com/dashboard\n\n_DKS StockAlert_`,
+      body: `📊 *Daily Inventory Summary*\n\n📦 Total Products: ${summary.totalProducts}\n💰 Stock Value: ₹${summary.totalStockValue.toLocaleString('en-IN')}\n\n⚠️ Alerts:\n• ${summary.lowStockCount} products low on stock\n• ${summary.outOfStockCount} products out of stock\n\nView details: https://dksstockalert.com/dashboard\n\n_DKS Stockox_`,
     }
     return this.sendMessage(message)
   }
@@ -165,7 +165,7 @@ class WhatsAppService {
   async sendWelcomeMessage(phone: string, businessName: string) {
     const message: WhatsAppMessage = {
       to: phone,
-      body: `🎉 *Welcome to DKS StockAlert!*\n\nNamaste ${businessName}! 👋\n\nYour inventory management is now supercharged with WhatsApp alerts. You'll receive:\n\n✅ Low stock alerts\n✅ Out of stock warnings\n✅ Purchase order updates\n✅ Daily summaries\n\n*It's 100% FREE forever!* 🚀\n\n_DKS StockAlert - Built for Indian Businesses_`,
+      body: `🎉 *Welcome to DKS Stockox!*\n\nNamaste ${businessName}! 👋\n\nYour inventory management is now supercharged with WhatsApp alerts. You'll receive:\n\n✅ Low stock alerts\n✅ Out of stock warnings\n✅ Purchase order updates\n✅ Daily summaries\n\n*It's 100% FREE forever!* 🚀\n\n_DKS Stockox - Built for Indian Businesses_`,
     }
     return this.sendMessage(message)
   }
@@ -174,7 +174,7 @@ class WhatsAppService {
   async sendLowStockAlertHindi(phone: string, productName: string, currentStock: number, reorderPoint: number) {
     const message: WhatsAppMessage = {
       to: phone,
-      body: `🚨 *स्टॉक कम होने की चेतावनी*\n\n📦 उत्पाद: ${productName}\n📊 वर्तमान स्टॉक: ${currentStock} यूनिट\n⚠️ रीऑर्डर बिंदु: ${reorderPoint} यूनिट\n\nकृपया जल्दी स्टॉक भरें!\n\n_DKS StockAlert_`,
+      body: `🚨 *स्टॉक कम होने की चेतावनी*\n\n📦 उत्पाद: ${productName}\n📊 वर्तमान स्टॉक: ${currentStock} यूनिट\n⚠️ रीऑर्डर बिंदु: ${reorderPoint} यूनिट\n\nकृपया जल्दी स्टॉक भरें!\n\n_DKS Stockox_`,
     }
     return this.sendMessage(message)
   }
@@ -182,7 +182,7 @@ class WhatsAppService {
   async sendOutOfStockAlertHindi(phone: string, productName: string) {
     const message: WhatsAppMessage = {
       to: phone,
-      body: `⛔ *स्टॉक खत्म हो गया*\n\n📦 उत्पाद: ${productName}\n📊 वर्तमान स्टॉक: 0 यूनिट\n\n⚠️ यह उत्पाद पूरी तरह से खत्म हो गया है! कृपया तुरंत स्टॉक भरें।\n\n_DKS StockAlert_`,
+      body: `⛔ *स्टॉक खत्म हो गया*\n\n📦 उत्पाद: ${productName}\n📊 वर्तमान स्टॉक: 0 यूनिट\n\n⚠️ यह उत्पाद पूरी तरह से खत्म हो गया है! कृपया तुरंत स्टॉक भरें।\n\n_DKS Stockox_`,
     }
     return this.sendMessage(message)
   }

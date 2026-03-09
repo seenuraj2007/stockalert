@@ -59,8 +59,13 @@ export default function TeamPage() {
   const fetchTeam = async () => {
     try {
       setLoading(true)
-      const res = await fetch('/api/team', {
-        credentials: 'include'
+      const res = await fetch('/api/team?nocache=' + Date.now(), {
+        credentials: 'include',
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        }
       })
       const data = await res.json()
       if (res.ok) {
@@ -148,6 +153,8 @@ export default function TeamPage() {
         throw new Error(data.error || 'Failed to remove member')
       }
 
+      // Optimistically update the team state by removing the deleted member
+      setTeam(prevTeam => prevTeam.filter(member => member.id !== memberId))
       fetchTeam()
       alert('Member removed successfully')
     } catch (err: any) {
@@ -457,6 +464,8 @@ export default function TeamPage() {
                         alert('Error: ' + (data.error || 'Unknown error'));
                         return;
                       }
+                      // Optimistically update the team state by removing the deleted member
+                      setTeam(prevTeam => prevTeam.filter(member => member.id !== deleteMember.id))
                       setDeleteMember(null);
                       fetchTeam();
                       alert('Member removed successfully');

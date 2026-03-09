@@ -1,5 +1,5 @@
 {
-  "name": "DKSstockalert",
+  "name": "dks-stockox",
   "version": "0.1.0",
   "private": true,
   "author": "seenuraj2007",
@@ -50,6 +50,7 @@
     "lucide-react": "^0.564.0",
     "minimatch": "^10.2.0",
     "next": "16.1.6",
+    "next-devtools-mcp": "^0.3.10",
     "next-intl": "^4.8.2",
     "next-pwa": "^5.2.4",
     "nodemailer": "^8.0.1",

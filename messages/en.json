@@ -1,6 +1,6 @@
 {
   "metadata": {
-    "title": "DKS StockAlert - Inventory Management for Indian Businesses",
+    "title": "DKS Stockox - Inventory Management for Indian Businesses",
     "description": "Free inventory management software. Track stock, generate GST invoices, manage multiple locations."
   },
   "navigation": {
@@ -298,5 +298,31 @@
     "notFound": "The requested resource was not found.",
     "validation": "Please fill in all required fields.",
     "server": "Server error. Please try again later."
+  },
+  "bugReport": {
+    "title": "Report a Bug",
+    "subtitle": "Help us improve by reporting any issues you encounter",
+    "bugTitle": "Bug Title",
+    "bugTitlePlaceholder": "Brief description of the issue",
+    "description": "Description",
+    "descriptionPlaceholder": "Please describe what happened in detail",
+    "stepsToReproduce": "Steps to Reproduce",
+    "stepsToReproducePlaceholder": "1. Go to...\n2. Click on...\n3. See error",
+    "expectedBehavior": "Expected Behavior",
+    "expectedBehaviorPlaceholder": "What should have happened",
+    "actualBehavior": "Actual Behavior",
+    "actualBehaviorPlaceholder": "What actually happened",
+    "priority": "Priority",
+    "priorityLow": "Low",
+    "priorityMedium": "Medium",
+    "priorityHigh": "High",
+    "priorityCritical": "Critical",
+    "screenshot": "Screenshot (optional)",
+    "uploadScreenshot": "Upload Screenshot",
+    "submit": "Submit Bug Report",
+    "submitting": "Submitting...",
+    "success": "Bug report submitted successfully! We'll look into it soon.",
+    "error": "Failed to submit bug report. Please try again.",
+    "thankYou": "Thank you for your feedback!"
   }
 }

@@ -214,7 +214,7 @@ const MobileMoreMenu = memo(function MobileMoreMenu({ isOpen, onClose, locale, o
 
                     {/* Version info */}
                     <div className="mt-6 text-center">
-                        <p className="text-xs text-gray-300">DKS StockAlert v1.0</p>
+                        <p className="text-xs text-gray-300">DKS Stockox v1.0</p>
                     </div>
                 </div>
             </div>

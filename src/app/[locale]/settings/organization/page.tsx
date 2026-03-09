@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Building, Save, Loader2, AlertCircle, CheckCircle, Users, Calendar, ArrowLeft, Package } from 'lucide-react'
+import { Building, Save, Loader2, AlertCircle, CheckCircle, Users, Calendar, ArrowLeft, Package, MapPin, FileText, Phone, Mail } from 'lucide-react'
 import Link from 'next/link'
 import { SubscriptionGate } from '@/components/SubscriptionGate'
 import SidebarLayout from '@/components/SidebarLayout'
@@ -10,6 +10,14 @@ import SidebarLayout from '@/components/SidebarLayout'
 interface Organization {
   id: number
   name: string
+  address: string | null
+  city: string | null
+  state: string | null
+  pincode: string | null
+  gstNumber: string | null
+  phone: string | null
+  email: string | null
+  upiId: string | null
   created_at: string
   updated_at: string
 }
@@ -31,6 +39,13 @@ export default function OrganizationSettingsPage() {
   const [memberCount, setMemberCount] = useState(0)
   const [name, setName] = useState('')
   const [upiId, setUpiId] = useState('')
+  const [address, setAddress] = useState('')
+  const [city, setCity] = useState('')
+  const [state, setState] = useState('')
+  const [pincode, setPincode] = useState('')
+  const [gstNumber, setGstNumber] = useState('')
+  const [phone, setPhone] = useState('')
+  const [email, setEmail] = useState('')
   const [noOrg, setNoOrg] = useState(false)
 
   useEffect(() => {
@@ -68,6 +83,13 @@ export default function OrganizationSettingsPage() {
       setMemberCount(data.memberCount)
       setName(data.organization.name)
       setUpiId(data.organization.upiId || '')
+      setAddress(data.organization.address || '')
+      setCity(data.organization.city || '')
+      setState(data.organization.state || '')
+      setPincode(data.organization.pincode || '')
+      setGstNumber(data.organization.gstNumber || '')
+      setPhone(data.organization.phone || '')
+      setEmail(data.organization.email || '')
     } catch (err) {
       setError('Failed to load organization')
     } finally {
@@ -87,7 +109,14 @@ export default function OrganizationSettingsPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           name,
-          upiId: upiId.trim() || null
+          upiId: upiId.trim() || null,
+          address: address.trim() || null,
+          city: city.trim() || null,
+          state: state.trim() || null,
+          pincode: pincode.trim() || null,
+          gstNumber: gstNumber.trim() || null,
+          phone: phone.trim() || null,
+          email: email.trim() || null
         })
       })
 
@@ -263,10 +292,138 @@ export default function OrganizationSettingsPage() {
               </p>
             </div>
 
+            {/* Business Details Section */}
+            <div className="pt-6 border-t border-gray-100">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
+                  <MapPin className="w-5 h-5 text-blue-600" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-gray-900">Business Details</h3>
+                  <p className="text-sm text-gray-500">Set your business location and tax information</p>
+                </div>
+              </div>
+
+              <div className="space-y-5">
+                {/* Business Address */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                    <MapPin className="w-4 h-4 text-blue-500" />
+                    Business Address
+                  </label>
+                  <textarea
+                    value={address}
+                    onChange={(e) => setAddress(e.target.value)}
+                    rows={3}
+                    className="w-full px-4 py-3.5 border border-gray-200 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all bg-gray-50/50 hover:bg-white hover:shadow-md focus:bg-white text-gray-900 cursor-text resize-none"
+                    placeholder="Enter your business address"
+                  />
+                  <p className="mt-1 text-sm text-gray-500">This address will appear on invoices and receipts</p>
+                </div>
+
+                {/* City, State, Pincode Row */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">City</label>
+                    <input
+                      type="text"
+                      value={city}
+                      onChange={(e) => setCity(e.target.value)}
+                      className="w-full px-4 py-3.5 border border-gray-200 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all bg-gray-50/50 hover:bg-white hover:shadow-md focus:bg-white text-gray-900 cursor-text"
+                      placeholder="City"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">State</label>
+                    <input
+                      type="text"
+                      value={state}
+                      onChange={(e) => setState(e.target.value)}
+                      className="w-full px-4 py-3.5 border border-gray-200 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all bg-gray-50/50 hover:bg-white hover:shadow-md focus:bg-white text-gray-900 cursor-text"
+                      placeholder="State"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Pincode</label>
+                    <input
+                      type="text"
+                      value={pincode}
+                      onChange={(e) => setPincode(e.target.value)}
+                      className="w-full px-4 py-3.5 border border-gray-200 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all bg-gray-50/50 hover:bg-white hover:shadow-md focus:bg-white text-gray-900 cursor-text"
+                      placeholder="Pincode"
+                    />
+                  </div>
+                </div>
+
+                {/* GST Number */}
+                <div className="pt-4 border-t border-gray-100">
+                  <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                    <FileText className="w-4 h-4 text-green-500" />
+                    GST Number (GSTIN)
+                  </label>
+                  <input
+                    type="text"
+                    value={gstNumber}
+                    onChange={(e) => setGstNumber(e.target.value.toUpperCase())}
+                    className="w-full px-4 py-3.5 border border-gray-200 rounded-xl focus:border-green-500 focus:ring-4 focus:ring-green-500/10 outline-none transition-all bg-gray-50/50 hover:bg-white hover:shadow-md focus:bg-white text-gray-900 cursor-text uppercase"
+                    placeholder="27AABCU9603R1ZX"
+                  />
+                  <p className="mt-1 text-sm text-gray-500">Add GSTIN for tax compliance on invoices</p>
+                </div>
+
+                {/* Contact Info */}
+                <div className="pt-4 border-t border-gray-100">
+                  <label className="block text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                    <Phone className="w-4 h-4 text-orange-500" />
+                    Contact Information
+                  </label>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm text-gray-600 mb-1.5">Phone Number</label>
+                      <div className="relative">
+                        <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                        <input
+                          type="tel"
+                          value={phone}
+                          onChange={(e) => setPhone(e.target.value)}
+                          className="w-full pl-11 pr-4 py-3.5 border border-gray-200 rounded-xl focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 outline-none transition-all bg-gray-50/50 hover:bg-white hover:shadow-md focus:bg-white text-gray-900 cursor-text"
+                          placeholder="+91 98765 43210"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm text-gray-600 mb-1.5">Email Address</label>
+                      <div className="relative">
+                        <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                        <input
+                          type="email"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          className="w-full pl-11 pr-4 py-3.5 border border-gray-200 rounded-xl focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 outline-none transition-all bg-gray-50/50 hover:bg-white hover:shadow-md focus:bg-white text-gray-900 cursor-text"
+                          placeholder="business@example.com"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <p className="mt-2 text-sm text-gray-500">Phone and email will be displayed on invoices for customer contact</p>
+                </div>
+              </div>
+            </div>
+
             <div className="flex justify-end">
               <button
                 type="submit"
-                disabled={saving || (name === org?.name && upiId === (org as any)?.upiId)}
+                disabled={saving || (
+                  name === org?.name && 
+                  upiId === (org?.upiId || '') &&
+                  address === (org?.address || '') &&
+                  city === (org?.city || '') &&
+                  state === (org?.state || '') &&
+                  pincode === (org?.pincode || '') &&
+                  gstNumber === (org?.gstNumber || '') &&
+                  phone === (org?.phone || '') &&
+                  email === (org?.email || '')
+                )}
                 className="px-6 py-3.5 bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-600 text-white rounded-xl font-semibold hover:from-indigo-600 hover:via-purple-600 hover:to-indigo-700 transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-indigo-200 hover:shadow-indigo-300 hover:-translate-y-0.5 cursor-pointer"
               >
                 {saving ? (

@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'DKS StockAlert - Free Open Source Inventory Management Software India',
+  title: 'DKS Stockox - Free Open Source Inventory Management Software India',
   description: 'Free open source inventory management software with GST invoicing, WhatsApp alerts, Tally import, and multi-location support. Perfect for Indian small businesses, retailers, and manufacturers.',
   keywords: [
     'free inventory management software India',
@@ -19,7 +19,7 @@ export const metadata: Metadata = {
     canonical: '/',
   },
   openGraph: {
-    title: 'DKS StockAlert - Free Open Source Inventory Management Software',
+    title: 'DKS Stockox - Free Open Source Inventory Management Software',
     description: 'Free inventory management with GST invoicing, WhatsApp alerts, and Tally import. Made for Indian businesses.',
     type: 'website',
     locale: 'en_US',

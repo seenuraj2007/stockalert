@@ -42,7 +42,7 @@ export async function sendEmail(options: EmailOptions): Promise<boolean> {
     }
     
     await transporter.sendMail({
-      from: process.env.SMTP_FROM || '"DKS StockAlert" <noreply@dksstockalert.com>',
+      from: process.env.SMTP_FROM || '"DKS Stockox" <noreply@dksstockalert.com>',
       to: options.to,
       subject: options.subject,
       html: options.html,
@@ -57,11 +57,11 @@ export async function sendEmail(options: EmailOptions): Promise<boolean> {
 
 export function generatePasswordResetEmail(resetUrl: string, expiresIn: string) {
   return {
-    subject: 'Reset your DKS StockAlert password',
+    subject: 'Reset your DKS Stockox password',
     html: `
       <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
         <div style="text-align: center; margin-bottom: 30px;">
-          <h1 style="color: #4F46E5; margin: 0;">DKS StockAlert</h1>
+          <h1 style="color: #4F46E5; margin: 0;">DKS Stockox</h1>
           <p style="color: #6B7280; margin-top: 8px;">Inventory Management System</p>
         </div>
         
@@ -81,8 +81,8 @@ export function generatePasswordResetEmail(resetUrl: string, expiresIn: string) 
         </div>
         
         <div style="text-align: center; color: #9CA3AF; font-size: 12px;">
-          <p>DKS StockAlert - Inventory Management System</p>
-          <p>© ${new Date().getFullYear()} DKS StockAlert. All rights reserved.</p>
+          <p>DKS Stockox - Inventory Management System</p>
+          <p>© ${new Date().getFullYear()} DKS Stockox. All rights reserved.</p>
         </div>
       </div>
     `,
@@ -91,18 +91,18 @@ export function generatePasswordResetEmail(resetUrl: string, expiresIn: string) 
 
 export function generateWelcomeEmail(userName: string, dashboardUrl: string) {
   return {
-    subject: 'Welcome to DKS StockAlert!',
+    subject: 'Welcome to DKS Stockox!',
     html: `
       <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
         <div style="text-align: center; margin-bottom: 30px;">
-          <h1 style="color: #4F46E5; margin: 0;">DKS StockAlert</h1>
+          <h1 style="color: #4F46E5; margin: 0;">DKS Stockox</h1>
           <p style="color: #6B7280; margin-top: 8px;">Inventory Management System</p>
         </div>
         
         <div style="background: #F9FAFB; border-radius: 12px; padding: 30px; margin-bottom: 30px;">
           <h2 style="color: #111827; margin: 0 0 16px 0;">Welcome, ${userName}!</h2>
           <p style="color: #4B5563; line-height: 1.6; margin: 0 0 20px 0;">
-            Thank you for joining DKS StockAlert. You're now ready to start managing your inventory efficiently.
+            Thank you for joining DKS Stockox. You're now ready to start managing your inventory efficiently.
           </p>
           
           <a href="${dashboardUrl}" style="display: inline-block; background: linear-gradient(to right, #4F46E5, #7C3AED); color: white; text-decoration: none; padding: 14px 28px; border-radius: 8px; font-weight: 600;">
@@ -121,8 +121,8 @@ export function generateWelcomeEmail(userName: string, dashboardUrl: string) {
         </div>
         
         <div style="text-align: center; color: #9CA3AF; font-size: 12px;">
-          <p>DKS StockAlert - Inventory Management System</p>
-          <p>© ${new Date().getFullYear()} DKS StockAlert. All rights reserved.</p>
+          <p>DKS Stockox - Inventory Management System</p>
+          <p>© ${new Date().getFullYear()} DKS Stockox. All rights reserved.</p>
         </div>
       </div>
     `,
@@ -140,7 +140,7 @@ export function generateLowStockAlertEmail(
     html: `
       <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
         <div style="text-align: center; margin-bottom: 30px;">
-          <h1 style="color: #4F46E5; margin: 0;">DKS StockAlert</h1>
+          <h1 style="color: #4F46E5; margin: 0;">DKS Stockox</h1>
           <p style="color: #6B7280; margin-top: 8px;">${businessName}</p>
         </div>
         
@@ -178,8 +178,8 @@ export function generateLowStockAlertEmail(
         </div>
         
         <div style="text-align: center; color: #9CA3AF; font-size: 12px;">
-          <p>DKS StockAlert - Inventory Management System</p>
-          <p>© ${new Date().getFullYear()} DKS StockAlert. All rights reserved.</p>
+          <p>DKS Stockox - Inventory Management System</p>
+          <p>© ${new Date().getFullYear()} DKS Stockox. All rights reserved.</p>
         </div>
       </div>
     `,
@@ -195,7 +195,7 @@ export function generateOutOfStockAlertEmail(
     html: `
       <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
         <div style="text-align: center; margin-bottom: 30px;">
-          <h1 style="color: #4F46E5; margin: 0;">DKS StockAlert</h1>
+          <h1 style="color: #4F46E5; margin: 0;">DKS Stockox</h1>
           <p style="color: #6B7280; margin-top: 8px;">${businessName}</p>
         </div>
         
@@ -225,8 +225,8 @@ export function generateOutOfStockAlertEmail(
         </div>
         
         <div style="text-align: center; color: #9CA3AF; font-size: 12px;">
-          <p>DKS StockAlert - Inventory Management System</p>
-          <p>© ${new Date().getFullYear()} DKS StockAlert. All rights reserved.</p>
+          <p>DKS Stockox - Inventory Management System</p>
+          <p>© ${new Date().getFullYear()} DKS Stockox. All rights reserved.</p>
         </div>
       </div>
     `,
@@ -253,7 +253,7 @@ export function generatePurchaseOrderUpdateEmail(
     html: `
       <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
         <div style="text-align: center; margin-bottom: 30px;">
-          <h1 style="color: #4F46E5; margin: 0;">DKS StockAlert</h1>
+          <h1 style="color: #4F46E5; margin: 0;">DKS Stockox</h1>
           <p style="color: #6B7280; margin-top: 8px;">Inventory Management System</p>
         </div>
         
@@ -289,8 +289,8 @@ export function generatePurchaseOrderUpdateEmail(
         </div>
         
         <div style="text-align: center; color: #9CA3AF; font-size: 12px;">
-          <p>DKS StockAlert - Inventory Management System</p>
-          <p>© ${new Date().getFullYear()} DKS StockAlert. All rights reserved.</p>
+          <p>DKS Stockox - Inventory Management System</p>
+          <p>© ${new Date().getFullYear()} DKS Stockox. All rights reserved.</p>
         </div>
       </div>
     `,
@@ -309,7 +309,7 @@ export function generateDailySummaryEmail(
     html: `
       <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
         <div style="text-align: center; margin-bottom: 30px;">
-          <h1 style="color: #4F46E5; margin: 0;">DKS StockAlert</h1>
+          <h1 style="color: #4F46E5; margin: 0;">DKS Stockox</h1>
           <p style="color: #6B7280; margin-top: 8px;">${businessName}</p>
         </div>
         
@@ -352,8 +352,8 @@ export function generateDailySummaryEmail(
         </div>
         
         <div style="text-align: center; color: #9CA3AF; font-size: 12px;">
-          <p>DKS StockAlert - Inventory Management System</p>
-          <p>© ${new Date().getFullYear()} DKS StockAlert. All rights reserved.</p>
+          <p>DKS Stockox - Inventory Management System</p>
+          <p>© ${new Date().getFullYear()} DKS Stockox. All rights reserved.</p>
         </div>
       </div>
     `,
@@ -362,11 +362,11 @@ export function generateDailySummaryEmail(
 
 export function generateTrialEndingEmail(daysRemaining: number, upgradeUrl: string) {
   return {
-    subject: `Your DKS StockAlert trial ends in ${daysRemaining} day${daysRemaining > 1 ? 's' : ''}`,
+    subject: `Your DKS Stockox trial ends in ${daysRemaining} day${daysRemaining > 1 ? 's' : ''}`,
     html: `
       <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
         <div style="text-align: center; margin-bottom: 30px;">
-          <h1 style="color: #4F46E5; margin: 0;">DKS StockAlert</h1>
+          <h1 style="color: #4F46E5; margin: 0;">DKS Stockox</h1>
           <p style="color: #6B7280; margin-top: 8px;">Inventory Management System</p>
         </div>
         
@@ -383,8 +383,8 @@ export function generateTrialEndingEmail(daysRemaining: number, upgradeUrl: stri
         </a>
         
         <div style="text-align: center; color: #9CA3AF; font-size: 12px; margin-top: 30px;">
-          <p>DKS StockAlert - Inventory Management System</p>
-          <p>© ${new Date().getFullYear()} DKS StockAlert. All rights reserved.</p>
+          <p>DKS Stockox - Inventory Management System</p>
+          <p>© ${new Date().getFullYear()} DKS Stockox. All rights reserved.</p>
         </div>
       </div>
     `,

@@ -42,9 +42,18 @@ export async function GET(
       )
     }
 
-    // Check if any items have serial numbers
+    // Check if any items have serial numbers and map to frontend format
     const orderWithSerialInfo = {
-      ...order,
+      id: order.id,
+      order_number: order.orderNumber,
+      status: order.status,
+      total_amount: Number(order.totalAmount),
+      notes: order.notes,
+      created_at: order.createdAt.toISOString(),
+      updated_at: order.updatedAt.toISOString(),
+      supplier_name: order.supplierName,
+      supplier_email: order.supplierEmail,
+      supplier_phone: order.supplierPhone,
       items: await Promise.all(
         order.items.map(async (item) => {
           const serialCount = await (prisma as any).serialNumber.count({
@@ -54,9 +63,14 @@ export async function GET(
             },
           })
           return {
-            ...item,
+            id: item.id,
+            product_id: item.productId,
             product_name: item.product.name,
             product_sku: item.product.sku,
+            quantity: item.quantity,
+            unit_cost: Number(item.unitCost),
+            total_cost: Number(item.totalCost),
+            received_quantity: item.receivedQty,
             has_serial_numbers: serialCount > 0,
           }
         })

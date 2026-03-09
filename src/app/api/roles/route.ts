@@ -15,6 +15,8 @@ const DEFAULT_PERMISSIONS = {
   analytics: { read: true },
   alerts: { read: true, update: false },
   users: { create: false, read: false, update: false, delete: false },
+  billing: { create: false, read: true, update: false, delete: false },
+  invoices: { create: false, read: true, update: false, delete: false },
 }
 
 const ADMIN_PERMISSIONS = {
@@ -30,6 +32,8 @@ const ADMIN_PERMISSIONS = {
   analytics: { read: true },
   alerts: { read: true, update: true },
   users: { create: true, read: true, update: true, delete: true },
+  billing: { create: true, read: true, update: true, delete: true },
+  invoices: { create: true, read: true, update: true, delete: true },
 }
 
 const VIEWER_PERMISSIONS = {
@@ -45,6 +49,8 @@ const VIEWER_PERMISSIONS = {
   analytics: { read: true },
   alerts: { read: true, update: false },
   users: { create: false, read: false, update: false, delete: false },
+  billing: { create: false, read: true, update: false, delete: false },
+  invoices: { create: false, read: true, update: false, delete: false },
 }
 
 export async function GET(req: NextRequest) {

@@ -70,6 +70,14 @@ model Tenant {
   slug             String   @unique
   subscriptionId   String?  @map("subscription_id")
   subscriptionPlan String?  @map("subscription_plan")
+  address          String?
+  city             String?
+  state            String?
+  pincode          String?
+  gstNumber        String?  @map("gst_number")
+  phone            String?
+  email            String?
+  upiId            String?  @map("upi_id")
   createdAt        DateTime @default(now()) @map("created_at")
   updatedAt        DateTime @updatedAt @map("updated_at")
 
@@ -370,24 +378,55 @@ model StockTransfer {
   tenantId       String         @map("tenant_id")
   fromLocationId String         @map("from_location_id")
   toLocationId   String         @map("to_location_id")
-  productId      String         @map("product_id")
-  quantity       Int
   status         TransferStatus @default(PENDING)
-  requestedBy    String         @map("requested_by")
-  completedBy    String?        @map("completed_by")
+  priority       String         @default("NORMAL") // URGENT, HIGH, NORMAL, LOW
   notes          String?        @db.Text
+  
+  // Approval fields
+  approvedBy     String?        @map("approved_by")
+  approvedAt    DateTime?      @map("approved_at")
+  approvalNotes String?        @map("approval_notes")
+  
+  // Requester info
+  requestedBy    String         @map("requested_by")
+  requestedAt    DateTime       @default(now()) @map("requested_at")
+  
+  // Completion info
+  completedBy    String?        @map("completed_by")
   completedAt    DateTime?      @map("completed_at")
+  
   createdAt      DateTime       @default(now()) @map("created_at")
   updatedAt      DateTime       @updatedAt @map("updated_at")
 
-  tenant       Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  fromLocation Location @relation("from_location", fields: [fromLocationId], references: [id])
-  toLocation   Location @relation("to_location", fields: [toLocationId], references: [id])
+  tenant       Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  fromLocation Location           @relation("from_location", fields: [fromLocationId], references: [id])
+  toLocation   Location           @relation("to_location", fields: [toLocationId], references: [id])
+  items        StockTransferItem[]
 
   @@index([tenantId, status])
   @@index([tenantId, fromLocationId])
   @@index([tenantId, toLocationId])
+  @@index([tenantId, requestedBy])
   @@map("stock_transfers")
+}
+
+model StockTransferItem {
+  id              String        @id @default(uuid())
+  transferId      String        @map("transfer_id")
+  productId       String        @map("product_id")
+  quantity        Int
+  receivedQty     Int?          @map("received_qty") // For partial receiving
+  
+  // Timestamps
+  createdAt       DateTime      @default(now()) @map("created_at")
+  updatedAt       DateTime      @updatedAt @map("updated_at")
+  
+  transfer        StockTransfer @relation(fields: [transferId], references: [id], onDelete: Cascade)
+
+  @@unique([transferId, productId])
+  @@index([transferId])
+  @@index([productId])
+  @@map("stock_transfer_items")
 }
 
 enum TransferStatus {
@@ -618,6 +657,8 @@ model Invoice {
   businessState     String? @map("business_state")
   businessPincode   String? @map("business_pincode")
   businessGstNumber String? @map("business_gst_number")
+  businessPhone     String? @map("business_phone")
+  businessEmail     String? @map("business_email")
 
   // Customer Details
   customerName      String  @map("customer_name")

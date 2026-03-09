@@ -197,7 +197,7 @@ export default function ReceiptPage() {
       {/* Watermark Footer */}
       <div className="relative mt-6">
         <p className="text-center text-gray-300 text-xs opacity-50">
-          Powered by DKS StockAlert
+          Powered by DKS Stockox
         </p>
         {/* Watermark */}
         <div className="fixed bottom-4 right-4 opacity-10 pointer-events-none print:hidden">

@@ -98,7 +98,7 @@ async function exportJSONBackup(userId: string, filename: string, tables: string
 async function exportSQLBackup(userId: string, filename: string, tables: string[]) {
   const sqlStatements: string[] = []
 
-  sqlStatements.push('-- StockAlert Database Backup')
+  sqlStatements.push('-- Stockox Database Backup')
   sqlStatements.push(`-- Generated: ${new Date().toISOString()}`)
   sqlStatements.push('-- User ID: ' + userId)
   sqlStatements.push('')

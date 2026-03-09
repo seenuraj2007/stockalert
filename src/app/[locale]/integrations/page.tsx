@@ -4,11 +4,11 @@ import { Package, ArrowLeft, Puzzle, ShoppingCart, Zap, Globe, Database, CreditC
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Integrations - Connect DKS StockAlert with Your Tools | Tally, WhatsApp, Shopify',
-  description: 'Integrate DKS StockAlert with Tally, WhatsApp Business, Shopify, WooCommerce, Cashfree, and more. Connect your existing tools for seamless inventory management and automated workflows.',
+  title: 'Integrations - Connect DKS Stockox with Your Tools | Tally, WhatsApp, Shopify',
+  description: 'Integrate DKS Stockox with Tally, WhatsApp Business, Shopify, WooCommerce, Cashfree, and more. Connect your existing tools for seamless inventory management and automated workflows.',
   keywords: ['inventory software integrations', 'Tally integration', 'WhatsApp inventory alerts', 'Shopify inventory sync', 'WooCommerce stock management', 'Cashfree billing integration', 'inventory API'],
   openGraph: {
-    title: 'DKS StockAlert Integrations - Connect Your Business Tools',
+    title: 'DKS Stockox Integrations - Connect Your Business Tools',
     description: 'Seamlessly integrate with Tally, WhatsApp, Shopify, and 20+ other business tools. Automate your inventory workflows.',
     type: 'website',
   },
@@ -75,7 +75,7 @@ export default function IntegrationsPage() {
               <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg shadow-purple-200">
                 <Package className="w-6 h-6 text-white" />
               </div>
-              <span className="text-xl font-bold text-gray-900">DKS StockAlert</span>
+              <span className="text-xl font-bold text-gray-900">DKS Stockox</span>
             </Link>
             <Link href="/auth" className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-5 py-2.5 rounded-xl font-medium hover:from-indigo-600 hover:to-purple-700 transition-all hover:-translate-y-0.5 shadow-lg shadow-purple-200">
               Get Started
@@ -97,7 +97,7 @@ export default function IntegrationsPage() {
             </div>
             <h1 className="text-4xl font-bold text-gray-900 mb-4">Integrations</h1>
             <p className="text-gray-600 max-w-2xl mx-auto">
-              Connect DKS StockAlert with your favorite tools and automate your inventory management workflows
+              Connect DKS Stockox with your favorite tools and automate your inventory management workflows
             </p>
           </div>
 
@@ -159,7 +159,7 @@ export default function IntegrationsPage() {
 
       <footer className="bg-white/80 backdrop-blur-xl border-t border-gray-100 py-8 px-4">
         <div className="max-w-6xl mx-auto text-center">
-          <p className="text-sm text-gray-500">© {new Date().getFullYear()} DKS StockAlert. All rights reserved.</p>
+          <p className="text-sm text-gray-500">© {new Date().getFullYear()} DKS Stockox. All rights reserved.</p>
         </div>
       </footer>
     </div>

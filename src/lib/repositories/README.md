@@ -1,6 +1,6 @@
 # Repository Pattern Documentation
 
-This directory contains all repository classes for DKS StockAlert data access.
+This directory contains all repository classes for DKS Stockox data access.
 
 ## Overview
 
