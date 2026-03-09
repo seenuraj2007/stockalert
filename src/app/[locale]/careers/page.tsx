@@ -4,11 +4,11 @@ import { Package, ArrowLeft, Briefcase, MapPin, Globe, Users, Target } from 'luc
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Careers at DKS StockAlert - Join Our Team | Remote Jobs India',
-  description: 'Join DKS StockAlert and work on open source inventory management software. We are hiring developers, designers, and product managers. Remote-first culture. Competitive salaries.',
-  keywords: ['DKS StockAlert careers', 'inventory software jobs', 'remote developer jobs India', 'open source jobs', 'React developer jobs', 'Next.js jobs', 'tech jobs Bangalore'],
+  title: 'Careers at DKS Stockox - Join Our Team | Remote Jobs India',
+  description: 'Join DKS Stockox and work on open source inventory management software. We are hiring developers, designers, and product managers. Remote-first culture. Competitive salaries.',
+  keywords: ['DKS Stockox careers', 'inventory software jobs', 'remote developer jobs India', 'open source jobs', 'React developer jobs', 'Next.js jobs', 'tech jobs Bangalore'],
   openGraph: {
-    title: 'Careers at DKS StockAlert - Build the Future of Inventory Management',
+    title: 'Careers at DKS Stockox - Build the Future of Inventory Management',
     description: 'Join our team building open source inventory management software. Remote-first, great culture, competitive pay.',
     type: 'website',
   },
@@ -71,7 +71,7 @@ export default function CareersPage() {
               <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg shadow-purple-200">
                 <Package className="w-6 h-6 text-white" />
               </div>
-              <span className="text-xl font-bold text-gray-900">StockAlert</span>
+              <span className="text-xl font-bold text-gray-900">Stockox</span>
             </Link>
             <Link href="/auth" className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-5 py-2.5 rounded-xl font-medium hover:from-indigo-600 hover:to-purple-700 transition-all hover:-translate-y-0.5 shadow-lg shadow-purple-200">
               Join Us
@@ -200,7 +200,7 @@ export default function CareersPage() {
 
       <footer className="bg-white/80 backdrop-blur-xl border-t border-gray-100 py-8 px-4">
         <div className="max-w-4xl mx-auto text-center">
-          <p className="text-sm text-gray-500">© {new Date().getFullYear()} StockAlert. All rights reserved.</p>
+          <p className="text-sm text-gray-500">© {new Date().getFullYear()} Stockox. All rights reserved.</p>
         </div>
       </footer>
     </div>

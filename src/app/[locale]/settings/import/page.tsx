@@ -7,7 +7,7 @@ import Link from 'next/link'
 import SidebarLayout from '@/components/SidebarLayout'
 
 export const metadata: Metadata = {
-  title: 'Import from Tally - DKS StockAlert',
+  title: 'Import from Tally - DKS Stockox',
   description: 'Import your data from Tally',
 }
 

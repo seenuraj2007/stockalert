@@ -6,6 +6,7 @@ import { Package, TrendingDown, AlertTriangle, Bell, Plus, ArrowUpRight, ArrowDo
 import Link from 'next/link'
 import { SubscriptionGate } from '@/components/SubscriptionGate'
 import SidebarLayout from '@/components/SidebarLayout'
+import { useUser } from '@/lib/UserContext'
 
 interface DashboardStats {
     totalProducts: number
@@ -107,12 +108,42 @@ LowStockItem.displayName = 'LowStockItem'
 
 export default function DashboardPage() {
     const router = useRouter()
+    const { user, loading: userLoading, isReady } = useUser()
     const [stats, setStats] = useState<DashboardStats | null>(null)
     const [loading, setLoading] = useState(true)
 
+    // Redirect to login if not authenticated, but wait for user context to be ready
     useEffect(() => {
-        fetchDashboard()
-    }, [])
+        // Only redirect after user context is ready and we have a confirmed unauthenticated state
+        if (isReady && !userLoading) {
+            if (!user) {
+                router.push('/auth')
+            }
+        }
+    }, [user, userLoading, isReady, router])
+
+    // Don't render dashboard content if not authenticated
+    // Don't render dashboard content if not authenticated - show loading while checking
+    if (!user && isReady) {
+        return (
+            <SidebarLayout>
+                <div className="flex items-center justify-center min-h-[400px]">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+                </div>
+            </SidebarLayout>
+        )
+    }
+
+    // Show loading while checking auth
+    if (!isReady) {
+        return (
+            <SidebarLayout>
+                <div className="flex items-center justify-center min-h-[400px]">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+                </div>
+            </SidebarLayout>
+        )
+    }
 
     const fetchDashboard = async () => {
         try {
@@ -120,8 +151,11 @@ export default function DashboardPage() {
                 credentials: 'include',
                 next: { revalidate: 30 }
             })
+            // Don't redirect on 401 here - the useEffect above handles auth check
+            // This prevents race conditions between auth check and API call
             if (res.status === 401) {
-                router.push('/auth')
+                // Auth will be handled by useEffect above
+                setLoading(false)
                 return
             }
             const data = await res.json()
@@ -132,6 +166,13 @@ export default function DashboardPage() {
             setLoading(false)
         }
     }
+
+    // Fetch dashboard data after auth check passes
+    useEffect(() => {
+        if (user && isReady) {
+            fetchDashboard()
+        }
+    }, [user, isReady])
 
     if (loading) {
         return (

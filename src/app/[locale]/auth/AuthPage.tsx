@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Package, AlertCircle, Mail, Lock, User, ArrowRight, ChevronRight } from 'lucide-react'
+import { useUser } from '@/lib/UserContext'
 
 const getCSRFToken = (): string => {
   if (typeof document !== 'undefined') {
@@ -16,6 +17,7 @@ const getCSRFToken = (): string => {
 export default function AuthPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const { user, isReady, refetchUser } = useUser()
   const returnTo = searchParams?.get('returnTo') || '/dashboard'
   const [isLogin, setIsLogin] = useState(true)
   const [email, setEmail] = useState('')
@@ -27,18 +29,24 @@ export default function AuthPage() {
   const [googleLoading, setGoogleLoading] = useState(false)
 
   useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const res = await fetch('/api/auth/me', { credentials: 'include' })
-        if (res.ok) {
-          router.push(returnTo)
-        }
-      } catch {
-        // Silently handle error
-      }
+    // Wait for user context to be ready before checking auth status
+    // This prevents race conditions between login and redirect
+    if (!isReady) return
+    
+    // If user is already authenticated, redirect to dashboard
+    if (user) {
+      router.push(returnTo)
     }
-    checkAuth()
-  }, [router, returnTo])
+  }, [router, returnTo, user, isReady])
+
+  // Show loading while checking auth
+  if (!isReady) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 flex items-center justify-center p-4">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+      </div>
+    )
+  }
 
   const validatePassword = (pwd: string): string => {
     if (pwd.length < 8) {
@@ -124,6 +132,8 @@ export default function AuthPage() {
         return
       }
 
+      // Refetch user to ensure context is updated before redirect
+      await refetchUser()
       router.push(returnTo)
       router.refresh()
     } catch (err: unknown) {
@@ -153,7 +163,7 @@ export default function AuthPage() {
             <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl mb-5 shadow-xl shadow-indigo-200">
               <Package className="w-10 h-10 text-white" />
             </div>
-            <h1 className="text-3xl font-bold text-gray-900">DKS StockAlert</h1>
+            <h1 className="text-3xl font-bold text-gray-900">DKS Stockox</h1>
             <p className="text-gray-500 mt-2">{isLogin ? 'Welcome back! Sign in to continue.' : 'Start managing your inventory today.'}</p>
           </div>
 

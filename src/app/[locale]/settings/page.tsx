@@ -11,7 +11,7 @@ import Link from 'next/link'
 import SidebarLayout from '@/components/SidebarLayout'
 
 export const metadata: Metadata = {
-  title: 'Settings - DKS StockAlert',
+  title: 'Settings - DKS Stockox',
   description: 'Manage your account, notifications, and integrations',
 }
 
@@ -301,7 +301,7 @@ export default async function SettingsPage(props: { params: Promise<{ locale: st
 
           {/* App Info */}
           <div className="text-center pt-4">
-            <p className="text-xs text-gray-400">DKS StockAlert v1.0.0</p>
+            <p className="text-xs text-gray-400">DKS Stockox v1.0.0</p>
             <p className="text-xs text-gray-400 mt-1">© 2024 DKS Technologies</p>
           </div>
         </div>
@@ -414,14 +414,14 @@ export default async function SettingsPage(props: { params: Promise<{ locale: st
               </div>
             </div>
 
-            {/* Why Choose DKS StockAlert */}
+            {/* Why Choose DKS Stockox */}
             <div className="p-6 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-2xl border border-indigo-100">
               <div className="flex items-start gap-4">
                 <div className="w-10 h-10 bg-indigo-100 rounded-xl flex items-center justify-center flex-shrink-0">
                   <Shield className="w-5 h-5 text-indigo-600" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900">Why DKS StockAlert?</h3>
+                  <h3 className="text-lg font-semibold text-gray-900">Why DKS Stockox?</h3>
                   <p className="text-gray-500 mt-1 mb-4">
                     We have these killer features:
                   </p>

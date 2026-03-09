@@ -7,8 +7,8 @@ import Link from 'next/link'
 import SidebarLayout from '@/components/SidebarLayout'
 
 export const metadata: Metadata = {
-  title: 'Rate the App - DKS StockAlert',
-  description: 'Rate and review DKS StockAlert',
+  title: 'Rate the App - DKS Stockox',
+  description: 'Rate and review DKS Stockox',
 }
 
 export default async function RateAppPage(props: { params: Promise<{ locale: string }> }) {
@@ -75,7 +75,7 @@ export default async function RateAppPage(props: { params: Promise<{ locale: str
               <div className="w-16 h-16 bg-gradient-to-br from-yellow-400 to-amber-500 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
                 <Heart className="w-8 h-8 text-white" />
               </div>
-              <h2 className="text-xl font-bold text-gray-900 mb-2">Enjoying DKS StockAlert?</h2>
+              <h2 className="text-xl font-bold text-gray-900 mb-2">Enjoying DKS Stockox?</h2>
               <p className="text-gray-500">Your feedback helps us improve and grow</p>
             </div>
             <div className="p-6">
@@ -147,7 +147,7 @@ export default async function RateAppPage(props: { params: Promise<{ locale: str
                 <div className="w-20 h-20 bg-gradient-to-br from-yellow-400 to-amber-500 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
                   <Heart className="w-10 h-10 text-white" />
                 </div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">Enjoying DKS StockAlert?</h2>
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">Enjoying DKS Stockox?</h2>
                 <p className="text-gray-500">Your feedback helps us improve and serve you better</p>
               </div>
               <div className="p-8">
@@ -182,7 +182,7 @@ export default async function RateAppPage(props: { params: Promise<{ locale: str
             <div className="bg-white/80 backdrop-blur-xl border border-gray-100 shadow-lg shadow-gray-200/50 rounded-2xl overflow-hidden">
               <div className="p-6 border-b border-gray-100">
                 <h3 className="font-semibold text-gray-900">Share the Love</h3>
-                <p className="text-sm text-gray-500 mt-1">Help others discover DKS StockAlert</p>
+                <p className="text-sm text-gray-500 mt-1">Help others discover DKS Stockox</p>
               </div>
               <div className="p-6 grid gap-4 sm:grid-cols-2">
                 <button className="flex items-center justify-center gap-3 p-4 rounded-xl border border-gray-200 hover:border-green-300 hover:bg-green-50 transition-all">

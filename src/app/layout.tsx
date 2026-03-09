@@ -15,10 +15,10 @@ const inter = Inter({
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "https://stockalert-seven.vercel.app"),
   title: {
-    default: "DKS StockAlert - Free Open Source Inventory Management Software India",
-    template: "%s | DKS StockAlert"
+    default: "DKS Stockox - Free Open Source Inventory Management Software India",
+    template: "%s | DKS Stockox"
   },
-  description: "DKS StockAlert is the best free open source inventory management software in India. Track stock levels, get low stock alerts, manage multiple warehouses, GST invoicing, Tally import, and WhatsApp alerts. Perfect for small businesses, retailers, and manufacturers.",
+  description: "DKS Stockox is the best free open source inventory management software in India. Track stock levels, get low stock alerts, manage multiple warehouses, GST invoicing, Tally import, and WhatsApp alerts. Perfect for small businesses, retailers, and manufacturers.",
   keywords: [
     "inventory management software",
     "free inventory software India",
@@ -34,9 +34,9 @@ export const metadata: Metadata = {
     "stock control software",
     "inventory management system India"
   ],
-  authors: [{ name: "DKS StockAlert", url: "https://github.com/seenuraj2007" }],
-  creator: "DKS StockAlert",
-  publisher: "DKS StockAlert",
+  authors: [{ name: "DKS Stockox", url: "https://github.com/seenuraj2007" }],
+  creator: "DKS Stockox",
+  publisher: "DKS Stockox",
   robots: {
     index: true,
     follow: true,
@@ -63,15 +63,15 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_US",
     url: process.env.NEXT_PUBLIC_APP_URL || "https://stockalert-seven.vercel.app",
-    siteName: "DKS StockAlert",
-    title: "DKS StockAlert - Free Open Source Inventory Management Software",
+    siteName: "DKS Stockox",
+    title: "DKS Stockox - Free Open Source Inventory Management Software",
     description: "Free open source inventory management software with GST invoicing, WhatsApp alerts, Tally import, and multi-location support. Perfect for Indian businesses.",
   },
   twitter: {
     card: "summary_large_image",
     site: "@dksstockalert",
     creator: "@dksstockalert",
-    title: "DKS StockAlert - Free Open Source Inventory Management",
+    title: "DKS Stockox - Free Open Source Inventory Management",
     description: "Free open source inventory management software with GST invoicing, WhatsApp alerts, and Tally import.",
     images: ["/og-image.png"],
   },
@@ -81,7 +81,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "DKS StockAlert",
+    title: "DKS Stockox",
   },
   formatDetection: {
     email: false,
@@ -112,7 +112,7 @@ export default function RootLayout({
         <meta name="theme-color" content="#4f46e5" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="apple-mobile-web-app-title" content="DKS StockAlert" />
+        <meta name="apple-mobile-web-app-title" content="DKS Stockox" />
         <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
         <link rel="dns-prefetch" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />

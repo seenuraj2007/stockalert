@@ -25,6 +25,8 @@ const PERMISSION_MODULES = [
   { key: 'stock_transfers', label: 'Stock Transfers', actions: ['create', 'read', 'update', 'delete'] },
   { key: 'stock_takes', label: 'Stock Takes', actions: ['create', 'read', 'update', 'delete'] },
   { key: 'locations', label: 'Locations', actions: ['create', 'read', 'update', 'delete'] },
+  { key: 'billing', label: 'Billing / POS', actions: ['create', 'read', 'update', 'delete'] },
+  { key: 'invoices', label: 'Invoices', actions: ['create', 'read', 'update', 'delete'] },
   { key: 'reports', label: 'Reports', actions: ['read', 'export'] },
   { key: 'analytics', label: 'Analytics', actions: ['read'] },
   { key: 'alerts', label: 'Alerts', actions: ['read', 'update'] },

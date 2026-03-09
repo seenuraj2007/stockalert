@@ -193,7 +193,7 @@ export default function DashboardClient({ initialStats }: { initialStats: Dashbo
               <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-200 group-hover:shadow-indigo-300 transition-shadow">
                 <Package className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
               </div>
-              <span className="text-lg sm:text-xl font-bold text-gray-900 hidden sm:block">DKS StockAlert</span>
+              <span className="text-lg sm:text-xl font-bold text-gray-900 hidden sm:block">DKS Stockox</span>
             </Link>
 
             <div className="flex items-center gap-1.5 sm:gap-4">

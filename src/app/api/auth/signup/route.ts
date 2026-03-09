@@ -148,16 +148,16 @@ export async function POST(req: NextRequest) {
       try {
         await sendEmail({
           to: user.email,
-          subject: 'Verify your email - DKS StockAlert',
+          subject: 'Verify your email - DKS Stockox',
           html: `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-              <h2 style="color: #4F46E5;">Welcome to DKS StockAlert!</h2>
+              <h2 style="color: #4F46E5;">Welcome to DKS Stockox!</h2>
               <p>Hi ${validatedData.full_name},</p>
               <p>Thank you for signing up. Please verify your email address by clicking the button below:</p>
               <a href="${verifyUrl}" style="display: inline-block; background: #4F46E5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; margin: 16px 0;">Verify Email</a>
               <p>Or copy this link: ${verifyUrl}</p>
               <p>This link will expire in 24 hours.</p>
-              <p>Best regards,<br>DKS StockAlert Team</p>
+              <p>Best regards,<br>DKS Stockox Team</p>
             </div>
           `
         })

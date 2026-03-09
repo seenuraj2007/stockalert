@@ -2,8 +2,8 @@ import Link from 'next/link'
 import { Package, ArrowLeft, Cookie, Lock, Eye, ChevronRight } from 'lucide-react'
 
 export const metadata = {
-  title: 'Cookie Policy - DKS StockAlert',
-  description: 'Cookie Policy for DKS StockAlert inventory management platform.',
+  title: 'Cookie Policy - DKS Stockox',
+  description: 'Cookie Policy for DKS Stockox inventory management platform.',
 }
 
 export default function CookiePolicyPage() {
@@ -16,7 +16,7 @@ export default function CookiePolicyPage() {
               <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg shadow-purple-200">
                 <Package className="w-6 h-6 text-white" />
               </div>
-              <span className="text-xl font-bold text-gray-900">DKS StockAlert</span>
+              <span className="text-xl font-bold text-gray-900">DKS Stockox</span>
             </Link>
             <Link href="/auth" className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-5 py-2.5 rounded-xl font-medium hover:from-indigo-600 hover:to-purple-700 transition-all hover:-translate-y-0.5 shadow-lg shadow-purple-200">
               Get Started
@@ -189,7 +189,7 @@ export default function CookiePolicyPage() {
 
       <footer className="bg-white/80 backdrop-blur-xl border-t border-gray-100 py-8 px-4">
         <div className="max-w-4xl mx-auto text-center">
-          <p className="text-sm text-gray-500">© {new Date().getFullYear()} DKS StockAlert. All rights reserved.</p>
+          <p className="text-sm text-gray-500">© {new Date().getFullYear()} DKS Stockox. All rights reserved.</p>
         </div>
       </footer>
     </div>

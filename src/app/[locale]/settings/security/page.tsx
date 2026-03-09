@@ -7,7 +7,7 @@ import Link from 'next/link'
 import SidebarLayout from '@/components/SidebarLayout'
 
 export const metadata: Metadata = {
-  title: 'Security Settings - DKS StockAlert',
+  title: 'Security Settings - DKS Stockox',
   description: 'Manage your password and security settings',
 }
 

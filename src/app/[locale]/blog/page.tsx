@@ -4,11 +4,11 @@ import { Package, ArrowLeft, FileText, Calendar, User, Clock } from 'lucide-reac
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Inventory Management Blog - Tips, Guides & Industry News | DKS StockAlert',
-  description: 'Read the latest inventory management tips, GST compliance guides, small business advice, and industry news on the DKS StockAlert blog. Learn how to optimize your stock management.',
+  title: 'Inventory Management Blog - Tips, Guides & Industry News | DKS Stockox',
+  description: 'Read the latest inventory management tips, GST compliance guides, small business advice, and industry news on the DKS Stockox blog. Learn how to optimize your stock management.',
   keywords: ['inventory management blog', 'stock management tips', 'GST compliance guide', 'small business inventory', 'warehouse management tips', 'inventory software tutorials'],
   openGraph: {
-    title: 'DKS StockAlert Blog - Inventory Management Insights',
+    title: 'DKS Stockox Blog - Inventory Management Insights',
     description: 'Expert tips and guides on inventory management, GST compliance, and small business operations.',
     type: 'website',
   },
@@ -19,16 +19,16 @@ const blogPosts = [
     id: 1,
     title: '5 Inventory Mistakes That Cost Businesses Money',
     excerpt: 'Learn about common inventory management pitfalls and how to avoid them to save your business money and improve efficiency.',
-    author: 'DKS StockAlert Team',
+    author: 'DKS Stockox Team',
     date: 'January 15, 2025',
     category: 'Tips & Tricks',
     readTime: '5 min read',
   },
   {
     id: 2,
-    title: 'Getting Started with DKS StockAlert: A Complete Guide',
-    excerpt: 'Everything you need to know to set up and use StockAlert effectively for your business inventory management needs.',
-    author: 'DKS StockAlert Team',
+    title: 'Getting Started with DKS Stockox: A Complete Guide',
+    excerpt: 'Everything you need to know to set up and use Stockox effectively for your business inventory management needs.',
+    author: 'DKS Stockox Team',
     date: 'January 10, 2025',
     category: 'Tutorial',
     readTime: '8 min read',
@@ -37,7 +37,7 @@ const blogPosts = [
     id: 3,
     title: 'Why Small Businesses Need Inventory Management Software',
     excerpt: 'Discover how inventory management software can help small businesses grow, save time, and reduce costs.',
-    author: 'DKS StockAlert Team',
+    author: 'DKS Stockox Team',
     date: 'January 5, 2025',
     category: 'Business',
     readTime: '6 min read',
@@ -54,7 +54,7 @@ export default function BlogPage() {
               <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg shadow-purple-200">
                 <Package className="w-6 h-6 text-white" />
               </div>
-              <span className="text-xl font-bold text-gray-900">StockAlert</span>
+              <span className="text-xl font-bold text-gray-900">Stockox</span>
             </Link>
             <Link href="/auth" className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-5 py-2.5 rounded-xl font-medium hover:from-indigo-600 hover:to-purple-700 transition-all hover:-translate-y-0.5 shadow-lg shadow-purple-200">
               Get Started
@@ -143,7 +143,7 @@ export default function BlogPage() {
 
       <footer className="bg-white/80 backdrop-blur-xl border-t border-gray-100 py-8 px-4">
         <div className="max-w-4xl mx-auto text-center">
-          <p className="text-sm text-gray-500">© {new Date().getFullYear()} StockAlert. All rights reserved.</p>
+          <p className="text-sm text-gray-500">© {new Date().getFullYear()} Stockox. All rights reserved.</p>
         </div>
       </footer>
     </div>

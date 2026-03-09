@@ -2,13 +2,13 @@ import { Metadata } from 'next'
 import { getCurrentUser } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import { cookies } from 'next/headers'
-import { CircleHelp, MessageCircle, BookOpen, Video, Mail, Phone } from 'lucide-react'
+import { CircleHelp, MessageCircle, BookOpen, Video, Mail, Phone, Bug, ChevronRight } from 'lucide-react'
 import Link from 'next/link'
 import SidebarLayout from '@/components/SidebarLayout'
 
 export const metadata: Metadata = {
-  title: 'Help Center - DKS StockAlert',
-  description: 'Get help and support for DKS StockAlert',
+  title: 'Help Center - DKS Stockox',
+  description: 'Get help and support for DKS Stockox',
 }
 
 export default async function HelpCenterPage(props: { params: Promise<{ locale: string }> }) {
@@ -52,6 +52,14 @@ export default async function HelpCenterPage(props: { params: Promise<{ locale: 
   ]
 
   const contactMethods = [
+    {
+      icon: <Bug className="w-5 h-5" />,
+      iconBg: 'bg-red-100',
+      iconColor: 'text-red-600',
+      title: 'Report a Bug',
+      description: 'Found an issue? Let us know',
+      href: `/${locale}/settings/help/report-bug`,
+    },
     {
       icon: <Mail className="w-5 h-5" />,
       iconBg: 'bg-amber-100',
@@ -135,28 +143,32 @@ export default async function HelpCenterPage(props: { params: Promise<{ locale: 
             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 px-1">Contact Us</p>
             <div className="bg-white rounded-xl overflow-hidden border border-gray-200/50 shadow-sm">
               {contactMethods.map((method, index) => (
-                <div 
+                <Link 
                   key={method.title}
-                  className={`flex items-center gap-3 px-4 py-4 ${index !== contactMethods.length - 1 ? 'border-b border-gray-100' : ''}`}
+                  href={method.href || '#'}
+                  className={`flex items-center gap-3 px-4 py-4 active:bg-gray-50 transition-colors ${index !== contactMethods.length - 1 ? 'border-b border-gray-100' : ''}`}
                 >
                   <div className={`w-10 h-10 ${method.iconBg} rounded-lg flex items-center justify-center flex-shrink-0`}>
                     <span className={method.iconColor}>{method.icon}</span>
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-medium text-gray-900">{method.title}</p>
-                    <p className="text-sm text-gray-500">{method.value}</p>
+                    <p className="text-sm text-gray-500">{method.description || method.value}</p>
                   </div>
-                  <button className="text-sm text-indigo-600 font-medium">
-                    {method.action}
-                  </button>
-                </div>
+                  {method.action && (
+                    <button className="text-sm text-indigo-600 font-medium">
+                      {method.action}
+                    </button>
+                  )}
+                  {!method.action && <ChevronRight className="w-5 h-5 text-gray-300 flex-shrink-0" />}
+                </Link>
               ))}
             </div>
           </div>
 
           {/* Version Info */}
           <div className="text-center px-4">
-            <p className="text-sm text-gray-500">DKS StockAlert v1.0.0</p>
+            <p className="text-sm text-gray-500">DKS Stockox v1.0.0</p>
             <p className="text-xs text-gray-400 mt-1">We're here to help 24/7</p>
           </div>
         </div>
@@ -194,9 +206,10 @@ export default async function HelpCenterPage(props: { params: Promise<{ locale: 
               </div>
               <div className="p-6 space-y-4">
                 {contactMethods.map((method) => (
-                  <div 
+                  <Link 
                     key={method.title}
-                    className="flex items-center justify-between p-4 bg-gray-50 rounded-xl"
+                    href={method.href || '#'}
+                    className="flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors"
                   >
                     <div className="flex items-center gap-4">
                       <div className={`w-12 h-12 ${method.iconBg} rounded-xl flex items-center justify-center`}>
@@ -204,13 +217,17 @@ export default async function HelpCenterPage(props: { params: Promise<{ locale: 
                       </div>
                       <div>
                         <h4 className="font-medium text-gray-900">{method.title}</h4>
-                        <p className="text-sm text-gray-500">{method.value}</p>
+                        <p className="text-sm text-gray-500">{method.description || method.value}</p>
                       </div>
                     </div>
-                    <button className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors">
-                      {method.action}
-                    </button>
-                  </div>
+                    {method.action ? (
+                      <button className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors">
+                        {method.action}
+                      </button>
+                    ) : (
+                      <ChevronRight className="w-5 h-5 text-gray-400" />
+                    )}
+                  </Link>
                 ))}
               </div>
             </div>

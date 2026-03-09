@@ -12,8 +12,8 @@ export function StructuredData({ type, data }: StructuredDataProps) {
     organization: {
       '@context': 'https://schema.org',
       '@type': 'Organization',
-      name: 'DKS StockAlert',
-      alternateName: 'StockAlert',
+      name: 'DKS Stockox',
+      alternateName: 'Stockox',
       url: baseUrl,
       logo: `${baseUrl}/icon.svg`,
       sameAs: [
@@ -22,7 +22,7 @@ export function StructuredData({ type, data }: StructuredDataProps) {
       description: 'Free open source inventory management software for small businesses in India. Features GST invoicing, WhatsApp alerts, Tally import, and multi-location support.',
       founder: {
         '@type': 'Person',
-        name: 'DKS StockAlert Team',
+        name: 'DKS Stockox Team',
       },
       foundingDate: '2024',
       address: {
@@ -38,7 +38,7 @@ export function StructuredData({ type, data }: StructuredDataProps) {
     website: {
       '@context': 'https://schema.org',
       '@type': 'WebSite',
-      name: 'DKS StockAlert',
+      name: 'DKS Stockox',
       url: baseUrl,
       potentialAction: {
         '@type': 'SearchAction',
@@ -52,7 +52,7 @@ export function StructuredData({ type, data }: StructuredDataProps) {
     product: {
       '@context': 'https://schema.org',
       '@type': 'SoftwareApplication',
-      name: 'DKS StockAlert',
+      name: 'DKS Stockox',
       applicationCategory: 'BusinessApplication',
       operatingSystem: 'Web Browser',
       offers: {
@@ -87,10 +87,10 @@ export function StructuredData({ type, data }: StructuredDataProps) {
       mainEntity: [
         {
           '@type': 'Question',
-          name: 'Is DKS StockAlert really free?',
+          name: 'Is DKS Stockox really free?',
           acceptedAnswer: {
             '@type': 'Answer',
-            text: 'Yes! DKS StockAlert is open source and free to use. You can self-host it or use our cloud version. We offer a free tier with generous limits, and paid plans for businesses that need more features.',
+            text: 'Yes! DKS Stockox is open source and free to use. You can self-host it or use our cloud version. We offer a free tier with generous limits, and paid plans for businesses that need more features.',
           },
         },
         {
@@ -98,15 +98,15 @@ export function StructuredData({ type, data }: StructuredDataProps) {
           name: 'Can I import data from Tally?',
           acceptedAnswer: {
             '@type': 'Answer',
-            text: 'Absolutely! DKS StockAlert supports 1-click Tally import. You can easily migrate your products, stock levels, and GST details from Tally to StockAlert in seconds.',
+            text: 'Absolutely! DKS Stockox supports 1-click Tally import. You can easily migrate your products, stock levels, and GST details from Stockox in seconds.',
           },
         },
         {
           '@type': 'Question',
-          name: 'Is DKS StockAlert GST compliant?',
+          name: 'Is DKS Stockox GST compliant?',
           acceptedAnswer: {
             '@type': 'Answer',
-            text: 'Yes, DKS StockAlert is fully GST compliant. You can generate GST invoices with HSN codes, tax breakdowns, and e-way bill integration. Perfect for Indian businesses.',
+            text: 'Yes, DKS Stockox is fully GST compliant. You can generate GST invoices with HSN codes, tax breakdowns, and e-way bill integration. Perfect for Indian businesses.',
           },
         },
         {

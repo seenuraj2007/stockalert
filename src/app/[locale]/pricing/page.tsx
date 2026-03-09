@@ -199,7 +199,7 @@ export default function PricingPage() {
               <div className="w-10 h-10 bg-gradient-to-br from-violet-500 to-fuchsia-600 rounded-xl flex items-center justify-center shadow-lg shadow-violet-500/25 group-hover:shadow-violet-500/40 transition-all">
                 <Package className="w-6 h-6 text-white" />
               </div>
-              <span className="text-xl font-bold bg-gradient-to-r from-white to-white/70 bg-clip-text text-transparent">DKS StockAlert</span>
+              <span className="text-xl font-bold bg-gradient-to-r from-white to-white/70 bg-clip-text text-transparent">DKS Stockox</span>
             </Link>
 
             <div className="hidden md:flex items-center gap-8">
@@ -513,7 +513,7 @@ export default function PricingPage() {
                 Ready to Get Started?
               </h2>
               <p className="text-xl text-white/80 mb-8 max-w-2xl mx-auto">
-                Join 500+ businesses already using DKS StockAlert to manage their inventory.
+                Join 500+ businesses already using DKS Stockox to manage their inventory.
               </p>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                 <Link href="/auth" className="w-full sm:w-auto bg-white text-violet-600 px-8 py-4 rounded-xl font-semibold text-lg hover:bg-white/90 transition-all shadow-xl hover:shadow-2xl hover:-translate-y-0.5 flex items-center justify-center gap-2 cursor-pointer">
@@ -557,7 +557,7 @@ export default function PricingPage() {
                 <div className="w-10 h-10 bg-gradient-to-br from-violet-500 to-fuchsia-600 rounded-xl flex items-center justify-center shadow-lg shadow-violet-500/20 group-hover:shadow-violet-500/40 transition-all">
                   <Package className="w-6 h-6 text-white" />
                 </div>
-                <span className="text-xl font-bold text-white">DKS StockAlert</span>
+                <span className="text-xl font-bold text-white">DKS Stockox</span>
               </Link>
               <p className="text-sm leading-relaxed">
                 Smart inventory management for growing businesses. Track stock, manage suppliers, never run out.
@@ -576,7 +576,7 @@ export default function PricingPage() {
 
           <div className="border-t border-white/5 pt-8 flex flex-col md:flex-row items-center justify-between">
             <div className="flex flex-col items-center md:items-start gap-1">
-              <p className="text-sm">© {new Date().getFullYear()} DKS StockAlert. All rights reserved.</p>
+              <p className="text-sm">© {new Date().getFullYear()} DKS Stockox. All rights reserved.</p>
               <p className="text-xs text-white/40 flex items-center gap-1">
                 Built with care • <span className="text-violet-400">ISO 27001 Certified</span> • Enterprise-grade security
               </p>
